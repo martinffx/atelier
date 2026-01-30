@@ -21,29 +21,23 @@ Check if proposal exists:
 - If `docs/spec/$FEATURE/changes/$CHANGE/proposal.md` doesn't exist → ERROR: "Change proposal not found. Create with: /spec:propose $FEATURE $CHANGE"
 - If `docs/spec/$FEATURE/changes/$CHANGE/design.md` already exists → ERROR: "Change design already exists. Use /spec:plan to continue."
 
-## Step 2: Load Context
+## Step 2: Load Product Context
 
-@clerk load product and technical context in parallel.
+@clerk load product context.
 
-<parallel>
-  <agent type="clerk">
-    Load product context:
-    - Read `docs/product/product.md` for vision and goals
-    - Read existing `docs/spec/*/spec.md` for patterns and conventions
-    - Extract: product vision alignment, existing related features
+Load product context:
+- Read `docs/product/product.md` for vision and goals
+- Read existing `docs/spec/*/spec.md` for patterns and conventions
+- Extract: product vision alignment, existing related features
 
-    Return: product_context, existing_patterns
-  </agent>
+## Step 2b: Load Technical Standards
 
-  <agent type="clerk">
-    Load technical standards:
-    - Read `docs/standards/tech.md` for architecture patterns
-    - Read `docs/standards/coding.md` for implementation conventions
-    - Extract: layered architecture patterns, technology stack conventions
+@clerk load technical standards.
 
-    Return: architecture_patterns, coding_standards
-  </agent>
-</parallel>
+Load technical standards:
+- Read `docs/standards/tech.md` for architecture patterns
+- Read `docs/standards/coding.md` for implementation conventions
+- Extract: layered architecture patterns, technology stack conventions
 
 ## Step 3: Load Requirements
 
