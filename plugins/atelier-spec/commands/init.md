@@ -104,6 +104,20 @@ Create product document:
   EOF
   ```
 
+## Step 5b: Analyze Technical Constraints
+
+@architect analyze technical constraints and recommend architectural patterns.
+
+From discovered constraints, identify:
+- Appropriate architectural patterns (layered, event-driven, microservices, etc.)
+- Technology stack implications (frameworks, databases, infrastructure)
+- Performance considerations (caching, async processing, scaling)
+- Integration patterns required (APIs, messaging, external services)
+
+Provide recommendations for standards documents:
+- Suggested patterns for `architecture.md`
+- Coding conventions based on tech stack for `coding.md`
+
 ## Step 6: Create Standards Documents
 
 @clerk create standards documents from templates.
