@@ -25,34 +25,46 @@ Check if proposal exists:
 
 @clerk load product context.
 
-Load product context:
-- Read `docs/product/product.md` for vision and goals
-- Read existing `docs/spec/*/spec.md` for patterns and conventions
-- Extract: product vision alignment, existing related features
+Read files:
+- `docs/product/product.md` for vision and goals
+- Existing `docs/spec/*/spec.md` for patterns and conventions
 
 ## Step 2b: Load Technical Standards
 
 @clerk load technical standards.
 
-Load technical standards:
-- Read `docs/standards/tech.md` for architecture patterns
-- Read `docs/standards/coding.md` for implementation conventions
-- Extract: layered architecture patterns, technology stack conventions
+Read files:
+- `docs/standards/tech.md` for architecture patterns
+- `docs/standards/coding.md` for implementation conventions
 
 ## Step 3: Load Requirements
 
 @clerk load requirements based on mode.
 
 **Mode: INITIAL**
-Read `docs/spec/$FEATURE/spec.md`:
-- Extract Requirements section (user story, acceptance criteria, business rules, scope)
-- Check for brownfield mode indicator
+Read `docs/spec/$FEATURE/spec.md`
 
 **Mode: CHANGE**
 Read multiple sources:
 - `docs/spec/$FEATURE/spec.md` → current design (baseline)
 - `docs/spec/$FEATURE/changes/$CHANGE/proposal.md` → change requirements
-- Extract: what needs to change, why, affected components
+
+## Step 3b: Analyze Loaded Context
+
+@architect extract patterns and requirements from loaded context.
+
+From product context:
+- Product vision alignment
+- Existing related features and patterns
+
+From technical standards:
+- Layered architecture patterns
+- Technology stack conventions
+
+From requirements:
+- User story, acceptance criteria, business rules, scope
+- Brownfield mode indicator (if present)
+- For CHANGE mode: what needs to change, why, affected components
 
 ## Step 4: Generate Technical Design
 

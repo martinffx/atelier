@@ -31,21 +31,16 @@ Check if proposal has requirements AND design:
 
 ## Step 2: Load Design and Requirements
 
-@architect analyze design to identify implementation tasks.
+@clerk load design and requirements files.
 
 **Mode: INITIAL**
 
-Read `docs/spec/$FEATURE/spec.md`:
-- Extract Technical Design section
-- Identify all components: entities, services, repositories, routes, events, clients
-- Extract Requirements section for motivation
+Read `docs/spec/$FEATURE/spec.md`
 
 Create change directory:
 ```bash
 mkdir -p docs/spec/$FEATURE/changes/initial
 ```
-
-Set motivation: "Initial implementation of $FEATURE"
 
 **Mode: CHANGE**
 
@@ -54,7 +49,22 @@ Read multiple sources:
 - `docs/spec/$FEATURE/changes/$CHANGE/design.md` → proposed changes
 - `docs/spec/$FEATURE/changes/$CHANGE/proposal.md` → motivation
 
-Identify delta:
+## Step 2b: Analyze Design for Implementation Tasks
+
+@architect analyze design to identify implementation tasks.
+
+**Mode: INITIAL**
+
+From loaded spec.md:
+- Extract Technical Design section
+- Identify all components: entities, services, repositories, routes, events, clients
+- Extract Requirements section for motivation
+- Set motivation: "Initial implementation of $FEATURE"
+
+**Mode: CHANGE**
+
+From loaded files:
+- Identify delta between current design and proposed changes
 - Which layers need modification (Entity, Repository, Service, Router)
 - New components vs modified components
 - Database migrations needed
