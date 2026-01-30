@@ -17,10 +17,16 @@ Read files:
 - `docs/spec/$FEATURE/spec.md` → current requirements and design
 - `docs/standards/` → architectural patterns
 
-Extract current state:
+## Step 2b: Analyze Current Architecture
+
+@architect extract current architectural state.
+
+Extract current state from loaded files:
 - Existing entities, services, repositories, routes
 - Current business rules and constraints
 - API endpoints and data models
+
+Summarize current implementation for change scope discussion.
 
 ## Step 3: Discovery Interview for Change Scope
 

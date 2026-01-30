@@ -84,49 +84,59 @@ What technical constraints should we know about?
 
 [Wait for response → store as CONSTRAINTS]
 
-## Step 5-6: Create Project Documents (Parallel)
+## Step 5: Create Product Document
 
-<parallel>
-  <agent type="clerk">
-    Create product document:
-    - Read template: `${CLAUDE_PLUGIN_ROOT}/assets/templates/product.md`
-    - Replace placeholders:
-      - `{{PRODUCT_NAME}}` → actual product name
-      - `{{VISION}}` → vision statement
-      - `{{TARGET_USERS}}` → target users
-      - `{{CORE_FEATURES}}` → core features list
-      - `{{CONSTRAINTS}}` → technical constraints
-      - `{{DATE}}` → current date (YYYY-MM-DD format)
-    - Write to `docs/product/product.md` (skip if exists):
-      ```bash
-      test ! -f docs/product/product.md && cat > docs/product/product.md <<'EOF'
-      [filled template content]
-      EOF
-      ```
+@clerk create product document from template.
 
-    Return: product_doc_created
-  </agent>
+Create product document:
+- Read template: `${CLAUDE_PLUGIN_ROOT}/assets/templates/product.md`
+- Replace placeholders:
+  - `{{PRODUCT_NAME}}` → actual product name
+  - `{{VISION}}` → vision statement
+  - `{{TARGET_USERS}}` → target users
+  - `{{CORE_FEATURES}}` → core features list
+  - `{{CONSTRAINTS}}` → technical constraints
+  - `{{DATE}}` → current date (YYYY-MM-DD format)
+- Write to `docs/product/product.md` (skip if exists):
+  ```bash
+  test ! -f docs/product/product.md && cat > docs/product/product.md <<'EOF'
+  [filled template content]
+  EOF
+  ```
 
-  <agent type="clerk">
-    Create standards documents:
-    - Copy coding.md template (skip if exists):
-      ```bash
-      test ! -f docs/standards/coding.md && \
-        cp ${CLAUDE_PLUGIN_ROOT}/assets/templates/coding.md docs/standards/coding.md
-      ```
-    - Copy architecture.md template (skip if exists):
-      ```bash
-      test ! -f docs/standards/architecture.md && \
-        cp ${CLAUDE_PLUGIN_ROOT}/assets/templates/architecture.md docs/standards/architecture.md
-      ```
-    - Verify creation:
-      ```bash
-      ls -la docs/standards/
-      ```
+## Step 5b: Analyze Technical Constraints
 
-    Return: standards_created
-  </agent>
-</parallel>
+@architect analyze technical constraints and recommend architectural patterns.
+
+From discovered constraints, identify:
+- Appropriate architectural patterns (layered, event-driven, microservices, etc.)
+- Technology stack implications (frameworks, databases, infrastructure)
+- Performance considerations (caching, async processing, scaling)
+- Integration patterns required (APIs, messaging, external services)
+
+Provide recommendations for standards documents:
+- Suggested patterns for `architecture.md`
+- Coding conventions based on tech stack for `coding.md`
+
+## Step 6: Create Standards Documents
+
+@clerk create standards documents from templates.
+
+Create standards documents:
+- Copy coding.md template (skip if exists):
+  ```bash
+  test ! -f docs/standards/coding.md && \
+    cp ${CLAUDE_PLUGIN_ROOT}/assets/templates/coding.md docs/standards/coding.md
+  ```
+- Copy architecture.md template (skip if exists):
+  ```bash
+  test ! -f docs/standards/architecture.md && \
+    cp ${CLAUDE_PLUGIN_ROOT}/assets/templates/architecture.md docs/standards/architecture.md
+  ```
+- Verify creation:
+  ```bash
+  ls -la docs/standards/
+  ```
 
 ## Step 7: Initialize Beads (Optional)
 

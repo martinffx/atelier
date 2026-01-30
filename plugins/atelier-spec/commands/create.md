@@ -50,11 +50,24 @@ Search for code in these patterns (stop at first match):
 
 If code found:
 - Set mode: BROWNFIELD
-- Analyze code structure: entities, services, routes, repositories
-- Extract: methods, types, endpoints, database interactions
+- Pass discovered file paths to next step
 
 If no code found:
 - Set mode: GREENFIELD
+- Skip Step 3b
+
+## Step 3b: Analyze Existing Code (BROWNFIELD only)
+
+@architect analyze discovered code structure.
+
+Analyze code structure from discovered files:
+- **Entities:** class/interface definitions, properties, methods (fromRequest, toRecord, toResponse, validate)
+- **Services:** class definitions, public methods, dependencies
+- **Repositories:** CRUD operations, query methods, database interactions
+- **Routes/Controllers:** endpoints (method, path), request/response types
+- Extract: methods, types, endpoints, database interactions
+
+Document findings for requirements discovery.
 
 ## Step 4: Requirements Discovery
 

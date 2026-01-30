@@ -25,10 +25,19 @@ Read files:
 - `docs/spec/$FEATURE/changes/$CHANGE/proposal.md` → motivation
 - `docs/spec/$FEATURE/spec.md` → current specification
 
+## Step 2b: Parse Delta and Prepare Merge
+
+@architect parse delta and prepare merge strategy.
+
 Parse delta:
 - ADDED: New components, methods, fields
 - MODIFIED: Changed components, methods, rules
 - REMOVED: Deprecated items
+
+Prepare merge strategy:
+- Identify sections of spec.md to update
+- Determine ordering of changes
+- Flag any conflicts with existing spec
 
 ## Step 3: Merge Changes into Spec
 
@@ -74,6 +83,8 @@ Merge changes from design.md according to delta:
 
 ## Step 4: Close Beads Epic
 
+@clerk close the Beads epic.
+
 Mark epic as complete:
 ```bash
 bd close <epic-id> --reason "Change $CHANGE merged into spec"
@@ -81,7 +92,7 @@ bd close <epic-id> --reason "Change $CHANGE merged into spec"
 
 ## Step 5: Archive Change Files
 
-Move change folder to maintain history:
+@clerk archive change files to maintain history.
 ```bash
 git add docs/spec/$FEATURE/changes/$CHANGE/
 git add docs/spec/$FEATURE/spec.md

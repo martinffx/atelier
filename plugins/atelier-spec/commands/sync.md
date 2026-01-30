@@ -31,38 +31,34 @@ Search for code in these patterns:
 
 If no code found → WARN: "No code found for $ARGUMENTS. Spec unchanged."
 
-## Step 3-4: Analyze Code and Spec (Parallel)
+## Step 3: Analyze Existing Code
 
-<parallel>
-  <agent type="architect">
-    Analyze existing code:
-    - Scan discovered source files for all components
-    - **Entities:** class/interface definitions, methods (fromRequest, toRecord, toResponse, validate), properties and types
-    - **Services:** class definitions, public methods, dependencies
-    - **Repositories:** CRUD operations, query methods, database interactions
-    - **Routes/Controllers:** endpoints (method, path), request/response types, handler logic
-    - **Events:** published events, subscribed events, event handlers
-    - **Clients:** external API calls, integration points
-    - Extract signatures, types, and patterns
-    - Document actual implementation structure
+@architect analyze existing code structure.
 
-    Return: code_structure
-  </agent>
+Analyze existing code:
+- Scan discovered source files for all components
+- **Entities:** class/interface definitions, methods (fromRequest, toRecord, toResponse, validate), properties and types
+- **Services:** class definitions, public methods, dependencies
+- **Repositories:** CRUD operations, query methods, database interactions
+- **Routes/Controllers:** endpoints (method, path), request/response types, handler logic
+- **Events:** published events, subscribed events, event handlers
+- **Clients:** external API calls, integration points
+- Extract signatures, types, and patterns
+- Document actual implementation structure
 
-  <agent type="architect">
-    Parse current specification:
-    - Read `docs/spec/$ARGUMENTS/spec.md`
-    - Extract expected entities, services, repositories, routes from Technical Design section
-    - Extract API endpoints, data models, business logic specifications
-    - Document intended implementation structure
+## Step 4: Parse Current Specification
 
-    Return: spec_structure
-  </agent>
-</parallel>
+@architect parse current specification.
+
+Parse current specification:
+- Read `docs/spec/$ARGUMENTS/spec.md`
+- Extract expected entities, services, repositories, routes from Technical Design section
+- Extract API endpoints, data models, business logic specifications
+- Document intended implementation structure
 
 ## Step 5: Generate Drift Report
 
-Compare `code_structure` with `spec_structure`:
+@architect compare code_structure with spec_structure and generate drift report.
 
 **In code but NOT in spec (ADDED):**
 - New methods not documented
