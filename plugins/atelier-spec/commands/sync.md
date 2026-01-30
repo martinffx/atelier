@@ -58,7 +58,7 @@ Parse current specification:
 
 ## Step 5: Generate Drift Report
 
-Compare `code_structure` with `spec_structure`:
+@architect compare code_structure with spec_structure and generate drift report.
 
 **In code but NOT in spec (ADDED):**
 - New methods not documented
