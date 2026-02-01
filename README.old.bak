@@ -2,12 +2,11 @@
 
 ![Atelier - A collaborative workshop for software development](atelier.jpg)
 
-> An atelier is the private workshop or studio where a principal master and a number of assistants, students, and apprentices can work together producing fine art or visual art released under the master's name or supervision.
->
+> An atelier is the private workshop or studio where a principal master and a number of assistants, students, and apprentices can work together producing fine art or visual art released under the master's name or supervision. 
+> 
 > [Wikipedia](https://en.wikipedia.org/wiki/Atelier)
 
 A software development atelier for Claude Code - spec-driven development, code quality, deep thinking, and TypeScript patterns.
-
 
 This marketplace offers both individual skills (modular capabilities) and plugin collections (command suites) that enhance your development workflow.
 
@@ -76,6 +75,7 @@ npx skills add martinffx/claude-code-atelier --skill atelier-spec-beads
 
 Skills are auto-invoked based on their description when you work with relevant technologies. No commands needed - just install and Claude will use them when appropriate.
 
+## Plugins
 ## Installation
 
 ```bash
@@ -89,6 +89,7 @@ Skills are auto-invoked based on their description when you work with relevant t
 /plugin install typescript@atelier
 /plugin install python@atelier
 ```
+
 
 ## Plugins
 
