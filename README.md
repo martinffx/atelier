@@ -28,6 +28,8 @@ This marketplace offers both individual skills (modular capabilities) and plugin
 
 This repository includes 24 individual skills that can be installed via [skills.sh](https://skills.sh/). Skills are modular, auto-invoked capabilities that enhance Claude Code with specialized knowledge and workflows.
 
+**Tip:** Skills work with Claude Code, opencode, and any agent supporting the skills.sh standard, while [Plugins](#plugins) are Claude Code-specific command suites.
+
 ### Installing Skills
 
 ```bash
@@ -78,6 +80,8 @@ Skills are auto-invoked based on their description when you work with relevant t
 
 ## Installation
 
+### Claude Code Plugins
+
 ```bash
 # Add the marketplace
 /plugin marketplace add martinffx/claude-code-atelier
@@ -89,6 +93,26 @@ Skills are auto-invoked based on their description when you work with relevant t
 /plugin install typescript@atelier
 /plugin install python@atelier
 ```
+
+## Skills vs Plugins
+
+| Aspect | Skills | Plugins |
+|--------|--------|---------|
+| **Compatibility** | Universal - works with Claude Code, opencode, and other agents | Claude Code only |
+| **Invocation** | Auto-loaded based on context/description | Explicit commands like `/spec:create` |
+| **Granularity** | Individual capabilities | Collection of commands for workflows |
+| **Installation** | `npx skills add martinffx/claude-code-atelier` | `/plugin install spec@atelier` |
+| **Best for** | Domain expertise, patterns, knowledge sharing | Structured workflows with specific commands |
+
+**Use Skills when:**
+- You want auto-invoked knowledge that follows the skills.sh standard
+- You need domain patterns (Drizzle ORM, FastAPI, testing strategies)
+- You want portability across different AI agents
+
+**Use Plugins when:**
+- You're using Claude Code specifically
+- You want structured workflows with explicit commands
+- You need multi-step processes (create → design → plan → work)
 
 ## Plugins
 
