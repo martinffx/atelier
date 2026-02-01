@@ -1,5 +1,5 @@
 ---
-name: api-design
+name: atelier-typescript-api-design
 description: REST API design patterns. Use when designing endpoints, error responses, pagination, versioning, or API structure. Framework-agnostic principles for building consistent, maintainable APIs.
 user-invocable: false
 ---

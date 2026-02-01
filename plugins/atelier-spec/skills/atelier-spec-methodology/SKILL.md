@@ -1,5 +1,5 @@
 ---
-name: methodology
+name: atelier-spec-methodology
 description: AgentOS 3-layer context, orchestrated delegation, and OpenSpec living specifications. Use when explaining how context flows through layers, how agents collaborate, or how specs evolve.
 user-invocable: false
 ---

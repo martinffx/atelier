@@ -1,5 +1,5 @@
 ---
-name: build-tools
+name: atelier-typescript-build-tools
 description: TypeScript project tooling with Bun, tsgo, Vitest, Biome, and Turborepo. Use when setting up package.json scripts, running builds, typechecking, configuring tests, linting, formatting, or orchestrating monorepo development.
 user-invocable: false
 ---

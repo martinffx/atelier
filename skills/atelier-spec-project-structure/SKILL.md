@@ -1,5 +1,5 @@
 ---
-name: project-structure
+name: atelier-spec-project-structure
 description: Directory layout implementing AgentOS 3-layer context. Use when setting up projects, organizing docs, or explaining where specs and changes go.
 user-invocable: false
 ---

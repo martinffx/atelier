@@ -1,5 +1,5 @@
 ---
-name: functional-patterns
+name: atelier-typescript-functional-patterns
 description: Functional programming patterns for reliable TypeScript. Use when modeling state machines, discriminated unions, Result/Option types, branded types, or building type-safe domain models.
 user-invocable: false
 ---

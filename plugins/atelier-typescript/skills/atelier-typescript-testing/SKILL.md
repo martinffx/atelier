@@ -1,5 +1,5 @@
 ---
-name: testing
+name: atelier-typescript-testing
 description: TypeScript testing patterns with Vitest and MSW. Use when writing unit tests, mocking APIs, creating typed mocks for dependency injection, or using snapshot testing.
 user-invocable: false
 ---

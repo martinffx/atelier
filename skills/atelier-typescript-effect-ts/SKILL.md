@@ -1,5 +1,5 @@
 ---
-name: effect-ts
+name: atelier-typescript-effect-ts
 description: Type-safe functional effects with Effect-TS. Use when building applications with Effect, using Effect.gen generators, handling typed errors, managing services with Layer and Context.Tag, validating data with Schema, or managing resources with acquireRelease.
 user-invocable: false
 ---

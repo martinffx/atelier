@@ -1,5 +1,5 @@
 ---
-name: architect
+name: atelier-spec-architect
 description: DDD and hexagonal architecture with functional core pattern. Use when designing features, modeling domains, breaking down tasks, or understanding component responsibilities.
 user-invocable: false
 ---
