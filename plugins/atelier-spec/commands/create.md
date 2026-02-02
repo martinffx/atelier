@@ -2,7 +2,7 @@
 
 ## Step 1: Check Project Initialization
 
-@clerk verify project has been initialized for SDD.
+@atelier-clerk verify project has been initialized for SDD.
 
 Check if product document exists:
 ```bash
@@ -16,7 +16,7 @@ If `docs/product/product.md` does NOT exist:
 
 ## Step 2: Validate Prerequisites
 
-@clerk check for existing spec and Beads installation.
+@atelier-clerk check for existing spec and Beads installation.
 
 Check if spec already exists:
 - If `docs/spec/$ARGUMENTS/spec.md` exists → ERROR: "Spec already exists. Use /spec:propose for changes."
@@ -29,7 +29,7 @@ bd --version
 
 ## Step 3: Detect Existing Code
 
-@clerk search for existing code using multiple strategies.
+@atelier-clerk search for existing code using multiple strategies.
 
 Search for code in these patterns (stop at first match):
 
@@ -58,7 +58,7 @@ If no code found:
 
 ## Step 3b: Analyze Existing Code (BROWNFIELD only)
 
-@architect analyze discovered code structure.
+@atelier-architect analyze discovered code structure.
 
 Analyze code structure from discovered files:
 - **Entities:** class/interface definitions, properties, methods (fromRequest, toRecord, toResponse, validate)
@@ -71,7 +71,7 @@ Document findings for requirements discovery.
 
 ## Step 4: Requirements Discovery
 
-@oracle conduct structured discovery interview to gather user stories, acceptance criteria, and scope boundaries.
+@atelier-oracle conduct structured discovery interview to gather user stories, acceptance criteria, and scope boundaries.
 
 ### If GREENFIELD (no existing code):
 
@@ -131,7 +131,7 @@ Now let's document the target state:
 
 ## Step 5: Write Requirements to Spec
 
-@clerk generate requirements document.
+@atelier-clerk generate requirements document.
 
 Create directory structure:
 ```bash

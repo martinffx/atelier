@@ -6,5 +6,6 @@
     "name": "Martin Richards"
   },
   "license": "MIT",
-  "skills": "./skills"
+  "skills": "./skills",
+  "agents": "./agents"
 }

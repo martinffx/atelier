@@ -2,14 +2,14 @@
 
 ## Step 1: Validate Prerequisites
 
-@clerk verify spec exists.
+@atelier-clerk verify spec exists.
 
 Check if spec exists:
 - If `docs/spec/$ARGUMENTS/spec.md` does NOT exist → ERROR: "No spec found. Use /spec:create to create a spec first."
 
 ## Step 2: Find Code Location
 
-@clerk locate code for feature.
+@atelier-clerk locate code for feature.
 
 **Strategy 1: From spec references**
 - Read `docs/spec/$ARGUMENTS/spec.md`
@@ -33,7 +33,7 @@ If no code found → WARN: "No code found for $ARGUMENTS. Spec unchanged."
 
 ## Step 3: Analyze Existing Code
 
-@architect analyze existing code structure.
+@atelier-architect analyze existing code structure.
 
 Analyze existing code:
 - Scan discovered source files for all components
@@ -48,7 +48,7 @@ Analyze existing code:
 
 ## Step 4: Parse Current Specification
 
-@architect parse current specification.
+@atelier-architect parse current specification.
 
 Parse current specification:
 - Read `docs/spec/$ARGUMENTS/spec.md`
@@ -58,7 +58,7 @@ Parse current specification:
 
 ## Step 5: Generate Drift Report
 
-@architect compare code_structure with spec_structure and generate drift report.
+@atelier-architect compare code_structure with spec_structure and generate drift report.
 
 **In code but NOT in spec (ADDED):**
 - New methods not documented
@@ -78,7 +78,7 @@ Parse current specification:
 
 ## Step 6: Update Spec with Code Reality
 
-@clerk update spec to match actual code.
+@atelier-clerk update spec to match actual code.
 
 Update `docs/spec/$ARGUMENTS/spec.md`:
 
@@ -124,7 +124,7 @@ Write updated spec back.
 
 ## Step 7: Create Beads for Incomplete Work
 
-@clerk identify and track incomplete implementation.
+@atelier-clerk identify and track incomplete implementation.
 
 Scan code for markers of incomplete work:
 

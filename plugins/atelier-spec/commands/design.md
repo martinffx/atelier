@@ -4,7 +4,7 @@ Format: `<feature>` or `<feature> <change>`
 
 ## Step 1: Validate Prerequisites
 
-@clerk determine mode and check prerequisites.
+@atelier-clerk determine mode and check prerequisites.
 
 Parse arguments:
 - If 1 argument → Mode: INITIAL (design new feature)
@@ -23,7 +23,7 @@ Check if proposal exists:
 
 ## Step 2: Load Product Context
 
-@clerk load product context.
+@atelier-clerk load product context.
 
 Read files:
 - `docs/product/product.md` for vision and goals
@@ -31,7 +31,7 @@ Read files:
 
 ## Step 2b: Load Technical Standards
 
-@clerk load technical standards.
+@atelier-clerk load technical standards.
 
 Read files:
 - `docs/standards/tech.md` for architecture patterns
@@ -39,7 +39,7 @@ Read files:
 
 ## Step 3: Load Requirements
 
-@clerk load requirements based on mode.
+@atelier-clerk load requirements based on mode.
 
 **Mode: INITIAL**
 Read `docs/spec/$FEATURE/spec.md`
@@ -51,7 +51,7 @@ Read multiple sources:
 
 ## Step 3b: Analyze Loaded Context
 
-@architect extract patterns and requirements from loaded context.
+@atelier-architect extract patterns and requirements from loaded context.
 
 From product context:
 - Product vision alignment
@@ -72,7 +72,7 @@ From requirements:
 Load: spec:architect
 </skill-prompt>
 
-@architect create technical design following project standards.
+@atelier-architect create technical design following project standards.
 
 **Mode: INITIAL - Design Entire Feature**
 
@@ -102,7 +102,7 @@ Analyze current design from spec.md and determine:
 
 ## Step 5: Write Design Output
 
-@clerk write design to appropriate location.
+@atelier-clerk write design to appropriate location.
 
 **Mode: INITIAL**
 

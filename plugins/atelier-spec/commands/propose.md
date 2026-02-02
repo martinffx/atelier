@@ -4,14 +4,14 @@ Format: `<feature_name> <change_name>`
 
 ## Step 1: Validate Prerequisites
 
-@clerk check for existing spec.
+@atelier-clerk check for existing spec.
 
 Check if spec exists:
 - If `docs/spec/$FEATURE/spec.md` doesn't exist → ERROR: "Feature spec not found. Create with: /spec:create $FEATURE"
 
 ## Step 2: Load Current State
 
-@clerk retrieve current feature specification.
+@atelier-clerk retrieve current feature specification.
 
 Read files:
 - `docs/spec/$FEATURE/spec.md` → current requirements and design
@@ -19,7 +19,7 @@ Read files:
 
 ## Step 2b: Analyze Current Architecture
 
-@architect extract current architectural state.
+@atelier-architect extract current architectural state.
 
 Extract current state from loaded files:
 - Existing entities, services, repositories, routes
@@ -30,7 +30,7 @@ Summarize current implementation for change scope discussion.
 
 ## Step 3: Discovery Interview for Change Scope
 
-@oracle conduct lightweight discovery interview to define change scope and requirements.
+@atelier-oracle conduct lightweight discovery interview to define change scope and requirements.
 
 Show current feature implementation context.
 
@@ -53,7 +53,7 @@ Show current feature implementation context.
 
 ## Step 4: Write Structured Requirements
 
-@clerk generate requirements.json and proposal.md.
+@atelier-clerk generate requirements.json and proposal.md.
 
 Create directory:
 ```bash
