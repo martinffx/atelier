@@ -8,7 +8,7 @@ Optional format: `<feature>` or empty (any ready task)
 Load: beads
 </skill-prompt>
 
-@clerk check Beads installation and find next ready task.
+@atelier-clerk check Beads installation and find next ready task.
 
 Check Beads:
 ```bash
@@ -39,7 +39,7 @@ bd update <task-id> --status in_progress
 
 ## Step 2: Load Implementation Context
 
-@clerk load all necessary context for implementation.
+@atelier-clerk load all necessary context for implementation.
 
 Identify task type from labels:
 - Feature task (initial): Changes are in `changes/initial/`
@@ -74,7 +74,7 @@ Extract from spec/design/delta:
 Load: spec:testing, spec:architect
 </skill-prompt>
 
-@architect implement task following layer boundary testing approach with Stub→Test→Fix pattern.
+@atelier-architect implement task following layer boundary testing approach with Stub→Test→Fix pattern.
 
 Follow the testing patterns and architectural standards from the loaded skills to ensure quality implementation.
 

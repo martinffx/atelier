@@ -4,7 +4,7 @@ Format: `<feature_name> <change_name>`
 
 ## Step 1: Validate Prerequisites
 
-@clerk check for change proposal and Beads epic.
+@atelier-clerk check for change proposal and Beads epic.
 
 Check if change exists:
 - If `docs/spec/$FEATURE/changes/$CHANGE/` doesn't exist → ERROR: "Change proposal not found. Create with: /spec:propose $FEATURE $CHANGE"
@@ -17,7 +17,7 @@ bd list --label $FEATURE,$CHANGE --json
 
 ## Step 2: Load Change Artifacts
 
-@clerk read design, delta, and current spec.
+@atelier-clerk read design, delta, and current spec.
 
 Read files:
 - `docs/spec/$FEATURE/changes/$CHANGE/design.md` → technical design changes
@@ -27,7 +27,7 @@ Read files:
 
 ## Step 2b: Parse Delta and Prepare Merge
 
-@architect parse delta and prepare merge strategy.
+@atelier-architect parse delta and prepare merge strategy.
 
 Parse delta:
 - ADDED: New components, methods, fields
@@ -41,7 +41,7 @@ Prepare merge strategy:
 
 ## Step 3: Merge Changes into Spec
 
-@architect merge design and delta into main spec.md.
+@atelier-architect merge design and delta into main spec.md.
 
 Update `docs/spec/$FEATURE/spec.md`:
 
@@ -83,7 +83,7 @@ Merge changes from design.md according to delta:
 
 ## Step 4: Close Beads Epic
 
-@clerk close the Beads epic.
+@atelier-clerk close the Beads epic.
 
 Mark epic as complete:
 ```bash
@@ -92,7 +92,7 @@ bd close <epic-id> --reason "Change $CHANGE merged into spec"
 
 ## Step 5: Archive Change Files
 
-@clerk archive change files to maintain history.
+@atelier-clerk archive change files to maintain history.
 ```bash
 git add docs/spec/$FEATURE/changes/$CHANGE/
 git add docs/spec/$FEATURE/spec.md

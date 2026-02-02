@@ -4,7 +4,7 @@ Initialize this repository for Spec-Driven Development (SDD) workflows.
 
 ## Step 1: Check Current State
 
-@clerk verify project initialization status.
+@atelier-clerk verify project initialization status.
 
 Check if already initialized:
 ```bash
@@ -18,7 +18,7 @@ If `docs/product/product.md` exists:
 
 ## Step 2: Infer Product Name
 
-@clerk detect product name from directory contents.
+@atelier-clerk detect product name from directory contents.
 
 Try in order (use first match):
 
@@ -43,7 +43,7 @@ Store detected name as `PRODUCT_NAME`.
 
 ## Step 3: Create Directory Structure
 
-@clerk create base SDD directories.
+@atelier-clerk create base SDD directories.
 
 ```bash
 mkdir -p docs/spec docs/product docs/standards
@@ -56,7 +56,7 @@ ls -la docs/
 
 ## Step 4: Conduct Discovery Interview for Requirements
 
-@oracle conduct guided product discovery interview.
+@atelier-oracle conduct guided product discovery interview.
 
 Ask user these questions (one at a time):
 
@@ -86,7 +86,7 @@ What technical constraints should we know about?
 
 ## Step 5: Create Product Document
 
-@clerk create product document from template.
+@atelier-clerk create product document from template.
 
 Create product document:
 - Read template: `${CLAUDE_PLUGIN_ROOT}/assets/templates/product.md`
@@ -106,7 +106,7 @@ Create product document:
 
 ## Step 5b: Analyze Technical Constraints
 
-@architect analyze technical constraints and recommend architectural patterns.
+@atelier-architect analyze technical constraints and recommend architectural patterns.
 
 From discovered constraints, identify:
 - Appropriate architectural patterns (layered, event-driven, microservices, etc.)
@@ -120,7 +120,7 @@ Provide recommendations for standards documents:
 
 ## Step 6: Create Standards Documents
 
-@clerk create standards documents from templates.
+@atelier-clerk create standards documents from templates.
 
 Create standards documents:
 - Copy coding.md template (skip if exists):
@@ -140,7 +140,7 @@ Create standards documents:
 
 ## Step 7: Initialize Beads (Optional)
 
-@clerk check and initialize task tracker.
+@atelier-clerk check and initialize task tracker.
 
 Check if Beads is installed:
 ```bash

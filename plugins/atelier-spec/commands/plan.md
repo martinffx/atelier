@@ -4,7 +4,7 @@ Format: `<feature>` or `<feature> <change>`
 
 ## Step 1: Validate Prerequisites
 
-@clerk determine mode and check prerequisites.
+@atelier-clerk determine mode and check prerequisites.
 
 Parse arguments:
 - If 1 argument → Mode: INITIAL (plan new feature)
@@ -31,7 +31,7 @@ Check if proposal has requirements AND design:
 
 ## Step 2: Load Design and Requirements
 
-@clerk load design and requirements files.
+@atelier-clerk load design and requirements files.
 
 **Mode: INITIAL**
 
@@ -51,7 +51,7 @@ Read multiple sources:
 
 ## Step 2b: Analyze Design for Implementation Tasks
 
-@architect analyze design to identify implementation tasks.
+@atelier-architect analyze design to identify implementation tasks.
 
 **Mode: INITIAL**
 
@@ -71,7 +71,7 @@ From loaded files:
 
 ## Step 3: Generate Implementation Plan
 
-@architect create dependency-ordered task list.
+@atelier-architect create dependency-ordered task list.
 
 Analyze components and create plan.json with task structure:
 
@@ -134,7 +134,7 @@ Write plan.json to:
 
 ## Step 4: Generate Delta Document
 
-@architect create ADDED/MODIFIED/REMOVED delta.
+@atelier-architect create ADDED/MODIFIED/REMOVED delta.
 
 **Mode: INITIAL**
 
@@ -181,7 +181,7 @@ Write delta.md to:
 
 ## Step 5: Validation Checkpoint
 
-@oracle review and validate the plan before proceeding.
+@atelier-oracle review and validate the plan before proceeding.
 
 Present plan summary to user:
 
@@ -264,7 +264,7 @@ If user chooses APPROVE:
 Load: beads, spec:architect
 </skill-prompt>
 
-@architect create Beads epic with tasks after approval.
+@atelier-architect create Beads epic with tasks after approval.
 
 Create epic:
 ```bash
