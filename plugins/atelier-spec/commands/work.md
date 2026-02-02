@@ -68,17 +68,132 @@ Extract from spec/design/delta:
 - Database schema
 - Events
 
-## Step 3: Implement Using Stub→Test→Fix Pattern
+## Step 2b: Check for Overlapping Work
+
+@atelier-clerk check for potential conflicts with in-progress tasks.
+
+Query all in-progress tasks:
+```bash
+bd list --status in_progress --json
+```
+
+For each in-progress task (excluding current task):
+- Extract affected layer/component from task labels
+- Compare with current task's target layer/component
+- Check if tasks modify the same files or components
+
+**If conflicts found:**
+```
+⚠️ Potential Overlap Detected
+
+Current task: <current-task-id> - <current-task-name>
+Target: <layer>/<component>
+
+Conflicting tasks:
+- <task-id>: <task-name> (also modifying <component>)
+
+Risk: Merge conflicts or integration issues possible.
+
+Options:
+1. CONTINUE - Proceed with awareness of overlap
+2. WAIT - Complete conflicting task first
+3. COORDINATE - Review both tasks together
+
+Enter choice:
+```
+
+[Wait for user response]
+
+If no conflicts → Proceed to Step 3
+
+## Step 3: Create Implementation Plan
 
 <skill-prompt>
 Load: spec:testing, spec:architect
 </skill-prompt>
 
-@atelier-architect implement task following layer boundary testing approach with Stub→Test→Fix pattern.
+@atelier-architect analyze task and create detailed implementation plan with todos.
 
-Follow the testing patterns and architectural standards from the loaded skills to ensure quality implementation.
+Based on loaded context (spec, design, delta, standards):
 
-## Step 4: Handle Discovered Work
+**Analyze task scope:**
+- Which files need to be created/modified?
+- What are the specific code changes needed?
+- What tests need to be written?
+- What's the implementation order?
+
+**Create implementation todos using TodoWrite:**
+
+Generate granular implementation steps as todos:
+1. Stub: Create file structure with NotImplementedError placeholders
+2. Test: Write tests for the component
+3. Implement: Fill in actual implementation
+4. Verify: Run tests and fix failures
+5. Refactor: Clean up if needed
+
+**Present implementation plan:**
+
+```
+Implementation Plan
+===================
+
+Task: <task-id> - <task-name>
+Layer: <entity|repository|service|router>
+Feature: <feature-name>
+
+Files to create/modify:
+- src/<path>/<file>.ts - <description>
+- src/<path>/<file>.test.ts - <tests>
+
+Implementation steps (now tracked as todos):
+1. [pending] Create <component> stub with NotImplementedError
+2. [pending] Write <component> tests
+3. [pending] Implement <component> logic
+4. [pending] Run tests and fix failures
+5. [pending] Update related imports/exports
+
+Estimated complexity: <low|medium|high>
+Dependencies: <any external dependencies>
+```
+
+**Confirm before proceeding:**
+"Plan created with {{todo_count}} todos. Ready to implement? (y/n)"
+
+[Wait for user confirmation]
+
+If user declines → EXIT with "Run /spec:work again when ready"
+
+## Step 4: Implement Using Stub→Test→Fix Pattern
+
+@atelier-architect implement task following the plan, updating todos as you progress.
+
+**For each todo item:**
+1. Mark todo as `in_progress`
+2. Implement the change
+3. Mark todo as `completed`
+4. Move to next todo
+
+**Stub Phase:**
+- Create file with proper structure
+- Add NotImplementedError / throw new Error('Not implemented') placeholders
+- Define interfaces/types
+
+**Test Phase:**
+- Write tests based on acceptance criteria
+- Cover happy path and edge cases
+- Tests should fail initially (red)
+
+**Implement Phase:**
+- Fill in actual implementation
+- Follow coding standards from `docs/standards/coding.md`
+- Make tests pass (green)
+
+**Refactor Phase:**
+- Clean up code if needed
+- Ensure no duplication
+- Verify all tests still pass
+
+## Step 5: Handle Discovered Work
 
 During implementation, if new tasks are discovered:
 
@@ -95,7 +210,7 @@ Examples of discovered work:
 - Missing error handling
 - Integration issues
 
-## Step 5: Mark Task Complete
+## Step 6: Mark Task Complete
 
 Verify all quality checks pass and close task.
 
@@ -120,6 +235,7 @@ Completed: [task description]
 - Implementation: [files modified]
 - Tests: [test files created/updated]
 - Coverage: [percentage if available]
+- Todos completed: [X/Y]
 
 Next ready task: [task-id and description] or "None - feature complete"
 
