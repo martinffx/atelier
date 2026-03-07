@@ -15,7 +15,7 @@
 ## Research Summary
 
 ### Project Context
-- **Repository:** Claude Code Atelier - marketplace of skills and plugins
+- **Repository:** Atelier - marketplace of skills
 - **Current State:** 24 skills across 4 domains (spec, oracle, typescript, python)
 - **Recent Activity:** Refactoring for consistent naming (atelier-* prefix)
 

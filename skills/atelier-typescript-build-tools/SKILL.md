@@ -445,14 +445,3 @@ jobs:
 11. **Run checks in order**: typecheck, lint, test (fail fast)
 12. **Use `--frozen-lockfile`** in CI for reproducible builds
 13. **Configure Turbo caching** for faster CI with remote cache
-
-## When This Skill Loads
-
-This skill automatically loads when discussing:
-- Bun package manager and task runner
-- tsgo typechecking
-- Vitest configuration
-- Biome linting and formatting
-- Turborepo monorepo setup
-- CI/CD pipeline configuration
-- Cloudflare Workers development

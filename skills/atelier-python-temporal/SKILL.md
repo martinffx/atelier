@@ -1,5 +1,5 @@
 ---
-name: atelier-python-temporal
+name: python:temporal
 description: Temporal workflow orchestration in Python. Use when designing workflows, implementing activities, handling retries, managing workflow state, or building durable distributed systems.
 user-invocable: false
 ---
@@ -125,8 +125,4 @@ class OrderWorkflow:
         return self.status
 ```
 
-## References
-
-For detailed patterns and testing strategies:
-- [references/patterns.md](references/patterns.md) - Common workflow patterns
-- [references/testing.md](references/testing.md) - Testing strategies
+See references/ for testing patterns and common workflow patterns.

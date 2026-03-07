@@ -1,5 +1,5 @@
 ---
-name: atelier-python-modern-python
+name: python:modern-python
 description: Modern Python language features and typing patterns. Use when writing type hints, using generics, implementing pattern matching, working with async/await, or leveraging Python 3.10+ features.
 user-invocable: false
 ---
@@ -198,9 +198,4 @@ message = f"In 5 years you'll be {age + 5}"
 print(f"{name=}")  # name='Alice'
 ```
 
-## References
-
-For advanced patterns:
-- [references/typing.md](references/typing.md) - Advanced typing patterns
-- [references/async.md](references/async.md) - Async patterns
-- [references/pattern-matching.md](references/pattern-matching.md) - Pattern matching
+See references/ for advanced typing, async patterns, and pattern matching.

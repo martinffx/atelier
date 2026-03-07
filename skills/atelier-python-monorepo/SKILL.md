@@ -1,5 +1,5 @@
 ---
-name: atelier-python-monorepo
+name: python:monorepo
 description: Python monorepo architecture with uv workspaces, mise, and apps/packages pattern. Use when setting up project structure, configuring workspaces, managing dependencies across packages, or designing multi-app Python repositories.
 user-invocable: false
 ---

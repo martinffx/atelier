@@ -1,9 +1,0 @@
-{
-  "name": "code",
-  "version": "1.0.0",
-  "description": "Code quality workflows for reviewing changes and creating commits",
-  "author": {
-    "name": "Martin Richards"
-  },
-  "license": "MIT"
-}

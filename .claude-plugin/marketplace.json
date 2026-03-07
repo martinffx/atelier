@@ -1,40 +1,106 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "atelier",
-  "description": "Personal development toolkit - spec-driven development, code quality, deep thinking, and TypeScript patterns",
+  "description": "Personal development toolkit - spec-driven development, code quality, deep thinking, and ecosystem patterns",
   "owner": {
     "name": "Martin Richards"
   },
-  "plugins": [
+  "skills": [
     {
-      "name": "spec",
-      "description": "Spec-Driven Development workflows with unified requirements and technical design",
-      "source": "./plugins/atelier-spec",
-      "category": "development"
+      "name": "atelier-spec-architect",
+      "source": "./skills/atelier-spec-architect"
     },
     {
-      "name": "code",
-      "description": "Code quality workflows including senior engineer reviews and conventional commits",
-      "source": "./plugins/atelier-code",
-      "category": "productivity"
+      "name": "atelier-spec-beads",
+      "source": "./skills/atelier-spec-beads"
     },
     {
-      "name": "oracle",
-      "description": "Deep thinking and sequential reasoning for complex debugging and problem-solving",
-      "source": "./plugins/atelier-oracle",
-      "category": "development"
+      "name": "atelier-spec-methodology",
+      "source": "./skills/atelier-spec-methodology"
     },
     {
-      "name": "typescript",
-      "description": "TypeScript ecosystem patterns for DynamoDB, Drizzle, Fastify, and API design",
-      "source": "./plugins/atelier-typescript",
-      "category": "development"
+      "name": "atelier-spec-product",
+      "source": "./skills/atelier-spec-product"
     },
     {
-      "name": "python",
-      "description": "Modern Python ecosystem patterns - architecture, monorepos, tooling, APIs, databases, and testing",
-      "source": "./plugins/atelier-python",
-      "category": "development"
+      "name": "atelier-spec-project-structure",
+      "source": "./skills/atelier-spec-project-structure"
+    },
+    {
+      "name": "atelier-spec-testing",
+      "source": "./skills/atelier-spec-testing"
+    },
+    {
+      "name": "atelier-oracle-challenge",
+      "source": "./skills/atelier-oracle-challenge"
+    },
+    {
+      "name": "atelier-oracle-thinkdeep",
+      "source": "./skills/atelier-oracle-thinkdeep"
+    },
+    {
+      "name": "atelier-typescript-api-design",
+      "source": "./skills/atelier-typescript-api-design"
+    },
+    {
+      "name": "atelier-typescript-build-tools",
+      "source": "./skills/atelier-typescript-build-tools"
+    },
+    {
+      "name": "atelier-typescript-drizzle-orm",
+      "source": "./skills/atelier-typescript-drizzle-orm"
+    },
+    {
+      "name": "atelier-typescript-dynamodb-toolbox",
+      "source": "./skills/atelier-typescript-dynamodb-toolbox"
+    },
+    {
+      "name": "atelier-typescript-effect-ts",
+      "source": "./skills/atelier-typescript-effect-ts"
+    },
+    {
+      "name": "atelier-typescript-fastify",
+      "source": "./skills/atelier-typescript-fastify"
+    },
+    {
+      "name": "atelier-typescript-functional-patterns",
+      "source": "./skills/atelier-typescript-functional-patterns"
+    },
+    {
+      "name": "atelier-typescript-testing",
+      "source": "./skills/atelier-typescript-testing"
+    },
+    {
+      "name": "atelier-python-architecture",
+      "source": "./skills/atelier-python-architecture"
+    },
+    {
+      "name": "atelier-python-build-tools",
+      "source": "./skills/atelier-python-build-tools"
+    },
+    {
+      "name": "atelier-python-fastapi",
+      "source": "./skills/atelier-python-fastapi"
+    },
+    {
+      "name": "atelier-python-modern-python",
+      "source": "./skills/atelier-python-modern-python"
+    },
+    {
+      "name": "atelier-python-monorepo",
+      "source": "./skills/atelier-python-monorepo"
+    },
+    {
+      "name": "atelier-python-sqlalchemy",
+      "source": "./skills/atelier-python-sqlalchemy"
+    },
+    {
+      "name": "atelier-python-temporal",
+      "source": "./skills/atelier-python-temporal"
+    },
+    {
+      "name": "atelier-python-testing",
+      "source": "./skills/atelier-python-testing"
     }
   ]
 }

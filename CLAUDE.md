@@ -1,208 +1,87 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to AI agents when working with code in this repository.
 
 ## Repository Overview
 
-This is the Claude Code Atelier - a marketplace of plugins for spec-driven development, code quality workflows, deep thinking, and TypeScript ecosystem patterns. The repository contains four distinct plugins that integrate with Claude Code via the plugin system.
+This is Atelier - a personal development toolkit with 24 skills for spec-driven development, code quality, deep thinking, and ecosystem patterns.
 
-## Architecture
+## Skills Structure
 
-The repository follows Daniel Miessler's PAI (Personal AI Infrastructure) pattern:
-
-- **Commands** - User-invocable workflows triggered via `/command:name` syntax
-- **Skills** - Auto-invoked contextual knowledge loaded when relevant
-- **Agents** - Internal agent personas (@agent-name) for specialized thinking
-- **Templates** - Document templates for specs, proposals, and deltas
-
-### Plugin Structure
-
-Each plugin lives in `plugins/atelier-{name}/` with:
-- `.claude-plugin/plugin.json` - Plugin metadata and configuration
-- `commands/*.md` - Command implementations (user-invoked via `/command`)
-- `skills/*/SKILL.md` - Skill definitions (auto-invoked based on description)
-- `agents/*.md` - Agent persona definitions (invoked via @agent-name)
-- `assets/templates/*.md` - Document templates
-
-The marketplace root contains `.claude-plugin/marketplace.json` defining the plugin collection.
-
-### Four Plugins
-
-1. **atelier-spec** - Spec-Driven Development workflows
-   - Commands: create, propose, sync, work, complete, status
-   - Skills: project-structure, methodology
-   - Focus: Feature specifications with unified requirements + technical design
-
-2. **atelier-code** - Code quality workflows
-   - Commands: review, commit
-   - Focus: Senior engineer reviews and conventional commits
-
-3. **atelier-oracle** - Deep thinking and debugging
-   - Commands: debug
-   - Skills: atelier-challenge, atelier-thinkdeep
-   - Focus: Sequential reasoning for complex problems
-
-4. **atelier-typescript** - TypeScript ecosystem patterns
-   - Skills: dynamodb-toolbox, drizzle-orm, fastify, api-design
-   - Focus: Auto-invoked patterns for specific tech stacks
-
-## Development Commands
-
-### Local Plugin Development
-
-```bash
-# Load entire marketplace (all plugins)
-claude --plugin-dir ./claude-code-atelier
-
-# Load individual plugins
-claude --plugin-dir ./claude-code-atelier/plugins/atelier-spec
-claude --plugin-dir ./claude-code-atelier/plugins/atelier-code
-claude --plugin-dir ./claude-code-atelier/plugins/atelier-oracle
-claude --plugin-dir ./claude-code-atelier/plugins/atelier-typescript
-```
-
-**Important:** Restart Claude Code after making changes to plugin files to reload them.
-
-### Installation from Marketplace
-
-```bash
-# Add marketplace
-/plugin marketplace add martinffx/claude-code-atelier
-
-# Install plugins
-/plugin install spec@atelier
-/plugin install code@atelier
-/plugin install oracle@atelier
-/plugin install typescript@atelier
-```
-
-## Key Design Patterns
-
-### Spec-Driven Development (atelier-spec)
-
-The spec plugin enforces a layered architecture pattern:
+Skills are located in the `skills/` directory. Each skill is a self-contained module with:
 
 ```
-Router → Service → Repository → Entity → Database
+skills/atelier-{domain}-{topic}/
+├── SKILL.md           # Main skill definition
+└── references/        # Optional additional context
+    ├── topic-a.md
+    └── topic-b.md
 ```
 
-**Core principles:**
-- **Bottom-up dependency flow** - Each layer depends only on layers below
-- **Domain entities** - Entity layer handles all data transformations (fromRequest, toRecord, toResponse, validate)
-- **Stub-Driven TDD** - Stub → Test → Implement → Refactor workflow
-- **Layer boundary testing** - Test at component boundaries, not every method
-- **Unified specs** - Single spec.md contains both requirements and technical design
+### Skill File Format
 
-**Project structure:**
-```
-docs/
-├── product/          # Product-level docs (product.md, roadmap.md)
-├── spec/            # Feature specs (one directory per feature)
-│   └── <feature>/
-│       └── spec.md  # Unified requirements + technical design
-└── standards/       # Technical standards (coding.md, architecture.md)
-```
-
-### Command Invocation Pattern
-
-Commands use shell command substitution (`!` prefix) and agent invocation (`@agent-name`) patterns:
-
-```markdown
-# Execute shell commands
-!`git status`
-
-# Invoke agents
-<architect>
-@agent-architect
-
-[Instructions for agent]
-</architect>
-```
-
-### Agent Context Pattern
-
-Commands can request context loading:
-
-```markdown
-<context>
-@agent-clerk
-
-Load project standards for review criteria:
-- Read `docs/standards/coding.md`
-- Read `docs/standards/architecture.md`
-</context>
-```
-
-### Skill Auto-Invocation
-
-Skills have YAML frontmatter defining when they're loaded:
+Skills use YAML frontmatter for metadata:
 
 ```yaml
 ---
 name: skill-name
-description: When to use this skill (Claude reads this)
+description: When to use this skill (AI reads this to auto-load)
 user-invocable: false  # or true if user can call directly
 ---
 ```
 
-Skills are loaded based on description match to current context.
+Skills are auto-invoked based on description match to current context.
 
-## Plugin File Conventions
+## Available Skills
 
-### Command Files (commands/*.md)
+**Spec-Driven Development** (6 skills)
+- `atelier-spec-architect` - Technical design patterns and architectural guidance
+- `atelier-spec-beads` - Dependency-aware task tracking integrated with spec workflows
+- `atelier-spec-methodology` - Spec-driven development methodology and workflow patterns
+- `atelier-spec-product` - Product-level documentation and business context patterns
+- `atelier-spec-project-structure` - Project layout and organization patterns
+- `atelier-spec-testing` - Stub-driven TDD and layer boundary testing
 
-- Named with action verb (create.md, review.md, commit.md)
-- Accept arguments via `$ARGUMENTS` placeholder
-- Use step-by-step structure (## Step 1, ## Step 2, etc.)
-- Can invoke agents and execute shell commands
+**Deep Thinking** (2 skills)
+- `atelier-oracle-challenge` - Critical thinking and challenging approaches
+- `atelier-oracle-thinkdeep` - Extended sequential reasoning for complex problems
 
-### Skill Files (skills/*/SKILL.md)
+**TypeScript Patterns** (8 skills)
+- `atelier-typescript-api-design` - REST API design patterns
+- `atelier-typescript-build-tools` - Bun, Vitest, Biome, Turborepo
+- `atelier-typescript-drizzle-orm` - Type-safe SQL for PostgreSQL/MySQL/SQLite/D1
+- `atelier-typescript-dynamodb-toolbox` - Single-table design, GSI patterns
+- `atelier-typescript-effect-ts` - Functional effects, error handling
+- `atelier-typescript-fastify` - Fastify + TypeBox route handlers
+- `atelier-typescript-functional-patterns` - ADTs, branded types, Option/Result
+- `atelier-typescript-testing` - Mocking, MSW, snapshot testing
 
-- Located in named subdirectories under skills/
-- Must have YAML frontmatter with name, description, user-invocable
-- Description determines when Claude auto-loads the skill
-- Can include references/ subdirectory for additional context
+**Python Patterns** (8 skills)
+- `atelier-python-architecture` - Functional core/imperative shell, DDD
+- `atelier-python-build-tools` - uv, mise, ruff, basedpyright
+- `atelier-python-fastapi` - Pydantic validation, dependency injection
+- `atelier-python-modern-python` - Type hints, generics, async/await
+- `atelier-python-monorepo` - uv workspaces, mise task orchestration
+- `atelier-python-sqlalchemy` - ORM patterns, queries, async
+- `atelier-python-temporal` - Workflow orchestration, activities
+- `atelier-python-testing` - Stub-Driven TDD, layer boundary testing
 
-### Agent Files (agents/*.md)
+## Installation
 
-- Define personas with specialized thinking modes
-- Invoked via `@agent-name` syntax within command context blocks
-- Common agents: architect (design), oracle (reasoning), clerk (context)
+```bash
+# Install all skills
+npx skills add martinffx/atelier
 
-### Template Files (assets/templates/*.md)
+# Install specific skill
+npx skills add martinffx/atelier --skill atelier-typescript-drizzle-orm
+```
 
-- Document templates for consistent format
-- Used by commands to generate specs, proposals, deltas
-- Examples: spec.md, proposal.md, delta.md
+## Development
 
-## Modifying Plugins
+For local development with Claude Code:
 
-When editing plugins:
+```bash
+claude --plugin-dir ./atelier
+```
 
-1. **Commands** - Modify workflow steps, add shell commands, adjust agent instructions
-2. **Skills** - Update knowledge content, adjust description for better auto-invocation
-3. **Agents** - Refine persona instructions and thinking patterns
-4. **Templates** - Adjust document structure and required sections
-
-After changes, restart Claude Code with `--plugin-dir` to reload.
-
-## Testing Plugin Changes
-
-1. Make changes to plugin files
-2. Restart Claude Code: `claude --plugin-dir ./claude-code-atelier`
-3. Invoke commands: `/command:name arguments`
-4. Verify skill auto-invocation by checking context loaded
-5. Check command execution flow and output
-
-## Integration with Beads Task Tracker
-
-The spec plugin integrates with Beads (`bd` CLI) for dependency-aware task management:
-
-- `bd init` - Initialize Beads in project
-- `bd create epic <name>` - Create epic for feature
-- `bd create task <name>` - Add implementation task
-- `bd ready` - Start next available task
-- `bd close` - Complete current task
-- `bd list` - Show all tasks
-
-Commands like `/spec:create` and `/spec:propose` automatically create Beads epics with implementation tasks ordered by technical dependencies (Entity → Repository → Service → Router).
+Restart Claude Code after making changes to reload skills.

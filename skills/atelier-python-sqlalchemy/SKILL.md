@@ -1,5 +1,5 @@
 ---
-name: atelier-python-sqlalchemy
+name: python:sqlalchemy
 description: SQLAlchemy ORM patterns for Python database access. Use when defining models, writing queries, implementing upserts, working with JSON columns, or managing database sessions.
 user-invocable: false
 ---
@@ -116,9 +116,4 @@ configs = session.query(ConfigModel).filter(
 ).all()
 ```
 
-## References
-
-For detailed patterns:
-- [references/models.md](references/models.md) - Model patterns
-- [references/queries.md](references/queries.md) - Query optimization
-- [references/async.md](references/async.md) - Async SQLAlchemy
+See references/ for model patterns, query optimization, and async SQLAlchemy.

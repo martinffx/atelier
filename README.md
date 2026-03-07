@@ -1,4 +1,4 @@
-# Claude Code Atelier
+# Atelier
 
 ![Atelier - A collaborative workshop for software development](atelier.jpg)
 
@@ -6,57 +6,39 @@
 >
 > [Wikipedia](https://en.wikipedia.org/wiki/Atelier)
 
-A software development atelier for Claude Code - spec-driven development, code quality, deep thinking, and TypeScript patterns.
-
-
-This marketplace offers both individual skills (modular capabilities) and plugin collections (command suites) that enhance your development workflow.
-
-## Table of Contents
-
-- [Skills](#skills) - 24 modular capabilities for Claude Code
-- [Installation](#installation)
-- [Plugins](#plugins) - Plugin collections with commands
-  - [spec](#spec---spec-driven-development)
-  - [code](#code---code-quality)
-  - [oracle](#oracle---deep-thinking)
-  - [typescript](#typescript---typescript-patterns)
-  - [python](#python---python-patterns)
-- [Development](#development)
-- [License](#license)
+A personal development toolkit for AI agents - spec-driven development, code quality, deep thinking, and ecosystem patterns.
 
 ## Skills
 
-This repository includes 24 individual skills that can be installed via [skills.sh](https://skills.sh/). Skills are modular, auto-invoked capabilities that enhance Claude Code with specialized knowledge and workflows.
-
-**Tip:** Skills work with Claude Code, opencode, and any agent supporting the skills.sh standard, while [Plugins](#plugins) are Claude Code-specific command suites.
+This repository includes 24 skills that can be installed via [skills.sh](https://skills.sh/). Skills are modular, auto-invoked capabilities that enhance AI agents with specialized knowledge and workflows.
 
 ### Installing Skills
 
 ```bash
 # Install all skills from the repository
-npx skills add martinffx/claude-code-atelier
+npx skills add martinffx/atelier
 
 # Install specific skills
-npx skills add martinffx/claude-code-atelier --skill atelier-typescript-drizzle-orm
-npx skills add martinffx/claude-code-atelier --skill atelier-python-fastapi
-npx skills add martinffx/claude-code-atelier --skill atelier-spec-beads
+npx skills add martinffx/atelier --skill atelier-typescript-drizzle-orm
+npx skills add martinffx/atelier --skill atelier-python-fastapi
+npx skills add martinffx/atelier --skill atelier-spec-beads
 ```
 
 ### Available Skills
 
-**Spec-Driven Development** (atelier-spec)
-- `atelier-spec-beads` - Dependency-aware task tracking integrated with spec workflows
+**Spec-Driven Development**
 - `atelier-spec-architect` - Technical design patterns and architectural guidance
+- `atelier-spec-beads` - Dependency-aware task tracking integrated with spec workflows
 - `atelier-spec-methodology` - Spec-driven development methodology and workflow patterns
 - `atelier-spec-product` - Product-level documentation and business context patterns
 - `atelier-spec-project-structure` - Project layout and organization patterns
 - `atelier-spec-testing` - Stub-driven TDD and layer boundary testing
 
-**Deep Thinking** (atelier-oracle)
+**Deep Thinking**
 - `atelier-oracle-challenge` - Critical thinking and challenging approaches
 - `atelier-oracle-thinkdeep` - Extended sequential reasoning for complex problems
 
-**TypeScript Patterns** (atelier-typescript)
+**TypeScript Patterns**
 - `atelier-typescript-api-design` - REST API resource naming, HTTP methods, error responses, pagination
 - `atelier-typescript-drizzle-orm` - Type-safe SQL for PostgreSQL/MySQL/SQLite/Cloudflare D1
 - `atelier-typescript-dynamodb-toolbox` - Single-table design, entity definitions, GSI patterns
@@ -66,7 +48,7 @@ npx skills add martinffx/claude-code-atelier --skill atelier-spec-beads
 - `atelier-typescript-build-tools` - Bun, Vitest, Biome, Turborepo configurations
 - `atelier-typescript-testing` - Mocking, MSW, snapshot testing
 
-**Python Patterns** (atelier-python)
+**Python Patterns**
 - `atelier-python-architecture` - Functional core/imperative shell, DDD patterns, layered architecture
 - `atelier-python-fastapi` - Pydantic validation, dependency injection, OpenAPI
 - `atelier-python-sqlalchemy` - ORM patterns, queries, async, upserts
@@ -76,168 +58,17 @@ npx skills add martinffx/claude-code-atelier --skill atelier-spec-beads
 - `atelier-python-testing` - Stub-Driven TDD, layer boundary testing, pytest patterns
 - `atelier-python-build-tools` - uv, mise, ruff, basedpyright, pytest configurations
 
-Skills are auto-invoked based on their description when you work with relevant technologies. No commands needed - just install and Claude will use them when appropriate.
-
-## Installation
-
-### Claude Code Plugins
-
-```bash
-# Add the marketplace
-/plugin marketplace add martinffx/claude-code-atelier
-
-# Install plugins
-/plugin install spec@atelier
-/plugin install code@atelier
-/plugin install oracle@atelier
-/plugin install typescript@atelier
-/plugin install python@atelier
-```
-
-## Skills vs Plugins
-
-| Aspect | Skills | Plugins |
-|--------|--------|---------|
-| **Compatibility** | Universal - works with Claude Code, opencode, and other agents | Claude Code only |
-| **Invocation** | Auto-loaded based on context/description | Explicit commands like `/spec:create` |
-| **Granularity** | Individual capabilities | Collection of commands for workflows |
-| **Installation** | `npx skills add martinffx/claude-code-atelier` | `/plugin install spec@atelier` |
-| **Best for** | Domain expertise, patterns, knowledge sharing | Structured workflows with specific commands |
-
-**Use Skills when:**
-- You want auto-invoked knowledge that follows the skills.sh standard
-- You need domain patterns (Drizzle ORM, FastAPI, testing strategies)
-- You want portability across different AI agents
-
-**Use Plugins when:**
-- You're using Claude Code specifically
-- You want structured workflows with explicit commands
-- You need multi-step processes (create → design → plan → work)
-
-## Plugins
-
-### [spec](plugins/atelier-spec/README.md) - Spec-Driven Development
-
-- **Lightweight documentation over heavyweight planning** - Replace PRDs with minimal business context + detailed implementation specs
-- **Dependency-driven over sprint-driven** - Order tasks by technical requirements (Entity → Repository → Service → Router)
-- **AI-assisted implementation** - Structured specs enable AI agents to make informed technical decisions without constant prompting
-- **Prevention over debugging** - Spot issues in design, not production
-- **Enforced patterns** - Layered architecture with domain-driven design and layer boundary testing
-
-**What you get:** 9 commands + 5 skills + 3 specialized agents (architect, oracle, clerk)
-
-```bash
-# Greenfield workflow
-/spec:create <feature>   # Gather requirements
-/spec:design <feature>   # Generate technical design
-/spec:plan <feature>     # Create implementation plan with Beads epic
-/spec:work [feature]     # AI-driven implementation with stub→test→fix workflow
-
-# Brownfield workflow
-/spec:propose <feature> <change>  # Propose changes to existing feature
-/spec:design <feature> <change>   # Design changes
-/spec:plan <feature> <change>     # Plan implementation
-/spec:work [feature]              # Implement changes
-
-# Progress tracking
-/spec:status [feature]   # Track progress via Beads
-```
-
-[→ Full spec plugin documentation](plugins/atelier-spec/README.md)
-
----
-
-### [code](plugins/atelier-code/README.md) - Code Quality
-
-**Code reviews and conventional commits** that follow your project standards.
-
-**What it does:**
-- Reviews code changes against architectural patterns and standards
-- Identifies security vulnerabilities, performance issues, maintainability concerns
-- Generates conventional commits with proper scope and detailed context
-- Enforces consistency across your codebase
-
-```bash
-/code:review             # Get structured, relevant perspective on changes
-/code:commit [message]   # Create well-crafted conventional commit
-```
-
-[→ Full code plugin documentation](plugins/atelier-code/README.md)
-
----
-
-### [oracle](plugins/atelier-oracle/README.md) - Deep Thinking
-
-**Spicier, structured thinking and reasoning** for complex problems that need deeper analysis.
-
-**When to use:**
-- Complex bugs that require investigation across multiple layers
-- Architecture decisions with multiple trade-offs
-- Performance bottlenecks that need systematic profiling
-- Problems where the root cause isn't immediately obvious
-
-```bash
-/oracle:debug <error>    # Systematic debugging with bisect methodology
-```
-
-Plus 2 auto-invoked skills: `atelier-challenge` (critical thinking), `atelier-thinkdeep` (extended reasoning)
-
-[→ Full oracle plugin documentation](plugins/atelier-oracle/README.md)
-
----
-
-### [typescript](plugins/atelier-typescript/README.md) - TypeScript Patterns
-
-**Production-ready patterns** for the TypeScript ecosystem - **automatically loaded** when relevant.
-
-**Coverage:**
-- **REST API design** - Resource naming, HTTP methods, error responses, pagination, versioning
-- **DynamoDB Toolbox v2** - Single-table design, entity definitions, GSI patterns, queries
-- **Drizzle ORM** - Type-safe SQL for PostgreSQL/MySQL/SQLite/Cloudflare D1/Durable Objects
-- **Fastify + TypeBox** - Route handlers, validation, type-safe APIs
-- **Build Tools** - Bun, tsgo, Vitest, Biome, Turborepo configurations
-
-No commands needed - patterns are auto-invoked when working with these technologies.
-
-[→ Full typescript plugin documentation](plugins/atelier-typescript/README.md)
-
----
-
-### [python](plugins/atelier-python/README.md) - Python Patterns
-
-**Modern Python ecosystem patterns** - architecture, monorepos, tooling, APIs, databases, and testing - **automatically loaded** when relevant.
-
-**Coverage:**
-- **Architecture** - Functional core/imperative shell, DDD patterns, layered architecture
-- **Monorepo** - uv workspaces, mise task orchestration, apps/packages pattern
-- **FastAPI** - REST APIs, Pydantic validation, dependency injection, OpenAPI
-- **Testing** - Stub-Driven TDD, layer boundary testing, pytest patterns
-- **SQLAlchemy** - ORM patterns, queries, async, upserts
-- **Temporal** - Workflow orchestration, activities, error handling
-- **Modern Python** - Type hints, generics, async/await, pattern matching
-- **Build Tools** - uv, mise, ruff, basedpyright, pytest configurations
-
-No commands needed - patterns are auto-invoked when working with these technologies.
-
-[→ Full python plugin documentation](plugins/atelier-python/README.md)
+Skills are auto-invoked based on their description when you work with relevant technologies. No commands needed - just install and AI agents will use them when appropriate.
 
 ## Development
 
-For local development, use `--plugin-dir` to load plugins directly:
+For local development, use the `--plugin-dir` flag to load skills directly:
 
 ```bash
-# Load entire marketplace
-claude --plugin-dir ./claude-code-atelier
-
-# Load individual plugins
-claude --plugin-dir ./claude-code-atelier/plugins/atelier-spec
-claude --plugin-dir ./claude-code-atelier/plugins/atelier-code
-claude --plugin-dir ./claude-code-atelier/plugins/atelier-oracle
-claude --plugin-dir ./claude-code-atelier/plugins/atelier-typescript
-claude --plugin-dir ./claude-code-atelier/plugins/atelier-python
+claude --plugin-dir ./atelier
 ```
 
-Restart Claude Code after making changes to reload plugins.
+Restart Claude Code after making changes to reload skills.
 
 ## License
 

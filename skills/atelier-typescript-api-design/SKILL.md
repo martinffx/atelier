@@ -394,14 +394,3 @@ async function createTransaction(rq: CreateTransactionRequest, idempotencyKey: s
 8. **ISO 8601 timestamps** - Always use `.toISOString()` for dates
 9. **Idempotency keys** - For non-idempotent operations (POST, PATCH)
 10. **No unnecessary envelopes** - Return resources directly unless pagination needed
-
-## When This Skill Loads
-
-This skill automatically loads when discussing:
-- REST API design principles
-- HTTP status codes
-- API versioning strategies
-- Error response formats (RFC 7807)
-- Pagination patterns
-- Filtering and sorting APIs
-- RESTful resource naming

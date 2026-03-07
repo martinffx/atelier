@@ -1,9 +1,6 @@
 {
-  "name": "claude-code-atelier",
+  "name": "atelier",
   "version": "1.0.0",
-  "description": "Marketplace of plugins for spec-driven development, code quality workflows, and TypeScript ecosystem patterns",
-  "scripts": {
-    "sync:skills": "node scripts/sync-skills.js"
-  },
+  "description": "Personal development toolkit - spec-driven development, code quality, deep thinking, and ecosystem patterns",
   "private": true
 }
