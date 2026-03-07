@@ -37,7 +37,7 @@
 - Must maintain domain boundary testing philosophy
 
 ### Gap Analysis
-**Missing Skills:** using-atelier, research, planning, parallel-execution, verification
+**Missing Skills:** using-atelier, research, planning, parallel-execution, verification, worktree, graphite, complete-branch
 **Skills Needing Enhancement:** product, architect, testing, challenge, methodology
 
 ---
@@ -327,6 +327,90 @@
 
 ---
 
+### Task 11: Create Worktree Skill
+
+**Files:**
+- Create: `skills/atelier-spec-worktree/SKILL.md`
+
+**Description:** Create isolated git workspaces for feature implementation
+
+**Implementation:**
+1. Create directory: `skills/atelier-spec-worktree/`
+2. Create `SKILL.md` with:
+   - YAML frontmatter: name, description, user-invocable: false
+   - Overview: "Create isolated git workspaces for feature work"
+   - Directory Selection Process (`.worktrees/` preferred)
+   - Safety Verification (gitignore check)
+   - Creation Steps with project setup auto-detection
+   - Integration with spec workflow
+
+**Verification:**
+- YAML frontmatter valid
+- Directory selection logic clear
+- Safety verification explained
+- Integration sections present
+
+**Commit:** `feat: add worktree skill for isolated git workspace creation`
+
+---
+
+### Task 12: Create Graphite Skill
+
+**Files:**
+- Create: `skills/atelier-spec-graphite/SKILL.md`
+- Create: `skills/atelier-spec-graphite/references/graphite-workflow.md`
+
+**Description:** Manage stacked PRs for dependency-ordered implementation (Entity → Repository → Service → Router)
+
+**Implementation:**
+1. Create directory: `skills/atelier-spec-graphite/`
+2. Create `SKILL.md` with:
+   - YAML frontmatter: name, description, user-invocable: false
+   - Overview: "Stacked PRs for Entity → Repository → Service → Router workflow"
+   - Core Concepts (stacks, upstack, downstack, trunk)
+   - Command Reference (gt create, gt submit, gt modify, gt sync, gt log)
+   - Workflow Patterns for spec-driven development
+   - Integration with layer-based implementation (each layer = stacked PR)
+3. Create `references/graphite-workflow.md` with detailed workflows
+
+**Verification:**
+- YAML frontmatter valid
+- Core concepts explained
+- Command reference complete
+- Integration with spec workflow clear
+
+**Commit:** `feat: add graphite skill for stacked PR management`
+
+---
+
+### Task 13: Create Branch Completion Skill
+
+**Files:**
+- Create: `skills/atelier-spec-complete-branch/SKILL.md`
+
+**Description:** Complete feature work with worktree cleanup and graphite PR management
+
+**Implementation:**
+1. Create directory: `skills/atelier-spec-complete-branch/`
+2. Create `SKILL.md` with:
+   - YAML frontmatter: name, description, user-invocable: false
+   - Overview: "Complete feature work with structured options"
+   - Verify Tests section
+   - Present Options section (4 options: merge locally, create PRs, keep as-is, discard)
+   - Handle Graphite stacks (submit all PRs in stack)
+   - Cleanup Worktree section
+   - Integration with spec workflow
+
+**Verification:**
+- YAML frontmatter valid
+- Options clearly presented
+- Graphite integration included
+- Worktree cleanup handled
+
+**Commit:** `feat: add branch completion skill with worktree and graphite integration`
+
+---
+
 ## Implementation Order
 
 **Dependency-based:**
@@ -340,6 +424,9 @@
 8. Task 7 (Create planning) - Missing piece
 9. Task 8 (Create parallel execution) - Missing piece
 10. Task 9 (Create verification) - Missing piece
+11. **Task 11 (Create worktree)** - Git workspace isolation
+12. **Task 12 (Create graphite)** - Stacked PR management
+13. **Task 13 (Create complete-branch)** - Completion workflow
 
 ## Execution Status
 
@@ -373,6 +460,7 @@
 4. **Layered architecture** - Keep functional core/effectful edge
 5. **Evidence-based** - Add verification-before-completion
 6. **Domain boundary testing** - Test at boundaries, mock at boundaries
+7. **Git workflow integration** - Worktrees for isolation, Graphite for stacked PRs
 
 ---
 
