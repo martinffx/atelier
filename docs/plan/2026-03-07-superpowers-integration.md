@@ -350,7 +350,7 @@
 - Safety verification explained
 - Integration sections present
 
-**Commit:** `feat: add worktree skill for isolated git workspace creation`
+**Commit:** `feat: add worktree skill for isolated git workspace creation` (22e2721)
 
 ---
 
@@ -379,7 +379,7 @@
 - Command reference complete
 - Integration with spec workflow clear
 
-**Commit:** `feat: add graphite skill for stacked PR management`
+**Commit:** `feat: add graphite skill for stacked PR management` (22e2721)
 
 ---
 
@@ -407,7 +407,7 @@
 - Graphite integration included
 - Worktree cleanup handled
 
-**Commit:** `feat: add branch completion skill with worktree and graphite integration`
+**Commit:** `feat: add branch completion skill with worktree and graphite integration` (22e2721)
 
 ---
 
@@ -447,8 +447,11 @@
 | 8 | Create Parallel Execution Skill (atelier-spec-parallel-execution) | ✅ COMPLETE | cde2e25 |
 | 9 | Create Verification Skill (atelier-spec-verification) | ✅ COMPLETE | b2faaf2 |
 | 10 | Update Methodology (atelier-spec-methodology) | ✅ COMPLETE | d68b133 |
+| 11 | Create Worktree Skill (atelier-spec-worktree) | ✅ COMPLETE | 22e2721 |
+| 12 | Create Graphite Skill (atelier-spec-graphite) | ✅ COMPLETE | 22e2721 |
+| 13 | Create Complete-Branch Skill (atelier-spec-complete-branch) | ✅ COMPLETE | 22e2721 |
 
-**Result:** All 10 tasks completed in single session via subagent-driven development
+**Result:** All 13 tasks completed via subagent-driven development
 
 ---
 
