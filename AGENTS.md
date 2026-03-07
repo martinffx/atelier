@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 This file provides guidance to AI agents when working with code in this repository.
 
@@ -11,7 +11,7 @@ This is Atelier - a personal development toolkit with 24 skills for spec-driven 
 Skills are located in the `skills/` directory. Each skill is a self-contained module with:
 
 ```
-skills/atelier-{domain}-{topic}/
+skills/{category}:{name}/
 ├── SKILL.md           # Main skill definition
 └── references/        # Optional additional context
     ├── topic-a.md
@@ -35,36 +35,36 @@ Skills are auto-invoked based on description match to current context.
 ## Available Skills
 
 **Spec-Driven Development** (6 skills)
-- `atelier-spec-architect` - Technical design patterns and architectural guidance
-- `atelier-spec-beads` - Dependency-aware task tracking integrated with spec workflows
-- `atelier-spec-methodology` - Spec-driven development methodology and workflow patterns
-- `atelier-spec-product` - Product-level documentation and business context patterns
-- `atelier-spec-project-structure` - Project layout and organization patterns
-- `atelier-spec-testing` - Stub-driven TDD and layer boundary testing
+- `spec:architect` - Technical design patterns and architectural guidance
+- `spec:beads` - Dependency-aware task tracking integrated with spec workflows
+- `spec:methodology` - Spec-driven development methodology and workflow patterns
+- `spec:product` - Product-level documentation and business context patterns
+- `spec:project-structure` - Project layout and organization patterns
+- `spec:testing` - Stub-driven TDD and layer boundary testing
 
 **Deep Thinking** (2 skills)
-- `atelier-oracle-challenge` - Critical thinking and challenging approaches
-- `atelier-oracle-thinkdeep` - Extended sequential reasoning for complex problems
+- `oracle:challenge` - Critical thinking and challenging approaches
+- `oracle:thinkdeep` - Extended sequential reasoning for complex problems
 
 **TypeScript Patterns** (8 skills)
-- `atelier-typescript-api-design` - REST API design patterns
-- `atelier-typescript-build-tools` - Bun, Vitest, Biome, Turborepo
-- `atelier-typescript-drizzle-orm` - Type-safe SQL for PostgreSQL/MySQL/SQLite/D1
-- `atelier-typescript-dynamodb-toolbox` - Single-table design, GSI patterns
-- `atelier-typescript-effect-ts` - Functional effects, error handling
-- `atelier-typescript-fastify` - Fastify + TypeBox route handlers
-- `atelier-typescript-functional-patterns` - ADTs, branded types, Option/Result
-- `atelier-typescript-testing` - Mocking, MSW, snapshot testing
+- `typescript:api-design` - REST API design patterns
+- `typescript:build-tools` - Bun, Vitest, Biome, Turborepo
+- `typescript:drizzle-orm` - Type-safe SQL for PostgreSQL/MySQL/SQLite/D1
+- `typescript:dynamodb-toolbox` - Single-table design, GSI patterns
+- `typescript:effect-ts` - Functional effects, error handling
+- `typescript:fastify` - Fastify + TypeBox route handlers
+- `typescript:functional-patterns` - ADTs, branded types, Option/Result
+- `typescript:testing` - Mocking, MSW, snapshot testing
 
 **Python Patterns** (8 skills)
-- `atelier-python-architecture` - Functional core/imperative shell, DDD
-- `atelier-python-build-tools` - uv, mise, ruff, basedpyright
-- `atelier-python-fastapi` - Pydantic validation, dependency injection
-- `atelier-python-modern-python` - Type hints, generics, async/await
-- `atelier-python-monorepo` - uv workspaces, mise task orchestration
-- `atelier-python-sqlalchemy` - ORM patterns, queries, async
-- `atelier-python-temporal` - Workflow orchestration, activities
-- `atelier-python-testing` - Stub-Driven TDD, layer boundary testing
+- `python:architecture` - Functional core/imperative shell, DDD
+- `python:build-tools` - uv, mise, ruff, basedpyright
+- `python:fastapi` - Pydantic validation, dependency injection
+- `python:modern-python` - Type hints, generics, async/await
+- `python:monorepo` - uv workspaces, mise task orchestration
+- `python:sqlalchemy` - ORM patterns, queries, async
+- `python:temporal` - Workflow orchestration, activities
+- `python:testing` - Stub-Driven TDD, layer boundary testing
 
 ## Installation
 
@@ -73,7 +73,7 @@ Skills are auto-invoked based on description match to current context.
 npx skills add martinffx/atelier
 
 # Install specific skill
-npx skills add martinffx/atelier --skill atelier-typescript-drizzle-orm
+npx skills add martinffx/atelier --skill typescript:drizzle-orm
 ```
 
 ## Development

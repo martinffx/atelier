@@ -7,100 +7,100 @@
   },
   "skills": [
     {
-      "name": "atelier-spec-architect",
-      "source": "./skills/atelier-spec-architect"
+      "name": "spec:architect",
+      "source": "./skills/spec:architect"
     },
     {
-      "name": "atelier-spec-beads",
-      "source": "./skills/atelier-spec-beads"
+      "name": "spec:beads",
+      "source": "./skills/spec:beads"
     },
     {
-      "name": "atelier-spec-methodology",
-      "source": "./skills/atelier-spec-methodology"
+      "name": "spec:methodology",
+      "source": "./skills/spec:methodology"
     },
     {
-      "name": "atelier-spec-product",
-      "source": "./skills/atelier-spec-product"
+      "name": "spec:product",
+      "source": "./skills/spec:product"
     },
     {
-      "name": "atelier-spec-project-structure",
-      "source": "./skills/atelier-spec-project-structure"
+      "name": "spec:project-structure",
+      "source": "./skills/spec:project-structure"
     },
     {
-      "name": "atelier-spec-testing",
-      "source": "./skills/atelier-spec-testing"
+      "name": "spec:testing",
+      "source": "./skills/spec:testing"
     },
     {
-      "name": "atelier-oracle-challenge",
-      "source": "./skills/atelier-oracle-challenge"
+      "name": "oracle:challenge",
+      "source": "./skills/oracle:challenge"
     },
     {
-      "name": "atelier-oracle-thinkdeep",
-      "source": "./skills/atelier-oracle-thinkdeep"
+      "name": "oracle:thinkdeep",
+      "source": "./skills/oracle:thinkdeep"
     },
     {
-      "name": "atelier-typescript-api-design",
-      "source": "./skills/atelier-typescript-api-design"
+      "name": "typescript:api-design",
+      "source": "./skills/typescript:api-design"
     },
     {
-      "name": "atelier-typescript-build-tools",
-      "source": "./skills/atelier-typescript-build-tools"
+      "name": "typescript:build-tools",
+      "source": "./skills/typescript:build-tools"
     },
     {
-      "name": "atelier-typescript-drizzle-orm",
-      "source": "./skills/atelier-typescript-drizzle-orm"
+      "name": "typescript:drizzle-orm",
+      "source": "./skills/typescript:drizzle-orm"
     },
     {
-      "name": "atelier-typescript-dynamodb-toolbox",
-      "source": "./skills/atelier-typescript-dynamodb-toolbox"
+      "name": "typescript:dynamodb-toolbox",
+      "source": "./skills/typescript:dynamodb-toolbox"
     },
     {
-      "name": "atelier-typescript-effect-ts",
-      "source": "./skills/atelier-typescript-effect-ts"
+      "name": "typescript:effect-ts",
+      "source": "./skills/typescript:effect-ts"
     },
     {
-      "name": "atelier-typescript-fastify",
-      "source": "./skills/atelier-typescript-fastify"
+      "name": "typescript:fastify",
+      "source": "./skills/typescript:fastify"
     },
     {
-      "name": "atelier-typescript-functional-patterns",
-      "source": "./skills/atelier-typescript-functional-patterns"
+      "name": "typescript:functional-patterns",
+      "source": "./skills/typescript:functional-patterns"
     },
     {
-      "name": "atelier-typescript-testing",
-      "source": "./skills/atelier-typescript-testing"
+      "name": "typescript:testing",
+      "source": "./skills/typescript:testing"
     },
     {
-      "name": "atelier-python-architecture",
-      "source": "./skills/atelier-python-architecture"
+      "name": "python:architecture",
+      "source": "./skills/python:architecture"
     },
     {
-      "name": "atelier-python-build-tools",
-      "source": "./skills/atelier-python-build-tools"
+      "name": "python:build-tools",
+      "source": "./skills/python:build-tools"
     },
     {
-      "name": "atelier-python-fastapi",
-      "source": "./skills/atelier-python-fastapi"
+      "name": "python:fastapi",
+      "source": "./skills/python:fastapi"
     },
     {
-      "name": "atelier-python-modern-python",
-      "source": "./skills/atelier-python-modern-python"
+      "name": "python:modern-python",
+      "source": "./skills/python:modern-python"
     },
     {
-      "name": "atelier-python-monorepo",
-      "source": "./skills/atelier-python-monorepo"
+      "name": "python:monorepo",
+      "source": "./skills/python:monorepo"
     },
     {
-      "name": "atelier-python-sqlalchemy",
-      "source": "./skills/atelier-python-sqlalchemy"
+      "name": "python:sqlalchemy",
+      "source": "./skills/python:sqlalchemy"
     },
     {
-      "name": "atelier-python-temporal",
-      "source": "./skills/atelier-python-temporal"
+      "name": "python:temporal",
+      "source": "./skills/python:temporal"
     },
     {
-      "name": "atelier-python-testing",
-      "source": "./skills/atelier-python-testing"
+      "name": "python:testing",
+      "source": "./skills/python:testing"
     }
   ]
 }
