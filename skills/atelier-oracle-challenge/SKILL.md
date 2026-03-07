@@ -6,6 +6,53 @@ user-invocable: false
 
 # Challenge: Critical Thinking Prompt
 
+## The Iron Law
+
+**NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST**
+
+When you encounter a bug, error, or unexpected behavior, you MUST identify the root cause before implementing a fix. This means:
+- Don't just fix the symptom—fix the disease
+- If you don't understand why it broke, you don't know if your fix will work
+- Quick fixes without investigation become technical debt
+
+This is non-negotiable. If you're implementing a fix without understanding the root cause, you're just guessing.
+
+## When to Use Challenge
+
+**Before Implementing Fixes:**
+- Any bug fix
+- Error handling changes
+- Edge case handling
+- Performance fixes
+
+**To Validate Approach:**
+- Architecture decisions
+- Technology choices
+- Design patterns
+- Requirement assumptions
+
+**The Four Phases:**
+
+### Phase 1: Root Cause Investigation
+- Reproduce the issue consistently
+- Identify what's different between expected and actual behavior
+- Trace back to where the state diverges
+
+### Phase 2: Pattern Recognition  
+- Does this match a known pattern of bugs?
+- Is there a category of errors this belongs to?
+- What's common between this and other similar issues?
+
+### Phase 3: Hypothesis Formation
+- What do I believe is causing this?
+- What's the minimal test that would prove/disprove this?
+- What would a correct implementation look like?
+
+### Phase 4: Implementation
+- Verify fix with tests (consider domain boundary testing)
+- Check for similar issues elsewhere
+- Document what was learned
+
 ## Step 1: Parse Challenge Request
 
 <strategist>
@@ -124,3 +171,40 @@ Continue until you reach a clear conclusion.
 **Use /atelier-thinkdeep**: Deep exploration, comprehensive analysis, alternative discovery, complex decisions
 
 **Key distinction**: Challenge = critical evaluation, ThinkDeep = deep exploration
+
+## Red Flags
+
+**Warning signs you're not doing proper debugging:**
+
+- Implementing a fix without reproducing the bug first
+- Changing code to "see if it works"
+- Not writing a test to verify the bug exists
+- Fixing symptoms instead of root cause
+- Not checking if the fix breaks other tests
+- Not understanding why the fix works
+
+## Common Rationalizations
+
+**Don't rationalize—investigate:**
+
+| Rationalization | Reality |
+|----------------|---------|
+| "It's probably a race condition" | You don't know, so find out |
+| "It's always worked before" | Something changed, find what |
+| "The tests are just flaky" | Tests caught a real bug |
+| "It's an edge case" | Your code has edge cases in prod |
+| "It's fast enough for now" | Technical debt accumulating |
+| "I know what the problem is" | You have a hypothesis, not a certainty |
+
+## Quick Reference
+
+**Debugging workflow:**
+1. Reproduce → Can you make it happen consistently?
+2. Isolate → What's the minimal case?
+3. Identify → What's different? What's the same?
+4. Hypothesize → What do you think is wrong?
+5. Test → Verify your hypothesis
+6. Fix → Implement the solution
+7. Verify → Does the fix work? Do other tests pass?
+
+**Remember:** Domain boundaries define test boundaries—test at boundaries, mock at boundaries.
