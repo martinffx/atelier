@@ -1,6 +1,6 @@
 ---
-name: atelier-spec-complete-branch
-description: Use when implementation is complete, all tests pass, and you need to decide how to integrate the work - handles worktree cleanup, graphite stacked PRs, and presents structured completion options
+name: atelier-spec-complete
+description: Complete feature work with verification, PR submission, and cleanup. Use when implementation is complete, tests pass, and ready to integrate work.
 user-invocable: false
 ---
 
@@ -12,7 +12,7 @@ Guide completion of development work by presenting clear options and handling ch
 
 **Core principle:** Verify tests → Present options → Execute choice → Clean up.
 
-**Announce at start:** "I'm using the atelier-spec-complete-branch skill to complete this work."
+**Announce at start:** "I'm using the atelier-spec-complete skill to complete this work."
 
 ## When to Use
 
@@ -271,13 +271,13 @@ rm -rf <worktree-path>
 - **/spec:complete** - After feature implementation complete
 
 **Pairs with:**
-- **atelier-spec-worktree** - Cleans up worktree created by that skill
-- **atelier-spec-graphite** - Handles stacked PR submission
+- **atelier-spec-worktrees** - Cleans up worktree created by that skill
+- **atelier-spec-stacked-commits** - Handles stacked PR submission
 
 ## Example Workflow
 
 ```
-You: I'm using the atelier-spec-complete-branch skill to complete this work.
+You: I'm using the atelier-spec-complete skill to complete this work.
 
 [Verify tests - 47 passing]
 [Check gt log - found stack with 4 branches]

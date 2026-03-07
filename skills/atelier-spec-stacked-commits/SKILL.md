@@ -1,6 +1,6 @@
 ---
-name: atelier-spec-graphite
-description: Use when managing stacked PRs for dependency-ordered implementation - creates stacked pull requests that mirror the Entity → Repository → Service → Router layer workflow
+name: atelier-spec-stacked-commits
+description: Manage dependency-ordered branches and stacked PRs. Use when implementing features layer-by-layer (Entity → Repository → Service → Router), creating stacked pull requests, or handling review feedback across dependent changes.
 user-invocable: false
 ---
 
@@ -21,7 +21,7 @@ PR 3: Service layer (stacked on Repository)
 PR 4: Router layer (stacked on Service)
 ```
 
-**Announce at start:** "I'm using the atelier-spec-graphite skill to manage stacked PRs."
+**Announce at start:** "I'm using the atelier-spec-stacked-commits skill to manage stacked PRs."
 
 ## Core Concepts
 
@@ -248,12 +248,12 @@ Each implementation layer maps to a stacked PR:
 
 ### Called by
 
-- **atelier-spec-complete-branch** - When completing feature work
+- **atelier-spec-complete** - When completing feature work
 - **/spec:complete** - After all tasks done, before cleanup
 
 ### Required after
 
-- **atelier-spec-worktree** - Worktree created, ready for stacked PRs
+- **atelier-spec-worktrees** - Worktree created, ready for stacked PRs
 - Implementation tasks complete for each layer
 
 ## Common Mistakes

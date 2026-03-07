@@ -1,6 +1,6 @@
 ---
-name: atelier-spec-worktree
-description: Use when starting feature work that needs isolation from current workspace - creates isolated git worktrees with smart directory selection and safety verification
+name: atelier-spec-worktrees
+description: Create isolated git workspaces for parallel feature development. Use when starting feature work that needs isolation, working on multiple features simultaneously, or need clean baseline for testing.
 user-invocable: false
 ---
 
@@ -12,7 +12,7 @@ Git worktrees create isolated workspaces sharing the same repository, allowing w
 
 **Core principle:** Systematic directory selection + safety verification = reliable isolation.
 
-**Announce at start:** "I'm using the atelier-spec-worktree skill to set up an isolated workspace."
+**Announce at start:** "I'm using the atelier-spec-worktrees skill to set up an isolated workspace."
 
 ## When to Use
 

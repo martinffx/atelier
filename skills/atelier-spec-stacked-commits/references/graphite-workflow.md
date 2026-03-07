@@ -217,9 +217,9 @@ The `/spec:complete` command should call Graphite:
 ### With Worktree
 
 ```bash
-# Before starting Graphite workflow
-atelier-spec-worktree creates .worktrees/feature
+# Before starting stacked commits workflow
+atelier-spec-worktrees creates .worktrees/feature
 
-# After completing Graphite workflow
-atelier-spec-complete-branch handles cleanup
+# After completing stacked commits workflow
+atelier-spec-complete handles cleanup
 ```

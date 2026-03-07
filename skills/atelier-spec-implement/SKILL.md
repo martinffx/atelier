@@ -1,6 +1,6 @@
 ---
-name: atelier-spec-work
-description: Execute implementation plans with TDD workflow. Use when implementing features or executing tasks from a plan.
+name: atelier-spec-implement
+description: Execute implementation plans with TDD workflow. Use when implementing features, executing tasks from a plan, or applying Stub-Driven TDD.
 user-invocable: true
 ---
 
