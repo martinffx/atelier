@@ -327,3 +327,7 @@ gt create "branch-name" -m "message" --no-interactive
 gt submit --no-interactive
 gt sync --no-interactive
 ```
+
+## References
+
+- [references/graphite-workflow.md](references/graphite-workflow.md) - Detailed Graphite workflow patterns

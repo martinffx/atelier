@@ -1,5 +1,5 @@
 ---
-name: python:testing
+name: atelier-python-testing
 description: Stub-Driven TDD and layer boundary testing with pytest. Use when writing tests, deciding what to test, testing at component boundaries, or implementing test-driven development.
 user-invocable: false
 ---

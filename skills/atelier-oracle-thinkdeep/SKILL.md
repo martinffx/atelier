@@ -8,30 +8,23 @@ user-invocable: false
 
 ## Step 1: Parse Request Parameters
 
-<strategist>
-@agent-oracle
-
-Analyze the thinkdeep request: $ARGUMENTS
+Analyze the user's thinkdeep request to extract key information:
 
 **Parameter Extraction:**
-- **Main prompt**: [extract core thinking request]
-- **Focus areas**: [extract "architecture, performance, security" etc]
-- **File references**: [extract "reference to file.py" patterns]
-- **Problem context**: [extract additional context provided]
+- **Main prompt**: What is the core thinking request?
+- **Focus areas**: What specific areas are mentioned? (e.g., "architecture, performance, security")
+- **File references**: Are there specific files mentioned?
+- **Problem context**: What additional context is provided?
 
-**Parsed Configuration:**
-- Prompt: [core request]
+**Formulate the Analysis:**
+- Prompt: [the core request]
 - Focus areas: [identified areas]
 - File references: [any files mentioned]
 - Problem context: [additional context]
-</strategist>
 
 ## Step 2: Deep Sequential Analysis
 
-<strategist>
-@agent-oracle
-
-Use sequential thinking (mcp__sequential-thinking__sequentialthinking) for extended reasoning:
+Apply sequential thinking for extended reasoning:
 
 ### Thought 1: Context Understanding
 Analyze the current session context to understand:

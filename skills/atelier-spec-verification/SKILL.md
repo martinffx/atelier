@@ -121,3 +121,7 @@ With evidence-based verification:
 - Linting passes (with output)
 - Type checking passes (with output)
 - Manual verification (with results)
+
+## References
+
+- [references/verification-commands.md](references/verification-commands.md) - Verification command reference

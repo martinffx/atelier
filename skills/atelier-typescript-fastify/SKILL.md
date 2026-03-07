@@ -403,3 +403,14 @@ app.delete('/users/:id', {
 12. Use Fastify plugins with `fp()` for dependency injection - see [references/plugins.md](./references/plugins.md)
 13. Use `preHandler` with `hasPermissions()` decorator for protected routes
 14. Use TypeID for type-safe prefixed identifiers - see [references/typeid.md](./references/typeid.md)
+
+## When This Skill Loads
+
+This skill automatically loads when discussing:
+- Building REST APIs with Fastify
+- TypeBox schema validation
+- Fastify route definitions and handlers
+- Fastify plugins and middleware
+- Error handling in Fastify
+- Authentication and authorization with Fastify
+- OpenAPI documentation generation

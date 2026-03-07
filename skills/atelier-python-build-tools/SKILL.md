@@ -1,5 +1,5 @@
 ---
-name: python:build-tools
+name: atelier-python-build-tools
 description: Python project tooling with uv, mise, ruff, basedpyright, and pytest. Use when setting up pyproject.toml, running builds, typechecking, configuring tests, linting, formatting, or managing Python environments.
 user-invocable: false
 ---

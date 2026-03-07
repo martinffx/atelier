@@ -55,26 +55,23 @@ This is non-negotiable. If you're implementing a fix without understanding the r
 
 ## Step 1: Parse Challenge Request
 
-<strategist>
-@agent-oracle
-
-Analyze the challenge request: $ARGUMENTS
+Analyze the user's challenge request:
 
 **Challenge Extraction:**
-- **Core concern**: Extract the main doubt or question
-- **Target approach**: Identify what is being challenged
-- **Context**: Relevant background from current session
-- **Specific aspects**: Particular elements to question
+- **Core concern**: What is the main doubt or question being raised?
+- **Target approach**: What specific approach or decision is being challenged?
+- **Context**: What is the relevant background from the current session?
+- **Specific aspects**: What particular elements should be questioned?
 
-**Challenge Summary:**
-You're challenging: [identified approach]
-Because: [extracted concern]
+**Formulate the Challenge:**
+You're challenging: [the identified approach]
+Because: [the extracted concern]
 In context of: [session context]
-</strategist>
 
 ## Step 2: Set Up Critical Thinking Framework
 
-<framework>
+Apply critical thinking to evaluate the challenge:
+
 **What to Question:**
 - **Underlying assumptions**: What beliefs support this approach?
 - **Evidence base**: What data or experience validates it?
@@ -88,25 +85,31 @@ In context of: [session context]
 - What evidence contradicts this direction?
 - How does this fit with your constraints and goals?
 - What are the opportunity costs?
-</framework>
 
 ## Step 3: Sequential Thinking Analysis
 
-<strategist>
-@agent-oracle
-
-Use sequential thinking (mcp__sequential-thinking__sequentialthinking) to analyze this challenge:
+Apply sequential thinking to analyze this challenge systematically:
 
 **Thought 1**: Question the fundamental assumptions
+- What are the core beliefs this approach is based on?
+
 **Thought 2**: Examine contradictory evidence
+- What data or experience contradicts this direction?
+
 **Thought 3**: Explore alternative approaches
+- What other options could achieve the same goal?
+
 **Thought 4**: Assess context-specific fit
+- How well does this work for the user's specific situation?
+
 **Thought 5**: Evaluate risks and trade-offs
+- What could go wrong? What's the opportunity cost?
+
 **Thought 6**: Synthesize findings into recommendation
+- What is the final recommendation based on the analysis?
 
 Build systematically through evidence, alternatives, and risks.
 Continue until you reach a clear conclusion.
-</strategist>
 
 ## Step 4: Critical Evaluation Output
 

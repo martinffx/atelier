@@ -218,3 +218,7 @@ bd dep tree                                # Visualize tree
 
 - `docs/plans/YYYY-MM-DD-<feature>.md` - Implementation plan
 - Beads epic with dependency-ordered tasks
+
+## References
+
+- [references/plan-template.md](references/plan-template.md) - Detailed plan template

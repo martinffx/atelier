@@ -351,3 +351,14 @@ vitest --ui
 # Coverage report
 vitest run --coverage
 ```
+
+## When This Skill Loads
+
+This skill automatically loads when discussing:
+- Unit testing in TypeScript
+- Vitest configuration and patterns
+- MSW (Mock Service Worker) for API mocking
+- Typed mocks with vi.mocked()
+- Snapshot testing
+- Test organization and structure
+- Mocking dependencies in tests

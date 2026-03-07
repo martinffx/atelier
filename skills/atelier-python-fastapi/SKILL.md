@@ -1,5 +1,5 @@
 ---
-name: python:fastapi
+name: atelier-python-fastapi
 description: Building REST APIs with FastAPI, Pydantic validation, and OpenAPI. Use when creating routes, handling requests, designing endpoints, implementing validation, error responses, pagination, or generating API documentation.
 user-invocable: false
 ---

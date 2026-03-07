@@ -1,5 +1,5 @@
 ---
-name: python:architecture
+name: atelier-python-architecture
 description: Python application architecture with functional core, effectful shell, DDD, and data modeling. Use when designing application layers, separating pure business logic from IO, defining domain models, implementing validation, or structuring bounded contexts.
 user-invocable: false
 ---
