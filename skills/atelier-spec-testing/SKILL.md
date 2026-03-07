@@ -8,7 +8,23 @@ user-invocable: false
 
 Stub-Driven Test-Driven Development and layer boundary testing for functional core and effectful edge architecture.
 
-## Core Principle: Stub-Driven TDD
+## The Iron Law
+
+**NO PRODUCTION CODE WITHOUT A FAILING TEST**
+
+Every line of production code should be written to satisfy a failing test first. This ensures:
+- Tests capture actual requirements
+- Code is testable by design
+- Refactoring has a safety net
+- Domain logic is isolated and verifiable
+
+This is non-negotiable. If you're writing code without a failing test, you're not doing TDD—you're just writing code that might work.
+
+## Core Principle: Domain Boundary TDD
+
+Test at the boundaries between components, not inside them. The boundary is where your domain meets the outside world—where IO happens, where other services are called, where users interact.
+
+## Stub-Driven TDD (Legacy Workflow)
 
 Test-Driven Development workflow for the functional core / effectful edge pattern:
 
@@ -25,7 +41,7 @@ See [references/stub-driven-tdd.md] for complete workflow examples.
 
 ## Layer Boundary Testing
 
-Test at the boundaries between functional core and effectful edge, not internal implementation.
+Test at the boundaries between functional core and effectful edge, not internal implementation. **Domain boundaries define test boundaries**—where your domain logic meets external systems is where you draw the testing line.
 
 ```
 Test here ──────▼──────────────────▼────── Test here
@@ -43,7 +59,65 @@ Test here ──────▼────────────────�
 | **Repository** | Integration | DB connection | CRUD operations, queries |
 | **Consumer** | Integration | Service | Event parsing, service calls |
 
+**Key insight:** The domain boundary is your testing contract. Test what crosses the boundary, not what happens inside.
+
 See [references/boundaries.md] for detailed testing patterns by layer.
+
+## Mocking Philosophy
+
+What to mock and what to test for real:
+
+| Situation | Mock | Test for Real |
+|-----------|------|---------------|
+| External API | ✅ Yes | Response parsing, error handling |
+| Database | ✅ Yes | Query logic, transaction handling |
+| File system | ✅ Yes | Path handling, file format |
+| Events | ✅ Yes | Event routing, payload transforms |
+| Repository | ✅ Yes | Service orchestration |
+| Entity | ❌ No | Validation, business rules |
+| Service logic | ❌ No | Orchestration, edge cases |
+| Pure functions | ❌ No | All branches, edge cases |
+
+**Rule:** Mock at domain boundaries, test domain logic for real. If it's inside your domain, test it. If it's outside your domain, mock it.
+
+## Verification Checklist
+
+Before claiming any implementation is complete:
+
+- [ ] All entity tests pass (validation, rules, transforms)
+- [ ] All service tests pass (orchestration with stubs)
+- [ ] Integration tests pass at boundaries (Router, Repository, Consumer)
+- [ ] No tests skipped or commented out
+- [ ] Test coverage is strategic (not 100% but covers critical paths)
+- [ ] Tests run fast (unit tests < 100ms each)
+- [ ] No flaky tests (run 3x to verify)
+
+## Red Flags
+
+**Warning signs your testing is wrong:**
+
+- Tests pass without running (no actual verification)
+- 100% coverage but missing critical bugs
+- Mocking internal implementation details
+- Testing implementation instead of behavior
+- Tests that break when refactoring (too coupled)
+- No tests at domain boundaries (only at outer edges)
+- Tests that require setup in multiple files to understand
+
+**If you see any of these, you're testing wrong. Fix before continuing.**
+
+## When Stuck
+
+**Testing problems and solutions:**
+
+| Problem | Solution |
+|---------|----------|
+| Can't test because code isn't ready | Stub first, then test against stub |
+| Test is flaky | Remove timing dependencies, use deterministic data |
+| Mock is complex | You're testing at wrong level—test domain, not infrastructure |
+| Tests are slow | Split unit (fast) from integration (slow), run separately |
+| Hard to setup | Use test factories/fixtures, share setup in beforeEach |
+| Test covers too much | Split into multiple tests at different boundaries |
 
 ## Functional Core Testing
 
