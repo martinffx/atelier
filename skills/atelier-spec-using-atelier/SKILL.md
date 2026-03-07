@@ -1,127 +1,38 @@
 ---
 name: atelier-spec-using-atelier
-description: Invoke relevant skills BEFORE any response or action. Use when determining which skill to invoke, managing skill dependencies, or deciding when to load skills proactively.
+description: Companion guide for atelier-spec skills. Use when working on spec-driven development, planning features, implementing from specs, or completing development work. Load this skill proactively for any spec-related task.
 user-invocable: false
 ---
 
-# Skill Invocation Governance
+# Atelier Spec Skills Reference
 
-This meta-skill governs when and how to invoke other skills. It ensures you proactively load relevant skills before taking any action, rather than relying on reactive skill matching.
+This skill provides a reference of available `atelier-spec-*` skills in `skills/atelier-spec-*/`. Use this to find the right skill for your current task.
 
-## The Rule
+## Available Skills
 
-**Before every response or action**, pause and ask: "Which skill(s) should I load for this task?"
+| Skill | When to Use |
+|-------|-------------|
+| `atelier-spec-research` | Starting a new feature, conducting discovery interviews, or creating technical design |
+| `atelier-spec-planning` | Breaking down features into actionable tasks with Beads tracking |
+| `atelier-spec-implement` | Implementing features using Stub-Driven TDD workflow |
+| `atelier-spec-verification` | Verifying work is complete, running tests, checking results |
+| `atelier-spec-stacked-commits` | Creating stacked pull requests with dependent branches |
+| `atelier-spec-worktrees` | Creating isolated git workspaces for parallel development |
+| `atelier-spec-parallel-execution` | Running multiple independent tasks concurrently |
+| `atelier-spec-complete` | Finishing development work and integrating to main |
 
-### Flow Diagram
+## Workflow
 
-```
-START: New Task/Question
-          │
-          ▼
-┌─────────────────────────────────┐
-│ Identify task domain/type       │
-│ (debugging, testing, design)   │
-└─────────────────────────────────┘
-          │
-          ▼
-┌─────────────────────────────────┐
-│ Check process skills first      │
-│ (brainstorming, verification,   │
-│  subagent-driven, etc.)         │
-└─────────────────────────────────┘
-          │
-          ▼
-┌─────────────────────────────────┐
-│ Check domain skills next        │
-│ (atelier-spec-*, atelier-*)    │
-└─────────────────────────────────┘
-          │
-          ▼
-┌─────────────────────────────────┐
-│ Load ALL relevant skills       │
-│ before responding               │
-└─────────────────────────────────┘
-          │
-          ▼
-      EXECUTE TASK
-```
+The skills follow the spec-driven development flow:
 
-## Red Flags
+1. **Research** → **Planning** → **Implement** → **Verification** → **Complete**
+2. Use **Worktrees** to isolate feature work
+3. Use **Stacked Commits** for layer-by-layer PRs (Entity → Repository → Service → Router)
+4. Use **Parallel Execution** when multiple independent tasks can run together
 
-Rationalization patterns that indicate skill invocation failure:
+### Stacked Commits Flow
 
-| Red Flag | Rationalization | Reality | Response |
-|----------|------------------|---------|----------|
-| "I know what I'm doing" | Skipping skill load | Knowledge gaps exist | Load skill proactively |
-| "This is simple enough" | Avoiding process skills | Complexity often hidden | Apply systematic approach |
-| "I'll figure it out" | Skipping domain skills | Better to use proven patterns | Load relevant skill |
-| "I've done this before" | Ignoring domain evolution | Patterns may have changed | Check for updated skills |
-| "Not worth the overhead" | Skipping verification | Bugs cost more later | Load verification skill |
-| "I'll just start coding" | Skipping brainstorming | Solutions often flawed | Use brainstorming skill |
-
-## Skill Priority
-
-Always check process skills before domain skills:
-
-1. **Process Skills** (how you work)
-   - `brainstorming` - Before any creative work
-   - `test-driven-development` - Before any implementation
-   - `verification-before-completion` - Before claiming work done
-   - `systematic-debugging` - Before proposing fixes
-   - `executing-plans` - Before following implementation plans
-   - `requesting-code-review` - Before merging changes
-
-2. **Domain Skills** (what you work with)
-   - Atelier skills: spec-*, code-*, oracle-*, typescript-*
-   - Language skills: python-*, typescript-*
-   - Framework skills: fastapi, drizzle-orm, dynamodb-toolbox, etc.
-
-## Skill Types
-
-### Rigid Skills (Must Use)
-
-These skills must be loaded for specific triggers:
-
-| Skill | Trigger |
-|-------|---------|
-| `brainstorming` | Creating features, components, adding functionality |
-| `test-driven-development` | Implementing features or bug fixes |
-| `systematic-debugging` | Bug, test failure, unexpected behavior |
-| `verification-before-completion` | Claiming work is complete/fixed/passing |
-| `writing-plans` | Has spec/requirements for multi-step task |
-| `finishing-a-development-branch` | Implementation complete, deciding merge |
-| `receiving-code-review` | Receiving code review feedback |
-
-### Flexible Skills (Use When Relevant)
-
-These skills match based on context:
-
-| Category | Skills |
-|----------|--------|
-| Spec-Driven Dev | `atelier-spec-methodology`, `atelier-spec-architect`, `atelier-spec-beads`, `atelier-spec-product`, `atelier-spec-project-structure`, `atelier-spec-testing` |
-| Python | `python:fastapi`, `python:sqlalchemy`, `python:testing`, `python:architecture`, `python:build-tools`, `python:monorepo` |
-| TypeScript | `atelier-typescript-fastify`, `atelier-typescript-drizzle-orm`, `atelier-typescript-dynamodb-toolbox`, `atelier-typescript-effect-ts` |
-
-## Tool Mapping for OpenCode
-
-Use the Skill tool to load skills:
-
-```python
-skill(name="skill-name")
-```
-
-Load multiple skills when needed:
-
-```python
-skill(name="brainstorming")
-skill(name="atelier-spec-architect")
-```
-
-## Skills Location
-
-Available skills are stored in:
-
-- **Superpowers**: `~/.config/opencode/skills/superpowers/`
-- **Atelier**: `skills/atelier-*/`
-
-Check available skills via the Skill tool's `available_skills` list in the tool definition.
+1. **During implementation**: Create stacked branches layer-by-layer with `gt create`
+2. **At completion**: Submit all PRs together with `gt submit`
+3. **Review & merge**: One at a time, bottom-up (Entity → Repository → Service → Router)
+   - When PR #1 merges, Graphite auto-rebases the stack
