@@ -1,5 +1,5 @@
 ---
-name: atelier-typescript-dynamodb-toolbox
+name: typescript:dynamodb-toolbox
 description: DynamoDB single-table design using dynamodb-toolbox v2. Use when creating entities, defining key patterns, designing GSIs, writing queries, implementing pagination, or working with any DynamoDB data layer in TypeScript projects.
 user-invocable: false
 ---

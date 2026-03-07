@@ -1,5 +1,5 @@
 ---
-name: atelier-oracle-challenge
+name: oracle:challenge
 description: Challenge an approach with critical thinking. Use when questioning assumptions, validating decisions, testing approach validity, or preventing automatic agreement.
 user-invocable: false
 ---

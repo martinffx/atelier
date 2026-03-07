@@ -1,5 +1,5 @@
 ---
-name: atelier-spec-testing
+name: spec:testing
 description: Stub-Driven TDD and layer boundary testing. Use when writing tests, deciding what to test, or testing at component boundaries.
 user-invocable: false
 ---

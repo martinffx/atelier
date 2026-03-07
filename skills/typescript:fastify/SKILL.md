@@ -1,5 +1,5 @@
 ---
-name: atelier-typescript-fastify
+name: typescript:fastify
 description: Building REST APIs with Fastify in TypeScript. Use when creating routes, handling requests, implementing validation with TypeBox, structuring applications, or working with HTTP handlers and plugins.
 user-invocable: false
 ---

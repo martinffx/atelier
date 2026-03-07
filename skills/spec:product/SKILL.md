@@ -1,5 +1,5 @@
 ---
-name: atelier-spec-product
+name: spec:product
 description: Requirements discovery and scope definition. Use when gathering requirements, conducting discovery interviews, defining scope boundaries, or prioritizing features.
 user-invocable: false
 ---

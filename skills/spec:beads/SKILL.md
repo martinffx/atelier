@@ -1,5 +1,5 @@
 ---
-name: atelier-spec-beads
+name: spec:beads
 description: Beads CLI for dependency-aware task tracking. Use when managing tasks, checking progress, finding ready work, handling dependencies, or integrating with spec workflows.
 user-invocable: false
 ---
