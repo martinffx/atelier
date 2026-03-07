@@ -217,6 +217,82 @@ Implementation order follows dependency chain:
 - Service: OrderService, PaymentService
 - Router: Order routes, Payment routes
 
+### Bite-Sized Task Granularity
+
+**Target: 2-5 minute tasks for subagents.**
+
+Each task should be completable by a subagent in one go without needing to ask clarifying questions mid-flight. Break down larger work into atomic steps:
+
+- Create single file (not multiple)
+- Implement one function/method (not multiple)
+- Add one feature flag/config (not multiple)
+- Write tests for one component (not entire feature)
+
+**Why 2-5 minutes?**
+- Subagent context stays focused
+- Review cycles are shorter
+- Easier to verify each piece
+- Less context pollution between tasks
+
+### Plan Document Header
+
+Every plan should start with a header template:
+
+```
+**Goal:** [One sentence describing what we're building]
+
+**Context:** [What we know - existing code, constraints, integrations]
+
+**Constraints:** [Time, scope, technical limitations]
+
+**Success Criteria:** [How we know we're done]
+```
+
+### Task Structure Template
+
+```markdown
+### Task N: [Task name]
+
+**Domain Boundary:** [Router|Service|Repository|Entity|Database]
+
+**Description:** [What this task does]
+
+**Verification:** [How to verify it works - run X, see Y]
+
+**Commit:** [Conventional commit message]
+```
+
+### Execution Handoff
+
+**When to use subagent execution:**
+- Sequential tasks with dependencies
+- Tasks requiring specific context
+- Complex multi-step implementations
+- When you need to answer questions before work begins
+
+**When to use parallel execution:**
+- Independent tasks
+- Multiple similar tasks (e.g., implementing multiple entities)
+- When subagents don't share state
+
+**Context to provide subagent:**
+- Full task text with description
+- Relevant existing code (don't make them read files)
+- Expected outcomes and verification steps
+- Any constraints or preferences
+
+**Success criteria:**
+- Implementation matches spec
+- Tests pass
+- Commits with descriptive message
+- Self-review completed before handoff
+
+### Remember
+
+- **Domain boundaries define test boundaries** - Test at boundaries, mock at boundaries
+- **Layer ordering matters** - Entity → Repository → Service → Router
+- **Small tasks = fast iteration** - 2-5 minute scope for subagents
+
 ## Architect → Testing Flow
 
 Architectural decisions inform testing strategy:
