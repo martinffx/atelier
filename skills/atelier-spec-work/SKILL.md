@@ -1,12 +1,16 @@
 ---
-name: atelier-spec-testing
-description: Stub-Driven TDD and layer boundary testing. Use when writing tests, deciding what to test, or testing at component boundaries.
-user-invocable: false
+name: atelier-spec-work
+description: Execute implementation plans with TDD workflow. Use when implementing features or executing tasks from a plan.
+user-invocable: true
 ---
 
-# Testing Skill
+# Work Skill
 
-Stub-Driven Test-Driven Development and layer boundary testing for functional core and effectful edge architecture.
+Execute implementation plans with TDD workflow.
+
+## Overview
+
+Work executes tasks from a plan using Stub-Driven TDD and Beads tracking.
 
 ## The Iron Law
 
@@ -20,11 +24,7 @@ Every line of production code should be written to satisfy a failing test first.
 
 This is non-negotiable. If you're writing code without a failing test, you're not doing TDD—you're just writing code that might work.
 
-## Core Principle: Domain Boundary TDD
-
-Test at the boundaries between components, not inside them. The boundary is where your domain meets the outside world—where IO happens, where other services are called, where users interact.
-
-## Stub-Driven TDD (Legacy Workflow)
+## Stub-Driven TDD
 
 Test-Driven Development workflow for the functional core / effectful edge pattern:
 
@@ -36,8 +36,6 @@ Test-Driven Development workflow for the functional core / effectful edge patter
 ```
 
 **Key insight:** Write interface signatures first, test against those, then implement—not the other way around.
-
-See [references/stub-driven-tdd.md] for complete workflow examples.
 
 ## Layer Boundary Testing
 
@@ -58,10 +56,6 @@ Test here ──────▼────────────────�
 | **Router** | Integration | Service | Status codes, response format |
 | **Repository** | Integration | DB connection | CRUD operations, queries |
 | **Consumer** | Integration | Service | Event parsing, service calls |
-
-**Key insight:** The domain boundary is your testing contract. Test what crosses the boundary, not what happens inside.
-
-See [references/boundaries.md] for detailed testing patterns by layer.
 
 ## Mocking Philosophy
 
@@ -91,33 +85,6 @@ Before claiming any implementation is complete:
 - [ ] Test coverage is strategic (not 100% but covers critical paths)
 - [ ] Tests run fast (unit tests < 100ms each)
 - [ ] No flaky tests (run 3x to verify)
-
-## Red Flags
-
-**Warning signs your testing is wrong:**
-
-- Tests pass without running (no actual verification)
-- 100% coverage but missing critical bugs
-- Mocking internal implementation details
-- Testing implementation instead of behavior
-- Tests that break when refactoring (too coupled)
-- No tests at domain boundaries (only at outer edges)
-- Tests that require setup in multiple files to understand
-
-**If you see any of these, you're testing wrong. Fix before continuing.**
-
-## When Stuck
-
-**Testing problems and solutions:**
-
-| Problem | Solution |
-|---------|----------|
-| Can't test because code isn't ready | Stub first, then test against stub |
-| Test is flaky | Remove timing dependencies, use deterministic data |
-| Mock is complex | You're testing at wrong level—test domain, not infrastructure |
-| Tests are slow | Split unit (fast) from integration (slow), run separately |
-| Hard to setup | Use test factories/fixtures, share setup in beforeEach |
-| Test covers too much | Split into multiple tests at different boundaries |
 
 ## Functional Core Testing
 
@@ -195,8 +162,6 @@ describe('OrderService.createOrder', () => {
 });
 ```
 
-See [references/core-testing.md] for comprehensive Entity and Service examples.
-
 ## Effectful Edge Testing
 
 ### Router, Repository, Consumer Integration Tests
@@ -255,8 +220,6 @@ describe('OrderConsumer', () => {
 });
 ```
 
-See [references/edge-testing.md] for Router, Repository, Consumer, Producer, and Client patterns.
-
 ## Test Coverage Guidelines
 
 Aim for strategic coverage, not 100%:
@@ -288,24 +251,20 @@ Avoid testing implementation details, framework behavior, and trivial code:
 - Don't test third-party library behavior (lodash, validation libraries)
 - Don't test trivial mappings without logic
 
-See [references/anti-patterns.md] for anti-patterns with examples and fixes.
+## Execution Flow
 
-## Testing → Implementation Flow
+1. Read plan from `docs/plans/YYYY-MM-DD-<feature>.md`
+2. Find next ready task from Beads: `bd ready --label <feature>`
+3. Mark task in_progress: `bd update <task-id> --status in_progress`
+4. Execute task with TDD: Stub → Test → Implement → Refactor
+5. Verify tests pass
+6. Close task: `bd close <task-id> --reason "Implemented with tests"`
+7. Repeat until all tasks done
 
-Follow this dependency order:
+## References
 
-```
-1. Entity tests    (pure functions, fast)
-2. Service tests   (stubbed dependencies, fast)
-3. Integration tests (real IO, slower)
-```
-
-This enables TDD: write tests first at lower layers, then implement, then build upward.
-
-## Quick Reference
-
-**For Entity Testing:** See [references/core-testing.md]
-**For Service Testing:** See [references/core-testing.md]
-**For Router/Repo/Consumer:** See [references/edge-testing.md]
-**For Workflow Examples:** See [references/stub-driven-tdd.md]
-**For What NOT to Do:** See [references/anti-patterns.md]
+- [Stub-Driven TDD](references/stub-driven-tdd.md)
+- [Boundaries](references/boundaries.md)
+- [Core Testing](references/core-testing.md)
+- [Edge Testing](references/edge-testing.md)
+- [Anti-Patterns](references/anti-patterns.md)
