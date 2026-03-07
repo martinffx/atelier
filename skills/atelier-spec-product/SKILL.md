@@ -6,32 +6,80 @@ user-invocable: false
 
 # Product Skill
 
+> ## HARD-GATE
+> **You MUST load this skill BEFORE gathering requirements**
+>
+> Skipping product discovery leads to:
+> - **Over-building**: Solving problems that don't exist or don't matter
+> - **Under-building**: Missing critical functionality users actually need
+> - **Rework**: Building the wrong thing twice
+
 Product requirements discovery and scope definition for feature specifications.
 
-## Discovery Interview
+## Anti-Patterns
 
-Use open-ended questions to explore the problem space and understand user needs:
+### This Is Too Simple To Need A Design
 
-### Problem Understanding
-- What problem are we trying to solve?
-- Who experiences this problem?
-- How do they currently solve it?
-- What triggers the need for this solution?
-- What does success look like?
+**The Rationalization:**
+> "We know what this is. It's straightforward - just a simple feature. We don't need to waste time on discovery."
 
-### User Needs
-- What are the core user jobs to be done?
-- What pain points exist in the current workflow?
-- What outcomes do users expect?
-- What constraints or limitations exist?
-- What assumptions are we making?
+**Why It's Dangerous:**
+- Every "simple" feature has hidden assumptions about user intent, data shape, and edge cases
+- What seems obvious is often based on incomplete understanding
+- The cost of rework multiplies with each layer built on shaky foundations
 
-### Context Discovery
-- What existing systems/features does this integrate with?
-- What data do we need access to?
-- What business rules or regulations apply?
-- What are the technical constraints?
-- What are the performance requirements?
+**Example of Rework:**
+> Team skips discovery, builds a "simple" notification feature. Later discovers:
+> - Users needed batch digest, not real-time alerts
+> - Different user roles required different notification channels
+> - Regulatory requirements meant audit logs were mandatory
+>
+> Result: 3x implementation time, angry users, compliance risks.
+
+## Discovery Checklist
+
+Use this 6-item checklist to validate your understanding before proceeding to design:
+
+- [ ] **Problem Validated** - Confirmed the problem exists, matters, and affects enough users to justify work
+- [ ] **Users Identified** - Know who experiences the problem, their roles, and constraints
+- [ ] **Current Solution Analyzed** - Understood how users solve this problem today (manual workarounds, competitors, etc.)
+- [ ] **Success Criteria Defined** - Clear, measurable outcomes that indicate the feature works
+- [ ] **Scope Boundaries Set** - Explicitly defined what is IN and OUT of scope
+- [ ] **Integration Points Known** - Identified systems, data, and dependencies this feature connects to
+
+## Process Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    DISCOVERY WORKFLOW                               │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐             │
+│  │   START     │───▶│  VALIDATE   │───▶│  IDENTIFY   │             │
+│  │  Context    │    │   Problem   │    │   Users     │             │
+│  └─────────────┘    └─────────────┘    └─────────────┘             │
+│                                              │                     │
+│                                              ▼                     │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐             │
+│  │   DEFINE    │◀───│   DEFINE    │◀───│   ANALYZE   │             │
+│  │   Scope     │    │   Success   │    │   Current   │             │
+│  │ Boundaries  │    │   Criteria  │    │   Solution  │             │
+│  └─────────────┘    └─────────────┘    └─────────────┘             │
+│                                              │                     │
+│                                              ▼                     │
+│                                        ┌─────────────┐             │
+│                                        │    END      │             │
+│                                        │   Ready for │             │
+│                                        │   Design    │             │
+│                                        └─────────────┘             │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+## Key Principles
+
+- **No assumptions without validation** - Every assumption must be tested, not accepted as truth
+- **No feature without problem** - Every piece of functionality must trace back to a validated user problem
+- **No scope without tradeoffs** - Every boundary decision has costs; explicit tradeoffs prevent hidden complexity
 
 ## Scope Definition
 
