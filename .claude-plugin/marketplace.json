@@ -5,102 +5,62 @@
   "owner": {
     "name": "Martin Richards"
   },
-  "skills": [
+  "plugins": [
     {
-      "name": "spec:architect",
-      "source": "./skills/spec:architect"
+      "name": "spec",
+      "description": "Spec-driven development workflows - methodology, task tracking, project structure, and testing patterns",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/spec:architect",
+        "./skills/spec:beads",
+        "./skills/spec:methodology",
+        "./skills/spec:product",
+        "./skills/spec:project-structure",
+        "./skills/spec:testing"
+      ]
     },
     {
-      "name": "spec:beads",
-      "source": "./skills/spec:beads"
+      "name": "oracle",
+      "description": "Deep thinking and reasoning patterns for complex problem-solving and critical analysis",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/oracle:challenge",
+        "./skills/oracle:thinkdeep"
+      ]
     },
     {
-      "name": "spec:methodology",
-      "source": "./skills/spec:methodology"
+      "name": "typescript",
+      "description": "TypeScript ecosystem patterns - DynamoDB, Drizzle, Fastify, Effect, and API design",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/typescript:api-design",
+        "./skills/typescript:build-tools",
+        "./skills/typescript:drizzle-orm",
+        "./skills/typescript:dynamodb-toolbox",
+        "./skills/typescript:effect-ts",
+        "./skills/typescript:fastify",
+        "./skills/typescript:functional-patterns",
+        "./skills/typescript:testing"
+      ]
     },
     {
-      "name": "spec:product",
-      "source": "./skills/spec:product"
-    },
-    {
-      "name": "spec:project-structure",
-      "source": "./skills/spec:project-structure"
-    },
-    {
-      "name": "spec:testing",
-      "source": "./skills/spec:testing"
-    },
-    {
-      "name": "oracle:challenge",
-      "source": "./skills/oracle:challenge"
-    },
-    {
-      "name": "oracle:thinkdeep",
-      "source": "./skills/oracle:thinkdeep"
-    },
-    {
-      "name": "typescript:api-design",
-      "source": "./skills/typescript:api-design"
-    },
-    {
-      "name": "typescript:build-tools",
-      "source": "./skills/typescript:build-tools"
-    },
-    {
-      "name": "typescript:drizzle-orm",
-      "source": "./skills/typescript:drizzle-orm"
-    },
-    {
-      "name": "typescript:dynamodb-toolbox",
-      "source": "./skills/typescript:dynamodb-toolbox"
-    },
-    {
-      "name": "typescript:effect-ts",
-      "source": "./skills/typescript:effect-ts"
-    },
-    {
-      "name": "typescript:fastify",
-      "source": "./skills/typescript:fastify"
-    },
-    {
-      "name": "typescript:functional-patterns",
-      "source": "./skills/typescript:functional-patterns"
-    },
-    {
-      "name": "typescript:testing",
-      "source": "./skills/typescript:testing"
-    },
-    {
-      "name": "python:architecture",
-      "source": "./skills/python:architecture"
-    },
-    {
-      "name": "python:build-tools",
-      "source": "./skills/python:build-tools"
-    },
-    {
-      "name": "python:fastapi",
-      "source": "./skills/python:fastapi"
-    },
-    {
-      "name": "python:modern-python",
-      "source": "./skills/python:modern-python"
-    },
-    {
-      "name": "python:monorepo",
-      "source": "./skills/python:monorepo"
-    },
-    {
-      "name": "python:sqlalchemy",
-      "source": "./skills/python:sqlalchemy"
-    },
-    {
-      "name": "python:temporal",
-      "source": "./skills/python:temporal"
-    },
-    {
-      "name": "python:testing",
-      "source": "./skills/python:testing"
+      "name": "python",
+      "description": "Modern Python ecosystem patterns - FastAPI, SQLAlchemy, Temporal, architecture, and testing",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/python:architecture",
+        "./skills/python:build-tools",
+        "./skills/python:fastapi",
+        "./skills/python:modern-python",
+        "./skills/python:monorepo",
+        "./skills/python:sqlalchemy",
+        "./skills/python:temporal",
+        "./skills/python:testing"
+      ]
     }
   ]
 }
