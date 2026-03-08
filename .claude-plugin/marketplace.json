@@ -61,6 +61,16 @@
         "./skills/python:temporal",
         "./skills/python:testing"
       ]
+    },
+    {
+      "name": "code",
+      "description": "Code development utilities - code review and conventional commits",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/code-review",
+        "./skills/conventional-commit"
+      ]
     }
   ]
 }
