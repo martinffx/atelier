@@ -1,5 +1,5 @@
 ---
-name: code-review
+name: code:review
 description: Comprehensive code review for quality, security, performance, and architecture. Use whenever the user asks to review code, wants feedback on their implementation, asks for a code review, or mentions reviewing files, diffs, or code quality. Triggers on phrases like "review this", "look at this code", "what do you think of", "check for bugs", "check for security", "refactor", or when the user shares code snippets, git diffs, or file paths wanting analysis.
 user-invocable: true
 ---
