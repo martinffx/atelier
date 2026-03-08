@@ -62,12 +62,13 @@
     },
     {
       "name": "code",
-      "description": "Code development utilities - code review and conventional commits",
+      "description": "Code development utilities - code review, conventional commits, and stacked commits",
       "source": "./",
       "strict": false,
       "skills": [
         "./skills/code-review",
-        "./skills/conventional-commit"
+        "./skills/conventional-commit",
+        "./skills/stacked-commit"
       ]
     }
   ]
