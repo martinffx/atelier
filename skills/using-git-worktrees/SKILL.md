@@ -210,10 +210,9 @@ Ready to implement auth feature
 ## Integration
 
 **Called by:**
-- **brainstorming** (Phase 4) - REQUIRED when design is approved and implementation follows
-- **subagent-driven-development** - REQUIRED before executing any tasks
-- **executing-plans** - REQUIRED before executing any tasks
-- Any skill needing isolated workspace
+- Any skill needing isolated workspace for feature work
+- When user explicitly requests worktree setup
+- Before long-running implementation tasks that could pollute current workspace
 
 **Pairs with:**
-- **finishing-a-development-branch** - REQUIRED for cleanup after work complete
+- `stacked-commit` - Use worktrees when managing stacked commits across multiple branches
