@@ -1,0 +1,6 @@
+{
+  "eval_id": 0,
+  "eval_name": "generate-commit",
+  "prompt": "Generate a commit message for these changes: Added a new user profile page component that displays user name, email, and avatar. Also added a settings modal for updating preferences.",
+  "assertions": []
+}

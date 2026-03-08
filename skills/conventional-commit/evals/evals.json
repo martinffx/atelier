@@ -1,0 +1,23 @@
+{
+  "skill_name": "conventional-commit",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Generate a commit message for these changes: Added a new user profile page component that displays user name, email, and avatar. Also added a settings modal for updating preferences.",
+      "expected_output": "Should produce a feat commit with proper scope, imperative subject, and optional body",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Validate this commit message: 'feat: added new login page' - is it valid conventional commit format?",
+      "expected_output": "Should identify issues: subject should be lowercase, imperative (add not added), possibly missing scope",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I made breaking changes to the API - the old /v1/users endpoint now returns different JSON structure. Create a commit message that properly indicates this is a breaking change.",
+      "expected_output": "Should produce a commit with ! in type (e.g., feat! or fix!) and BREAKING CHANGE footer",
+      "files": []
+    }
+  ]
+}

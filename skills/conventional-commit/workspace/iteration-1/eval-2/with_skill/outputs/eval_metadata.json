@@ -1,0 +1,6 @@
+{
+  "eval_id": 2,
+  "eval_name": "breaking-change-commit",
+  "prompt": "Create a commit message that properly indicates breaking changes to the /v1/users API endpoint",
+  "assertions": []
+}

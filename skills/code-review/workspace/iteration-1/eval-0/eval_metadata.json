@@ -1,0 +1,6 @@
+{
+  "eval_id": 0,
+  "eval_name": "typescript-memory-leak",
+  "prompt": "Can you review this TypeScript function? I think there might be a memory leak somewhere.\n\n```typescript\nclass UserService {\n  private cache = new Map<string, User>();\n  \n  async getUser(id: string): Promise<User> {\n    if (this.cache.has(id)) {\n      return this.cache.get(id)!;\n    }\n    \n    const user = await this.userRepo.findById(id);\n    this.cache.set(id, user);\n    return user;\n  }\n}\n```",
+  "assertions": []
+}

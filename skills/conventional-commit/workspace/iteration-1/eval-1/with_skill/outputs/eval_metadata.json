@@ -1,0 +1,6 @@
+{
+  "eval_id": 1,
+  "eval_name": "validate-commit",
+  "prompt": "Validate this commit message: 'feat: added new login page' - is it valid conventional commit format?",
+  "assertions": []
+}

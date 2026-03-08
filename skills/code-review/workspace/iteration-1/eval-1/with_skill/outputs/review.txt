@@ -1,0 +1,72 @@
+# Code Review: login handler
+
+## Summary
+This login handler implements user authentication by querying a database with user-provided credentials. The code contains critical security vulnerabilities that make it susceptible to SQL injection and exposes the application to unauthorized access. It should not be deployed in its current state.
+
+## Findings
+
+### Critical (Fix before merge)
+- **Issue:** SQL Injection Vulnerability
+- **Location:** login function, line 4
+- **Impact:** An attacker can manipulate the username or password fields to bypass authentication, extract sensitive data, or execute arbitrary database commands. The use of f-string interpolation directly concatenates user input into the SQL query.
+- **Suggestion:** Use parameterized queries (placeholders) instead of string interpolation:
+  ```python
+  query = "SELECT * FROM users WHERE username = %s AND password = %s"
+  result = db.execute(query, (username, password))
+  ```
+
+- **Issue:** Plaintext Password Storage and Comparison
+- **Location:** login function, line 4
+- **Impact:** Storing and comparing passwords directly in the database is a severe security risk. If the database is compromised, all user credentials are exposed. Additionally, comparing passwords in SQL allows for timing attacks.
+- **Suggestion:** Hash passwords using a proper hashing algorithm (e.g., bcrypt, argon2) and compare the hash in Python:
+  ```python
+  stored_hash = get_password_hash(username)
+  if verify_password(password, stored_hash):
+      return {'token': create_token(user_id)}
+  ```
+
+- **Issue:** Missing Input Validation
+- **Location:** login function, lines 2-3
+- **Impact:** No validation of username/password presence or format. Missing keys in request.json will raise an unhandled KeyError, causing a 500 error.
+- **Suggestion:** Use framework validation (e.g., Pydantic models in FastAPI) or manual checks:
+  ```python
+  username = request.json.get('username')
+  password = request.json.get('password')
+  if not username or not password:
+      return {'error': 'Username and password required'}, 400
+  ```
+
+### High Priority (Should address)
+- **Issue:** Insufficient Error Handling
+- **Location:** login function, lines 5-8
+- **Impact:** Generic error messages may leak implementation details. No logging of authentication failures makes incident response difficult. Database exceptions are not handled gracefully.
+- **Suggestion:** Add structured logging for failed login attempts, differentiate between "invalid credentials" and system errors, and return appropriate HTTP status codes.
+
+- **Issue:** Missing Rate Limiting
+- **Location:** login function (overall endpoint)
+- **Impact:** Without rate limiting, the login endpoint is vulnerable to brute-force attacks. Attackers can attempt many password combinations without restriction.
+- **Suggestion:** Implement rate limiting (e.g., using a library like flask-limiter or middleware) to restrict failed login attempts per IP/user.
+
+### Medium Priority (Nice to have)
+- **Issue:** Returning Token in Response Body
+- **Location:** login function, line 7
+- **Impact:** Returning tokens in the response body is less secure than using HTTP headers (e.g., Authorization header). Tokens in response bodies can be logged, cached, or exposed in browser history.
+- **Suggestion:** Return the token in a secure HTTP-only cookie or Authorization header instead of the response body.
+
+### Low Priority (Future consideration)
+- **Issue:** Using SELECT * in Authentication Query
+- **Location:** login function, line 4
+- **Impact:** Selecting all columns is inefficient. Only user ID is needed for token creation.
+- **Suggestion:** Select only the required columns: `SELECT id FROM users WHERE username = %s`
+
+### Positive Findings
+- The code correctly returns an error message for invalid credentials, which prevents username enumeration to some degree (though the SQL injection flaw undermines this protection).
+- The separation of authentication (login function) and token creation (create_token) allows for future enhancements like supporting multiple token types.
+
+## Recommendations
+1. **Immediate (Critical):** Replace f-string SQL with parameterized queries to prevent SQL injection.
+2. **Immediate (Critical):** Implement password hashing and verify in Python, not SQL.
+3. **Immediate (Critical):** Add input validation for required fields.
+4. **High Priority:** Add rate limiting to prevent brute-force attacks.
+5. **High Priority:** Improve error handling with proper logging and status codes.
+6. **Medium Priority:** Consider using HTTP headers or cookies for token delivery.

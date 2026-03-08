@@ -1,0 +1,4 @@
+feat(profile): add user profile page with settings modal
+
+Adds new profile page component displaying user name, email, and
+avatar. Includes settings modal for updating user preferences.

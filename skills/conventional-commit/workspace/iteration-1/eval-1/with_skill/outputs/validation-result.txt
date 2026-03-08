@@ -1,0 +1,16 @@
+VALIDATION RESULT
+=================
+Message: 'feat: added new login page'
+
+IS VALID: NO
+
+Format Check:
+- Type: 'feat' ✓ (valid type)
+- Scope: (optional, omitted) ✓
+- Subject: 'added new login page' 
+
+Issues Found:
+1. Subject must use imperative mood: use 'add' instead of 'added'
+
+Correct format:
+feat: add new login page

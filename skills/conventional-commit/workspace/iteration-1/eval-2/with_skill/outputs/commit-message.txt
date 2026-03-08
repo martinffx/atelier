@@ -1,0 +1,8 @@
+feat(api)!: restructure /v1/users response format
+
+The /v1/users endpoint now returns a different JSON structure
+with nested data envelope and updated field names.
+
+BREAKING CHANGE: Response format changed from flat structure
+to { data: {...}, meta: {...} }. Clients must update parsing
+to access user fields via response.data instead of directly.

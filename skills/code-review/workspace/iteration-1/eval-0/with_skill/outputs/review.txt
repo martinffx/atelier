@@ -1,0 +1,58 @@
+# Code Review: UserService.getUser()
+
+## Summary
+This is a simple UserService class with an in-memory cache implementation. The code is clean and follows basic caching patterns, but has a critical memory leak issue that will cause problems in production.
+
+## Findings
+
+### Critical (Fix before merge)
+
+- **Issue:** Unbounded cache growth leading to memory leak
+- **Location:** UserService:2 - `private cache = new Map<string, User>()`
+- **Impact:** Cache grows indefinitely as unique user IDs are requested. In production with many users, this will eventually exhaust available memory and crash the application.
+- **Suggestion:** Implement a cache eviction policy:
+  - Option 1: Add max cache size with LRU eviction
+  - Option 2: Add TTL (Time-To-Live) for cache entries
+  ```typescript
+  private cache = new Map<string, { user: User, timestamp: number }>();
+  private maxSize = 1000;
+  private ttl = 5 * 60 * 1000; // 5 minutes
+  ```
+
+### High Priority (Should address)
+
+- **Issue:** No cache invalidation mechanism
+- **Location:** UserService:5-12 - getUser method
+- **Impact:** If user data is updated in the database, the cache will serve stale data indefinitely. This can lead to users seeing outdated information.
+- **Suggestion:** Add methods to invalidate cache entries:
+  ```typescript
+  invalidate(id: string): void { this.cache.delete(id); }
+  invalidateAll(): void { this.cache.clear(); }
+  ```
+
+### Medium Priority (Nice to have)
+
+- **Issue:** No error handling for database failures
+- **Location:** UserService:9 - `await this.userRepo.findById(id)`
+- **Impact:** Database errors will propagate uncaught, potentially crashing the request handler.
+- **Suggestion:** Add try-catch and consider returning cached data as fallback on DB failure.
+
+### Low Priority (Future consideration)
+
+- **Issue:** Missing async error boundary at caller level
+- **Location:** Class-level
+- **Impact:** Unhandled promise rejections could cause uncaught exceptions.
+- **Suggestion:** Ensure callers handle Promise rejections properly.
+
+### Positive Findings
+- Clean separation of concerns (cache layer in service)
+- Early return pattern for cache hits (good for latency)
+- Proper use of Map for O(1) lookups
+- Type-safe with TypeScript generics
+
+## Recommendations
+
+1. **Immediate:** Add cache size limit or TTL to prevent memory leak
+2. **Soon:** Add cache invalidation methods for data consistency
+3. **Later:** Consider using a battle-tested caching library like `node-cache` or `cache-manager` for production features (stats, warming, etc.)
+4. **Optional:** Add logging/metrics on cache hit rate to validate caching effectiveness
