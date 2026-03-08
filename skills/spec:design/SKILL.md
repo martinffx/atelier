@@ -31,7 +31,7 @@ scope, user stories, and acceptance criteria.
 
 Before diving into research, understand the project context.
 
-1. **Read project docs** — CLAUDE.md, README, existing architecture docs
+1. **Read project docs** — AGENTS.md, README, existing architecture docs
 2. **Check existing specs** — Scan `docs/specs/` for previous work. What domain model
    exists? What patterns are established? What has been built before?
 3. **Read requirements.json** — If it exists, this defines what we're building and why
@@ -60,7 +60,7 @@ before I continue with the design."
 Once the human approves the research section, continue building spec.md with architecture
 and design decisions.
 
-Invoke **spec:architect** for component design, domain modeling, and layer boundaries.
+Use the Skill tool to invoke **spec:architect** for component design, domain modeling, and layer boundaries.
 
 ### What spec.md should contain (complete document)
 

@@ -35,6 +35,19 @@ change — all of them. "Simple" projects are where unexamined assumptions cause
 wasted work. The spec can be short, the plan can be brief, but you MUST present them
 and get approval.
 
+## Skill Loading
+
+Before starting any work, check what skills are available that could be relevant. Load
+any skills that match the task:
+
+- **Task tracking** - If a task tracking skill exists (beads, task-tracking), load it for use
+  in spec:plan and spec:implement
+- **Framework skills** - Load TypeScript or Python skills based on project language
+- **Testing** - Load spec:testing when writing tests
+
+The spec skills should adapt to whatever tools are available in your environment. Check
+available skills, load relevant ones, then proceed.
+
 ## Artifacts
 
 Every feature produces three artifacts in `docs/specs/YYYY-MM-DD-<feature>/`:

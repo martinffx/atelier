@@ -28,7 +28,95 @@ docs/specs/YYYY-MM-DD-<feature-name>/
 The plan starts as a markdown draft for human annotation, then gets converted to
 structured plan.json when approved.
 
-See [references/schemas.md](references/schemas.md) for the plan.json schema.
+### plan.json Schema
+
+```json
+{
+  "feature": "user-authentication",
+  "spec": "docs/specs/2026-03-08-user-auth/spec.md",
+  "goal": "Add email/password authentication with session management",
+  "phases": [
+    {
+      "id": "P1",
+      "name": "Domain Model",
+      "tasks": [
+        {
+          "id": "T1",
+          "name": "Implement UserEntity with validation",
+          "depends_on": [],
+          "files": {
+            "create": ["src/entities/user.ts", "tests/entities/user.test.ts"],
+            "modify": []
+          },
+          "steps": [
+            {
+              "action": "write_test",
+              "description": "Write failing test for UserEntity validation",
+              "code": "describe('UserEntity', () => {\n  it('rejects empty email', () => {\n    const user = User.fromRequest({ email: '', password: 'valid123' });\n    expect(user.validate().ok).toBe(false);\n  });\n});",
+              "file": "tests/entities/user.test.ts"
+            },
+            {
+              "action": "verify_fail",
+              "command": "npx vitest run tests/entities/user.test.ts",
+              "expected": "FAIL — User not defined"
+            },
+            {
+              "action": "implement",
+              "description": "Write minimal UserEntity to pass test",
+              "code": "class User {\n  static fromRequest(req: CreateUserRequest): User { ... }\n  validate(): Result<User> { ... }\n}",
+              "file": "src/entities/user.ts"
+            },
+            {
+              "action": "verify_pass",
+              "command": "npx vitest run tests/entities/user.test.ts",
+              "expected": "PASS"
+            },
+            {
+              "action": "commit",
+              "message": "feat(auth): add UserEntity with email validation"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### Field reference
+
+| Field | Type | Description |
+|-------|------|-------------|
+| feature | string | Kebab-case feature name (matches requirements.json) |
+| spec | string | Path to the approved spec.md |
+| goal | string | One-sentence goal |
+| phases | Phase[] | Implementation phases in dependency order |
+| phases[].id | string | Phase identifier (P1, P2...) |
+| phases[].name | string | Phase name (e.g. "Domain Model", "Data Access") |
+| phases[].tasks | Task[] | Tasks within this phase |
+
+#### Task fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| id | string | Task identifier (T1, T2...) |
+| name | string | What this task implements |
+| depends_on | string[] | Task IDs that must complete first |
+| files.create | string[] | Files to create |
+| files.modify | string[] | Files to modify |
+| steps | Step[] | Bite-sized steps (2-5 min each) |
+
+#### Step fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| action | "write_test" \| "verify_fail" \| "implement" \| "verify_pass" \| "commit" | Step type |
+| description | string | What to do (optional for verify/commit) |
+| code | string | Complete code to write (for write_test and implement) |
+| file | string | Target file path (for write_test and implement) |
+| command | string | Command to run (for verify steps) |
+| expected | string | Expected output (for verify steps) |
+| message | string | Commit message (for commit steps) |
 
 ---
 
@@ -118,23 +206,22 @@ explicitly approves it.
 When the human approves — "looks good", "approved", "create tasks" — convert the plan
 into plan.json.
 
+### Skill Loading
+
+Check available skills for task tracking support. If a task tracking skill exists
+(e.g., beads, task-tracking), load it and use it for task creation and progress tracking.
+If no task tracking skill is available, use TodoWrite as fallback.
+
 ### What to do
 
 1. Convert the annotated plan draft into structured plan.json following the schema
 2. Each task maps to a bite-sized unit with steps, files, code, and commands
 3. Dependencies between tasks are captured in `depends_on` fields
-4. Create corresponding beads tasks if beads is available:
-
-```bash
-# Create epic
-bd create "Feature: <name>" -t epic -p 1 -l feature,<name>
-
-# Create tasks per phase
-bd create "<task name>" -t task -p 2 -l <layer>,<feature> -e <epic-id>
-
-# Add dependencies
-bd dep add <entity-task> <repo-task> --type blocks
-```
+4. Use the loaded task tracking skill (or TodoWrite fallback) to create tasks:
+   - Create an epic for the feature
+   - Create tasks per phase
+   - Add dependencies between tasks (e.g., Entity before Repository)
+5. Follow the task tracking skill's conventions or TodoWrite structure
 
 ### Verification
 

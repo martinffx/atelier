@@ -22,8 +22,70 @@ docs/specs/YYYY-MM-DD-<feature-name>/
 └── requirements.json  ← This skill's output
 ```
 
-Create the directory at the start. See [references/schemas.md](references/schemas.md) for
-the requirements.json schema.
+Create the directory at the start.
+
+### requirements.json Schema
+
+```json
+{
+  "feature": "user-authentication",
+  "problem": "Users cannot securely access the application",
+  "users": ["end-user", "admin"],
+  "scope": {
+    "in": [
+      "Email/password login",
+      "Session management",
+      "Password reset flow"
+    ],
+    "out": [
+      "OAuth/social login",
+      "Two-factor authentication",
+      "Single sign-on"
+    ]
+  },
+  "stories": [
+    {
+      "id": "US-1",
+      "role": "end-user",
+      "action": "log in with email and password",
+      "benefit": "access my account securely",
+      "priority": "must",
+      "acceptance": [
+        "Given valid credentials, when I submit the login form, then I receive a session token",
+        "Given invalid credentials, when I submit the login form, then I see an error message",
+        "Given an expired session, when I make a request, then I am redirected to login"
+      ]
+    }
+  ],
+  "constraints": [
+    "Passwords must be hashed with bcrypt (min 12 rounds)",
+    "Sessions expire after 24 hours of inactivity"
+  ],
+  "dependencies": [
+    "User entity must exist before auth service",
+    "Email service required for password reset"
+  ]
+}
+```
+
+#### Field reference
+
+| Field | Type | Description |
+|-------|------|-------------|
+| feature | string | Kebab-case feature name |
+| problem | string | One-sentence problem statement |
+| users | string[] | User roles involved |
+| scope.in | string[] | What's included in this work |
+| scope.out | string[] | What's explicitly excluded |
+| stories | Story[] | User stories with acceptance criteria |
+| stories[].id | string | Story identifier (US-N) |
+| stories[].role | string | User role |
+| stories[].action | string | What the user wants to do |
+| stories[].benefit | string | Why they want to do it |
+| stories[].priority | "must" \| "should" \| "could" \| "wont" | MoSCoW priority |
+| stories[].acceptance | string[] | Given/When/Then acceptance criteria |
+| constraints | string[] | Technical or business constraints |
+| dependencies | string[] | Prerequisites or external dependencies |
 
 ---
 
@@ -31,7 +93,7 @@ the requirements.json schema.
 
 Before asking a single question, understand where you are.
 
-1. **Read project context** — CLAUDE.md, README, project docs. Understand the product,
+1. **Read project context** — AGENTS.md, README, project docs. Understand the product,
    tech stack, and domain.
 2. **Check existing specs** — Scan `docs/specs/` for previous work. What features exist?
    What domain model is established? What patterns and conventions have been set?

@@ -26,6 +26,12 @@ Before starting, verify these exist:
 
 If anything is missing, do not proceed. Tell the human what's needed.
 
+### Skill Loading
+
+Check available skills for task tracking support. If a task tracking skill exists
+(e.g., beads, task-tracking), load it and use it for progress tracking. If no task 
+tracking skill is available, use TodoWrite as fallback.
+
 ---
 
 ## Step 1: Review the Plan
@@ -50,7 +56,7 @@ If the human hasn't specified a mode, ask.
 > "Implement it all. Don't stop until you're done."
 
 - Execute all tasks in dependency order
-- Track progress in beads: `bd update <id> --status in_progress` → `bd close <id>`
+- Track progress using task tracking skill (or TodoWrite fallback)
 - Run type checking / linting continuously
 - Only stop if blocked
 
@@ -68,21 +74,15 @@ Default to batched if the human hasn't expressed a preference.
 
 ## Step 3: Execute Tasks
 
-For each task, follow plan.json steps exactly. Find the next ready task:
+For each task, follow plan.json steps exactly. Use the loaded task tracking skill
+(or TodoWrite fallback) to find and update task status:
 
-```bash
-bd ready --label <feature> --json
-```
-
-Mark it in progress:
-
-```bash
-bd update <task-id> --status in_progress
-```
+- Find next ready task
+- Mark as in_progress
 
 ### TDD Enforcement
 
-Invoke **spec:testing** patterns. For every task:
+Use the Skill tool to invoke **spec:testing** for TDD patterns and test strategy. For every task:
 
 ```
 1. Write the failing test (from plan.json step)
@@ -98,11 +98,7 @@ more code than needed to pass the test.
 
 ### On completion
 
-Mark the task done:
-
-```bash
-bd close <task-id> --reason "Implemented with tests"
-```
+Mark the task done using task tracking skill (or TodoWrite fallback).
 
 ### Referencing existing code
 
@@ -194,7 +190,7 @@ When all tasks are done:
 
 1. Run full test suite — report results
 2. Run type check / lint — report results
-3. Verify all beads tasks are closed: `bd list --label <feature> --json`
+3. Verify all tasks are completed (using task tracking skill or TodoWrite)
 4. Summarise what was built
 
 Tell the human:
