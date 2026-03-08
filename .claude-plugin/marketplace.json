@@ -14,6 +14,7 @@
       "skills": [
         "./skills/spec:architect",
         "./skills/spec:design",
+        "./skills/spec:plan",
         "./skills/spec:product",
         "./skills/spec:testing",
         "./skills/spec:workflow"
