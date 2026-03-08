@@ -17,7 +17,8 @@
         "./skills/spec:methodology",
         "./skills/spec:product",
         "./skills/spec:project-structure",
-        "./skills/spec:testing"
+        "./skills/spec:testing",
+        "./skills/using-atelier"
       ]
     },
     {
