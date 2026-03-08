@@ -15,7 +15,8 @@
         "./skills/spec:architect",
         "./skills/spec:product",
         "./skills/spec:testing",
-        "./skills/using-atelier"
+        "./skills/using-atelier",
+        "./skills/using-git-worktrees"
       ]
     },
     {
