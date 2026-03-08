@@ -8,15 +8,12 @@
   "plugins": [
     {
       "name": "spec",
-      "description": "Spec-driven development workflows - methodology, task tracking, project structure, and testing patterns",
+      "description": "Spec-driven development workflows - architectural design patterns and product documentation",
       "source": "./",
       "strict": false,
       "skills": [
         "./skills/spec:architect",
-        "./skills/spec:beads",
-        "./skills/spec:methodology",
         "./skills/spec:product",
-        "./skills/spec:project-structure",
         "./skills/spec:testing",
         "./skills/using-atelier"
       ]
