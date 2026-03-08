@@ -15,8 +15,7 @@
         "./skills/spec:architect",
         "./skills/spec:product",
         "./skills/spec:testing",
-        "./skills/spec:workflow",
-        "./skills/using-git-worktrees"
+        "./skills/spec:workflow"
       ]
     },
     {
@@ -63,13 +62,14 @@
     },
     {
       "name": "code",
-      "description": "Code development utilities - code review, conventional commits, and stacked commits",
+      "description": "Code development utilities - code review, commits, stacked commits, and git worktrees",
       "source": "./",
       "strict": false,
       "skills": [
         "./skills/code-review",
         "./skills/conventional-commit",
-        "./skills/stacked-commit"
+        "./skills/stacked-commit",
+        "./skills/code:git-worktrees"
       ]
     }
   ]
