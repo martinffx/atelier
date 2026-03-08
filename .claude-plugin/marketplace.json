@@ -13,6 +13,7 @@
       "strict": false,
       "skills": [
         "./skills/spec:architect",
+        "./skills/spec:design",
         "./skills/spec:product",
         "./skills/spec:testing",
         "./skills/spec:workflow"
