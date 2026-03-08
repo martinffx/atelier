@@ -67,8 +67,8 @@
       "strict": false,
       "skills": [
         "./skills/code-review",
-        "./skills/conventional-commit",
-        "./skills/stacked-commit",
+        "./skills/code:conventional-commit",
+        "./skills/code:stacked-commit",
         "./skills/code:git-worktrees"
       ]
     }

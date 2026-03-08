@@ -32,50 +32,45 @@ need to follow it. But you must check.
 
 Every project goes through this process. A todo list, a single-function utility, a config
 change — all of them. "Simple" projects are where unexamined assumptions cause the most
-wasted work. The design can be short, the plan can be brief, but you MUST present them
+wasted work. The spec can be short, the plan can be brief, but you MUST present them
 and get approval.
+
+## Artifacts
+
+Every feature produces three artifacts in `docs/specs/YYYY-MM-DD-<feature>/`:
+
+```
+requirements.json  ← spec:product (structured: scope, stories, criteria)
+spec.md            ← spec:design (prose: research, architecture, trade-offs)
+plan.json          ← spec:plan (structured: tasks, dependencies → feeds beads)
+```
 
 ## Skill Routing
 
 ```
-spec:product     → Requirements discovery, scope, user stories
-spec:design      → Research codebase, architecture decisions, design.md
-spec:plan        → Implementation plan, annotation cycles, task creation
+spec:product     → Requirements discovery → requirements.json
+spec:design      → Research + architecture → spec.md
+spec:plan        → Implementation plan + tasks → plan.json
 spec:implement   → Execute tasks, track progress, report
 spec:architect   → DDD patterns, component responsibilities (knowledge)
 spec:testing     → TDD patterns, boundary testing (knowledge)
 ```
 
-### Build / Create / Add Feature
+### "Create a spec for X" / Build / Add Feature
 
 ```
 spec:product → spec:design → spec:plan → spec:implement
 ```
 
-1. **spec:product** — What problem? For whom? What's in scope? What's out?
-2. **spec:design** — Research the codebase, design the solution, write research.md + design.md
-3. **spec:plan** — Write implementation plan, annotate with human, create tasks
-4. **spec:implement** — Execute tasks, track progress, report
-
-Skip spec:product only if the human arrives with complete requirements.
-Skip spec:design only if the human arrives with an approved design.
-
-### Plan / Design / Architect
-
-```
-spec:design → spec:plan → spec:implement
-```
-
-The human knows what they want. They need the codebase researched and the work planned.
+If the human already has clear requirements, skip spec:product. If they arrive with
+"I want to spec out X", ask: "Do you have requirements already, or should we start
+with discovery?"
 
 ### Fix Complex Bug / Refactor
 
 ```
 spec:design (research-heavy) → spec:plan (targeted) → spec:implement
 ```
-
-The research phase is critical. Find the root cause or understand the current structure
-before planning the fix.
 
 ### Write Tests / Testing Questions
 
@@ -91,12 +86,10 @@ spec:architect
 
 ### Quick Fix / Trivial Change
 
-If genuinely trivial (typo, single-line config, variable rename) — skip the pipeline. But
-be honest. If there's any doubt, plan it.
+If genuinely trivial (typo, single-line config, variable rename) — skip the pipeline.
+But be honest. If there's any doubt, plan it.
 
 ## Hard Transitions
-
-Skills chain in a specific order. Don't skip steps. Don't reorder.
 
 | After completing... | The ONLY next step is... |
 |---------------------|--------------------------|
@@ -105,11 +98,8 @@ Skills chain in a specific order. Don't skip steps. Don't reorder.
 | spec:plan | spec:implement |
 
 Do NOT jump from requirements to code. Do NOT jump from research to implementation.
-The pipeline exists because each phase catches errors the next phase would compound.
 
 ## Red Flags — You Are Rationalizing
-
-These thoughts mean STOP. You are about to skip a skill.
 
 | What you're thinking | Why it's wrong |
 |----------------------|----------------|
@@ -117,7 +107,7 @@ These thoughts mean STOP. You are about to skip a skill.
 | "I already know how to do this" | Knowing how ≠ having the human's approval for how |
 | "The human seems impatient" | Wasting time on wrong code is worse than planning |
 | "I'll just do a quick prototype" | Prototypes become production. Plan it. |
-| "I need to explore the code first" | That's the research phase. Write it in research.md. |
+| "I need to explore the code first" | That's the research phase. Write it in spec.md. |
 | "Let me just fix this one thing" | One thing becomes three. Plan it. |
 | "I can plan in my head" | Plans in your head can't be reviewed or annotated |
 | "This is just a refactor" | Refactors touch more code than features. Plan it. |
@@ -129,23 +119,13 @@ These thoughts mean STOP. You are about to skip a skill.
 
 ## Skill Types
 
-**Process skills** (spec:design, spec:plan, spec:implement): Follow exactly. These drive
-the workflow. Don't adapt away discipline.
+**Process skills** (spec:design, spec:plan, spec:implement): Follow exactly. Don't adapt
+away discipline.
 
 **Knowledge skills** (spec:architect, spec:testing, spec:product): Adapt principles to
 context. These inform decisions within the workflow.
 
 Process skills come first. Knowledge skills get invoked by process skills when needed.
-
-## Invoking Skills
-
-Announce briefly when invoking a skill:
-
-> "Starting with codebase research — writing up findings in research.md."
-
-> "Plan's approved. Picking up tasks and implementing."
-
-Don't narrate the meta-process. Don't explain the skill system. Just use it.
 
 ## User Instructions
 

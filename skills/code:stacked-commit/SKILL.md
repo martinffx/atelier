@@ -1,5 +1,5 @@
 ---
-name: stacked-commit
+name: code:stacked-commit
 description: Manage stacked commits using Graphite. Use when the user wants to create multiple stacked commits, manage a commit stack, sync with remote, or submit PRs from a stack. Triggers on "stacked", "stack", "gt ", "graphite", or when working with multiple related commits.
 user-invocable: true
 ---

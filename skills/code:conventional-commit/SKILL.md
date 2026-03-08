@@ -1,5 +1,5 @@
 ---
-name: conventional-commit
+name: code:conventional-commit
 description: Generate and validate conventional commit messages following the conventionalcommits.org spec. Use whenever the user wants to commit code, mentions commit messages, git commit, or asks to create a commit. Triggers on "commit", "git commit", "conventional", or when reviewing commit message format.
 user-invocable: true
 ---
