@@ -55,37 +55,14 @@ If no to both, dispatch in parallel.
 
 ---
 
-## Writing Subagent Prompts
+## Prompt Templates
 
-Good prompts are focused, self-contained, and specific about output.
+Use these templates when dispatching subagents. Each template is battle-tested — don't
+improvise, use them as-is and fill in the variables.
 
-### Structure
-
-```markdown
-## Task
-[One sentence: what to build/fix]
-
-## Context
-[What the subagent needs to know about the codebase, domain, existing patterns]
-
-## Scope
-- Files to create: [exact paths]
-- Files to modify: [exact paths]
-- Test files: [exact paths]
-
-## Steps
-[From plan.json — the bite-sized TDD steps]
-
-## Constraints
-- Do NOT modify files outside scope
-- Follow TDD: write failing test → verify fail → implement → verify pass
-- Follow existing patterns in [reference file]
-
-## Expected Output
-- Summary of what you implemented
-- Test results
-- Any issues or questions encountered
-```
+- **[references/implementer-prompt.md](references/implementer-prompt.md)** — Dispatch an implementer. Includes self-review checklist.
+- **[references/spec-reviewer-prompt.md](references/spec-reviewer-prompt.md)** — Spec compliance review. "Do not trust the report."
+- **[references/code-quality-reviewer-prompt.md](references/code-quality-reviewer-prompt.md)** — Code quality review. Critical/Important/Minor severity.
 
 ### Prompt quality rules
 
@@ -186,7 +163,7 @@ After subagents complete (especially parallel dispatch):
 1. **Read each summary** — understand what changed
 2. **Check for conflicts** — did any agents edit the same code?
 3. **Run full test suite** — verify all changes work together
-4. **Update task tracking** — mark tasks complete using the loaded task tracking skill
+4. **Update beads** — mark tasks complete: `bd close <id>`
 
 If there are conflicts between parallel results, resolve them manually. Don't dispatch
 another subagent to merge — that requires too much context.

@@ -26,12 +26,6 @@ Before starting, verify these exist:
 
 If anything is missing, do not proceed. Tell the human what's needed.
 
-### Skill Loading
-
-Check available skills for task tracking support. If a task tracking skill exists
-(e.g., beads, task-tracking), load it and use it for progress tracking. If no task 
-tracking skill is available, use TodoWrite as fallback.
-
 ---
 
 ## Step 1: Review the Plan
@@ -56,7 +50,7 @@ If the human hasn't specified a mode, ask.
 > "Implement it all. Don't stop until you're done."
 
 - Execute all tasks in dependency order
-- Track progress using task tracking skill (or TodoWrite fallback)
+- Track progress in beads: `bd update <id> --status in_progress` → `bd close <id>`
 - Run type checking / linting continuously
 - Only stop if blocked
 
@@ -68,21 +62,36 @@ If the human hasn't specified a mode, ask.
 - Stop and report: what was done, test output, anything unexpected
 - Wait for human feedback before continuing
 
+### Subagent Mode
+
+> "Use subagents."
+
+- Invoke **spec:subagents** for dispatch patterns and review cycle
+- Fresh subagent per task — no context pollution
+- Two-stage review after each: spec compliance, then code quality
+- Independent tasks dispatch in parallel, dependent tasks run sequentially
+
 Default to batched if the human hasn't expressed a preference.
 
 ---
 
 ## Step 3: Execute Tasks
 
-For each task, follow plan.json steps exactly. Use the loaded task tracking skill
-(or TodoWrite fallback) to find and update task status:
+For each task, follow plan.json steps exactly. Find the next ready task:
 
-- Find next ready task
-- Mark as in_progress
+```bash
+bd ready --label <feature> --json
+```
+
+Mark it in progress:
+
+```bash
+bd update <task-id> --status in_progress
+```
 
 ### TDD Enforcement
 
-Use the Skill tool to invoke **spec:testing** for TDD patterns and test strategy. For every task:
+Invoke **spec:testing** patterns. For every task:
 
 ```
 1. Write the failing test (from plan.json step)
@@ -98,7 +107,11 @@ more code than needed to pass the test.
 
 ### On completion
 
-Mark the task done using task tracking skill (or TodoWrite fallback).
+Mark the task done:
+
+```bash
+bd close <task-id> --reason "Implemented with tests"
+```
 
 ### Referencing existing code
 
@@ -186,13 +199,47 @@ If the design was wrong:
 
 ## Completion
 
-When all tasks are done:
+When all tasks are done, verify and present the work.
 
-1. Run full test suite — report results
-2. Run type check / lint — report results
-3. Verify all tasks are completed (using task tracking skill or TodoWrite)
-4. Summarise what was built
+### Verification checklist
 
-Tell the human:
+1. **Run full test suite** — all tests must pass, not just the new ones
+2. **Run type check / lint** — clean output, no new warnings
+3. **Verify beads tasks** — `bd list --label <feature> --json` — all tasks must be closed
+4. **Diff review** — review the full diff against main/master. Look for:
+   - Files that changed but shouldn't have
+   - Debug code or temporary hacks left behind
+   - Inconsistencies between what was planned and what was built
 
-> "All tasks complete. Tests passing. Ready for review."
+### Summary report
+
+Present to the human:
+
+```
+## Feature Complete: {feature name}
+
+**Tasks:** {completed} / {total}
+**Tests:** {new tests added}, {total passing}
+**Files:** {created}, {modified}
+
+### What was built
+- [concise list of what was implemented]
+
+### Verification
+- Test suite: ✓ all passing
+- Type check: ✓ clean
+- Lint: ✓ clean
+
+### Ready for review
+```
+
+### Next steps
+
+Offer the human their options:
+
+> **Merge** — squash and merge into main
+> **PR** — create a pull request for team review
+> **Keep** — leave the branch for now, come back later
+> **Discard** — delete the branch, start over
+
+Don't choose for them. Present options and wait.
