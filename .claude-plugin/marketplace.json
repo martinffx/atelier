@@ -14,6 +14,7 @@
       "skills": [
         "./skills/spec:architect",
         "./skills/spec:design",
+        "./skills/spec:finish",
         "./skills/spec:implement",
         "./skills/spec:plan",
         "./skills/spec:product",
@@ -70,10 +71,14 @@
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/code:review",
         "./skills/code:conventional-commit",
-        "./skills/code:stacked-commit",
-        "./skills/code:git-worktrees"
+        "./skills/code:debug",
+        "./skills/code:docs",
+        "./skills/code:git-worktrees",
+        "./skills/code:perf",
+        "./skills/code:review",
+        "./skills/code:security",
+        "./skills/code:stacked-commit"
       ]
     }
   ]
