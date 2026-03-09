@@ -1,5 +1,5 @@
 ---
-name: spec:subagents
+name: code:subagents
 description: >
   Subagent dispatch patterns for implementation tasks. Use when spec:implement has multiple
   tasks to execute and subagents are available. Covers parallel dispatch for independent work,
@@ -181,4 +181,4 @@ If a subagent fails a task:
 If failure reveals a design problem:
 
 > "This task is failing because [reason]. The design in spec.md may need to change.
-> Want me to go back to spec:design?"
+> Want me to go back to spec:research?"

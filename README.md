@@ -27,15 +27,16 @@ npx skills add martinffx/atelier --skill spec:beads
 ### Available Skills
 
 **Spec-Driven Development**
-- `spec:architect` - Technical design patterns and architectural guidance
-- `spec:beads` - Dependency-aware task tracking integrated with spec workflows
-- `spec:methodology` - Spec-driven development methodology and workflow patterns
-- `spec:product` - Product-level documentation and business context patterns
-- `spec:project-structure` - Project layout and organization patterns
-- `spec:testing` - Stub-driven TDD and layer boundary testing
+- `spec:finish` - Post-implementation validation
+- `spec:implement` - Execute tasks from plan.json
+- `spec:plan` - Implementation plan + tasks → plan.json
+- `spec:research` - Discovery + research + architecture → spec.md
+- `spec:workflow` - Skill routing and discipline
 
 **Deep Thinking**
+- `oracle:architect` - DDD patterns, component responsibilities
 - `oracle:challenge` - Critical thinking and challenging approaches
+- `oracle:testing` - Stub-driven TDD and layer boundary testing
 - `oracle:thinkdeep` - Extended sequential reasoning for complex problems
 
 **TypeScript Patterns**

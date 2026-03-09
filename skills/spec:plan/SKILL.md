@@ -4,8 +4,8 @@ description: >
   Write implementation plans, iterate with human annotations, create structured tasks. Use
   when there's an approved spec (spec.md) and the next step is breaking it into implementable
   work. Trigger when the user says "write a plan", "plan this out", "break this down",
-  "I added notes" (annotation cycle), or after spec:design completes. Also trigger for
-  "create tasks" or "add to beads". Do NOT use for research/design (use spec:design) or
+  "I added notes" (annotation cycle), or after spec:research completes. Also trigger for
+  "create tasks" or "add to beads". Do NOT use for research (use spec:research) or
   execution (use spec:implement).
 user-invocable: true
 ---
@@ -20,9 +20,8 @@ Then create structured tasks. This skill does not write code.
 
 ```
 docs/specs/YYYY-MM-DD-<feature-name>/
-├── requirements.json  ← From spec:product
-├── spec.md            ← From spec:design (approved)
-└── plan.json          ← This skill's output
+├── spec.md    ← From spec:research (approved)
+└── plan.json  ← This skill's output
 ```
 
 The plan starts as a markdown draft for human annotation, then gets converted to
@@ -144,7 +143,7 @@ Each task should be bite-sized (2-5 minutes) and include:
 
 ### Task ordering
 
-Follow bottom-up dependency ordering from spec:architect:
+Follow bottom-up dependency ordering from oracle:architect:
 
 ```
 Entity → Repository → Service → Router/Consumer

@@ -4,7 +4,7 @@ This file provides guidance to AI agents when working with code in this reposito
 
 ## Repository Overview
 
-This is Atelier - a personal development toolkit with 24 skills for spec-driven development, code quality, deep thinking, and ecosystem patterns.
+This is Atelier - a personal development toolkit with 24 skills for spec-driven development, deep thinking, code quality, and ecosystem patterns.
 
 ## Skills Structure
 
@@ -34,16 +34,17 @@ Skills are auto-invoked based on description match to current context.
 
 ## Available Skills
 
-**Spec-Driven Development** (6 skills)
-- `spec:architect` - Technical design patterns and architectural guidance
-- `spec:beads` - Dependency-aware task tracking integrated with spec workflows
-- `spec:methodology` - Spec-driven development methodology and workflow patterns
-- `spec:product` - Product-level documentation and business context patterns
-- `spec:project-structure` - Project layout and organization patterns
-- `spec:testing` - Stub-driven TDD and layer boundary testing
+**Spec-Driven Development** (5 skills)
+- `spec:finish` - Post-implementation validation
+- `spec:implement` - Execute tasks from plan.json
+- `spec:plan` - Implementation plan + tasks → plan.json
+- `spec:research` - Discovery + research + architecture → spec.md
+- `spec:workflow` - Skill routing and discipline
 
-**Deep Thinking** (2 skills)
+**Deep Thinking** (4 skills)
+- `oracle:architect` - DDD patterns, component responsibilities
 - `oracle:challenge` - Critical thinking and challenging approaches
+- `oracle:testing` - TDD patterns, boundary testing
 - `oracle:thinkdeep` - Extended sequential reasoning for complex problems
 
 **TypeScript Patterns** (8 skills)

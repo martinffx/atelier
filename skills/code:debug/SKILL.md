@@ -250,7 +250,7 @@ Check available skills for additional debugging support:
 
 - If dealing with performance issues → load code:perf
 - If security vulnerability suspected → load code:security
-- If debugging tests → load spec:testing
+- If debugging tests → load oracle:testing
 
 ---
 

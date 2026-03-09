@@ -37,52 +37,47 @@ and get approval.
 
 ## Artifacts
 
-Every feature produces three artifacts in `docs/specs/YYYY-MM-DD-<feature>/`:
+Every feature produces two artifacts in `docs/specs/YYYY-MM-DD-<feature>/`:
 
 ```
-requirements.json  ← spec:product (structured: scope, stories, criteria)
-spec.md            ← spec:design (prose: research, architecture, trade-offs)
-plan.json          ← spec:plan (structured: tasks, dependencies → feeds beads)
+spec.md      ← spec:research (requirements + research + architecture)
+plan.json    ← spec:plan (tasks, dependencies → feeds beads)
 ```
 
 ## Skill Routing
 
 ```
-spec:product     → Requirements discovery → requirements.json
-spec:design      → Research + architecture → spec.md
+spec:research    → Discovery + research + architecture → spec.md
 spec:plan        → Implementation plan + tasks → plan.json
 spec:implement   → Execute tasks, track progress, report
-spec:subagents   → Parallel dispatch, two-stage review (knowledge)
-spec:architect   → DDD patterns, component responsibilities (knowledge)
-spec:testing     → TDD patterns, boundary testing (knowledge)
+spec:finish      → Post-implementation validation
+code:subagents  → Parallel dispatch, two-stage review
+oracle:architect → DDD patterns, component responsibilities
+oracle:testing   → TDD patterns, boundary testing
 ```
 
 ### "Create a spec for X" / Build / Add Feature
 
 ```
-spec:product → spec:design → spec:plan → spec:implement
+spec:research → spec:plan → spec:implement → spec:finish
 ```
-
-If the human already has clear requirements, skip spec:product. If they arrive with
-"I want to spec out X", ask: "Do you have requirements already, or should we start
-with discovery?"
 
 ### Fix Complex Bug / Refactor
 
 ```
-spec:design (research-heavy) → spec:plan (targeted) → spec:implement
+spec:research (research-heavy) → spec:plan (targeted) → spec:implement
 ```
 
 ### Write Tests / Testing Questions
 
 ```
-spec:testing
+oracle:testing
 ```
 
 ### Architecture / Domain Modeling Questions
 
 ```
-spec:architect
+oracle:architect
 ```
 
 ### Quick Fix / Trivial Change
@@ -94,9 +89,9 @@ But be honest. If there's any doubt, plan it.
 
 | After completing... | The ONLY next step is... |
 |---------------------|--------------------------|
-| spec:product | spec:design |
-| spec:design | spec:plan |
+| spec:research | spec:plan |
 | spec:plan | spec:implement |
+| spec:implement | spec:finish |
 
 Do NOT jump from requirements to code. Do NOT jump from research to implementation.
 
@@ -120,10 +115,10 @@ Do NOT jump from requirements to code. Do NOT jump from research to implementati
 
 ## Skill Types
 
-**Process skills** (spec:design, spec:plan, spec:implement): Follow exactly. Don't adapt
-away discipline.
+**Process skills** (spec:research, spec:plan, spec:implement, spec:finish): Follow exactly.
+Don't adapt away discipline.
 
-**Knowledge skills** (spec:architect, spec:testing, spec:product): Adapt principles to
+**Knowledge skills** (oracle:architect, oracle:testing): Adapt principles to
 context. These inform decisions within the workflow.
 
 Process skills come first. Knowledge skills get invoked by process skills when needed.

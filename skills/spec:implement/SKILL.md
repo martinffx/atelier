@@ -14,7 +14,7 @@ user-invocable: true
 Pick up tasks. Execute them. Track progress. Report. Stop when blocked.
 
 This skill does not make design decisions or modify the plan. If the plan is wrong, go
-back to spec:plan. If the design is wrong, go back to spec:design.
+back to spec:plan. If the design is wrong, go back to spec:research.
 
 ## Prerequisites
 
@@ -66,7 +66,7 @@ If the human hasn't specified a mode, ask.
 
 > "Use subagents."
 
-- Invoke **spec:subagents** for dispatch patterns and review cycle
+- Invoke **code:subagents** for dispatch patterns and review cycle
 - Fresh subagent per task — no context pollution
 - Two-stage review after each: spec compliance, then code quality
 - Independent tasks dispatch in parallel, dependent tasks run sequentially
@@ -91,7 +91,7 @@ bd update <task-id> --status in_progress
 
 ### TDD Enforcement
 
-Invoke **spec:testing** patterns. For every task:
+Invoke **oracle:testing** patterns. For every task:
 
 ```
 1. Write the failing test (from plan.json step)
@@ -193,7 +193,7 @@ If the plan needs to change:
 
 If the design was wrong:
 
-> "This changes design assumptions. Want me to go back to spec:design?"
+> "This changes design assumptions. Want me to go back to spec:research?"
 
 ---
 

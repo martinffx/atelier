@@ -12,14 +12,10 @@
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/spec:architect",
-        "./skills/spec:design",
         "./skills/spec:finish",
         "./skills/spec:implement",
         "./skills/spec:plan",
-        "./skills/spec:product",
-        "./skills/spec:subagents",
-        "./skills/spec:testing",
+        "./skills/spec:research",
         "./skills/spec:workflow"
       ]
     },
@@ -29,7 +25,9 @@
       "source": "./",
       "strict": false,
       "skills": [
+        "./skills/oracle:architect",
         "./skills/oracle:challenge",
+        "./skills/oracle:testing",
         "./skills/oracle:thinkdeep"
       ]
     },
@@ -73,6 +71,7 @@
       "skills": [
         "./skills/code:conventional-commit",
         "./skills/code:debug",
+        "./skills/code:subagents",
         "./skills/code:docs",
         "./skills/code:git-worktrees",
         "./skills/code:perf",
