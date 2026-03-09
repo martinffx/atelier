@@ -17,6 +17,7 @@
         "./skills/spec:implement",
         "./skills/spec:plan",
         "./skills/spec:product",
+        "./skills/spec:subagents",
         "./skills/spec:testing",
         "./skills/spec:workflow"
       ]
