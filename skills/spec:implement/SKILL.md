@@ -243,3 +243,6 @@ Offer the human their options:
 > **Discard** — delete the branch, start over
 
 Don't choose for them. Present options and wait.
+
+If validation finds bugs, loop back to implement. See **spec:orchestrator**
+for iteration patterns.

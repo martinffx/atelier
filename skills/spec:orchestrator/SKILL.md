@@ -1,11 +1,9 @@
 ---
-name: spec:workflow
+name: spec:orchestrator
 description: >
-  Use when starting any conversation or task. Establishes skill discipline and routes to the
-  correct spec skill. If you think there is even a 1% chance a skill might apply, you ABSOLUTELY
-  MUST invoke it. This is not negotiable. This is not optional. You cannot rationalize your way
-  out of this. Triggers on every task — building features, fixing bugs, refactoring, writing
-  tests, planning, designing, or any non-trivial coding work.
+  Skill routing and workflow orchestration. Routes to correct spec skill based on task type.
+  Establishes discipline and manages transitions between workflow phases. Use when starting
+  any conversation or task to determine which spec skill applies.
 user-invocable: false
 ---
 
@@ -94,6 +92,35 @@ But be honest. If there's any doubt, plan it.
 | spec:implement | spec:finish |
 
 Do NOT jump from requirements to code. Do NOT jump from research to implementation.
+
+## Iteration Patterns
+
+The workflow is not purely linear. Expect backflows:
+
+### Research → Research (discovery loop)
+- Research reveals new requirements → loop back to discovery phase
+- Human adds new scope mid-research → continue discovery
+
+### Plan → Research (design flaw)
+- Planning reveals design assumptions are wrong → back to research
+- Tasks can't be decomposed without more context → back to research
+
+### Implement → Plan (missing tasks)
+- Implementation reveals missing tasks → update plan.json
+- Blocked on dependency not in plan → back to plan
+
+### Implement → Research (fundamental issue)
+- Implementation reveals design is fundamentally wrong → back to research
+- "This can't work as designed" → back to research
+
+### Finish → Implement (bugs found)
+- Validation finds bugs → back to implement
+- Tests failing → back to implement
+
+### When to escalate
+If you loop 2+ times on the same issue, stop and ask the human:
+
+> "We've looped on [issue] twice. Should we reconsider the approach?"
 
 ## Red Flags — You Are Rationalizing
 

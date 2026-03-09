@@ -16,7 +16,7 @@
         "./skills/spec:implement",
         "./skills/spec:plan",
         "./skills/spec:research",
-        "./skills/spec:workflow"
+        "./skills/spec:orchestrator"
       ]
     },
     {

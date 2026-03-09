@@ -185,4 +185,7 @@ When spec.md is approved, the next step is **spec:plan**.
 
 > "Spec is approved. Ready to write the implementation plan?"
 
+If planning reveals design flaws, loop back to research. See **spec:orchestrator**
+for iteration patterns.
+
 Do not start planning without explicit approval. Do not write code.

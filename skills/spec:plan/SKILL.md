@@ -247,6 +247,9 @@ Tell the human:
 
 Do not start implementing. That's spec:implement's job.
 
+If implementation reveals missing tasks, update plan.json. If design is wrong,
+loop back to research. See **spec:orchestrator** for iteration patterns.
+
 ---
 
 ## Quick Reference

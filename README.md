@@ -10,7 +10,7 @@ A personal development toolkit for AI agents - spec-driven development, code qua
 
 ## Skills
 
-This repository includes 24 skills that can be installed via [skills.sh](https://skills.sh/). Skills are modular, auto-invoked capabilities that enhance AI agents with specialized knowledge and workflows.
+This repository includes 34 skills that can be installed via [skills.sh](https://skills.sh/). Skills are modular, auto-invoked capabilities that enhance AI agents with specialized knowledge and workflows.
 
 ### Installing Skills
 
@@ -21,7 +21,7 @@ npx skills add martinffx/atelier
 # Install specific skills
 npx skills add martinffx/atelier --skill typescript:drizzle-orm
 npx skills add martinffx/atelier --skill python:fastapi
-npx skills add martinffx/atelier --skill spec:beads
+npx skills add martinffx/atelier --skill spec:research
 ```
 
 ### Available Skills
@@ -31,7 +31,7 @@ npx skills add martinffx/atelier --skill spec:beads
 - `spec:implement` - Execute tasks from plan.json
 - `spec:plan` - Implementation plan + tasks → plan.json
 - `spec:research` - Discovery + research + architecture → spec.md
-- `spec:workflow` - Skill routing and discipline
+- `spec:orchestrator` - Skill routing and workflow orchestration
 
 **Deep Thinking**
 - `oracle:architect` - DDD patterns, component responsibilities
@@ -60,6 +60,62 @@ npx skills add martinffx/atelier --skill spec:beads
 - `python:build-tools` - uv, mise, ruff, basedpyright, pytest configurations
 
 Skills are auto-invoked based on their description when you work with relevant technologies. No commands needed - just install and AI agents will use them when appropriate.
+
+## How Skills Work
+
+Skills are auto-invoked based on context. When you say "create a spec for user auth", the AI matches this to `spec:research` and loads it automatically.
+
+### Namespace Philosophy
+
+Skills are organized into three namespaces based on their role:
+
+| Namespace | Type | Invocation | Output | Flexibility |
+|-----------|------|------------|--------|-------------|
+| **spec:** | Workflow | User/previous skill | Artifact | Follow exactly |
+| **oracle:** | Thinking | Context-driven | Guidance | Adapt to context |
+| **code:** | Utility | User | Result | Use as needed |
+
+- **spec:** - Sequential workflow steps that produce artifacts
+- **oracle:** - Analytical skills that provide patterns and principles
+- **code:** - Tools and utilities for specific tasks
+
+### The Spec Workflow
+
+```mermaid
+graph LR
+    A[spec:research] -->|spec.md| B[spec:plan]
+    B -->|plan.json| C[spec:implement]
+    C --> D[spec:finish]
+    
+    B -.->|design flaw| A
+    C -.->|missing tasks| B
+    C -.->|fundamental issue| A
+    D -.->|bugs found| C
+```
+
+**Standard flow:**
+1. **Research** - Discovery + research + architecture → `spec.md`
+2. **Plan** - Break into tasks → `plan.json`
+3. **Implement** - Execute with TDD
+4. **Finish** - Validate and review
+
+**Iteration is normal** - Backflows (dotted lines) are expected when:
+- Planning reveals design flaws → back to research
+- Implementation finds missing tasks → update plan
+- Validation finds bugs → back to implement
+
+### When to Use Which Skill
+
+| User says | Skill invoked |
+|------------|---------------|
+| "Create a spec for X" | spec:research |
+| "What should we build" | spec:research |
+| "Write a plan" | spec:plan |
+| "Implement this" | spec:implement |
+| "Review this code" | code:review |
+| "Debug this" | code:debug |
+| "How should I test this" | oracle:testing |
+| "What's the architecture" | oracle:architect |
 
 ## Development
 
