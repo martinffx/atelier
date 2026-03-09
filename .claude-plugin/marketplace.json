@@ -11,6 +11,16 @@
       "description": "Spec-driven development workflows - architectural design patterns and product documentation",
       "source": "./",
       "strict": false,
+      "agents": [
+        "./agents/oracle",
+        "./agents/architect",
+        "./agents/clerk"
+      ],
+      "commands": [
+        "./commands/spec-research",
+        "./commands/spec-plan",
+        "./commands/spec-implement"
+      ],
       "skills": [
         "./skills/spec:finish",
         "./skills/spec:implement",
