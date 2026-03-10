@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+# Read spec:orchestrator content
+orchestrator_content=$(cat "${PLUGIN_ROOT}/skills/spec:orchestrator/SKILL.md")
+
+# Escape for JSON
+escape_for_json() {
+    local s="$1"
+    s="${s//\\/\\\\}"
+    s="${s//\"/\\\"}"
+    s="${s//$'\n'/\\n}"
+    s="${s//$'\r'/\\r}"
+    s="${s//$'\t'/\\t}"
+    printf '%s' "$s"
+}
+
+orchestrator_escaped=$(escape_for_json "$orchestrator_content")
+
+# Output JSON
+cat <<EOF
+{
+  "additional_context": "${orchestrator_escaped}",
+  "hookSpecificOutput": {
+    "hookEventName": "SessionStart",
+    "additionalContext": "${orchestrator_escaped}"
+  }
+}
+EOF
