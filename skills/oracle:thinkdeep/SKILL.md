@@ -1,7 +1,7 @@
 ---
 name: oracle:thinkdeep
 description: Extended reasoning analysis using sequential thinking. Use for deep exploration, comprehensive analysis, complex decisions, or when you need fresh perspectives on difficult problems.
-user-invocable: false
+user-invocable: true
 ---
 
 # ThinkDeep: Extended Reasoning Analysis

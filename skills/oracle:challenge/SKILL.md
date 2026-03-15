@@ -1,7 +1,7 @@
 ---
 name: oracle:challenge
 description: Challenge an approach with critical thinking. Use when questioning assumptions, validating decisions, testing approach validity, or preventing automatic agreement.
-user-invocable: false
+user-invocable: true
 ---
 
 # Challenge: Critical Thinking Prompt
