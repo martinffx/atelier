@@ -1,6 +1,0 @@
-{
-  "eval_id": 2,
-  "eval_name": "react-useeffect-missing-error-handling",
-  "prompt": "What do you think of this code? Any issues or improvements?\n\n// In a React component\nuseEffect(() => {\n  const fetchData = async () => {\n    const response = await fetch('/api/data');\n    const json = await response.json();\n    setData(json);\n  };\n  fetchData();\n}, []);",
-  "assertions": []
-}

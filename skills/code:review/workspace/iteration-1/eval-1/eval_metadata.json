@@ -1,6 +1,0 @@
-{
-  "eval_id": 1,
-  "eval_name": "python-sql-injection",
-  "prompt": "Please review my Python code for security issues. Here's the login handler:\n\n```python\ndef login(request):\n    username = request.json['username']\n    password = request.json['password']\n    \n    query = f\"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'\"\n    result = db.execute(query)\n    \n    if result:\n        return {'token': create_token(result[0]['id'])}\n    return {'error': 'Invalid credentials'}\n```",
-  "assertions": []
-}
