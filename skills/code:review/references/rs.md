@@ -1,5 +1,15 @@
 # Respond to Review (rs) Workflow
 
+## Overview
+
+This workflow uses **2 subagent invocations** plus inline processing:
+1. **Analysis Subagents** (parallel) - One per discussion thread
+2. **Validation Subagent** - Validates suggested fixes
+
+Follows the [code:subagents](../SKILL.md) patterns for dispatch and error handling.
+
+---
+
 ## Step 1: Get Target
 
 - If `$1` provided: use as PR number
@@ -7,6 +17,8 @@
 ```bash
 gh pr list --head $(git branch --show-current) --json number --jq '.[0].number'
 ```
+
+---
 
 ## Step 2: Fetch Discussions
 
@@ -20,66 +32,178 @@ Parse discussion thread structure:
 - Resolution status
 - Author
 
+---
+
 ## Step 3: Triage Discussions
 
-Group and prioritize:
+Group and prioritize (done **inline**, no subagent):
 - Skip already-resolved discussions
 - Group related comments (same issue, different files)
 - Prioritize: Blocker > Issue > Suggestion > Nit
 - Identify quick wins vs complex fixes
 
-## Step 4: Analyze Comments (Parallel)
+---
 
-For each actionable discussion, invoke subagent:
+## Step 4: Analysis Subagents (Parallel)
 
-**Skill Loading:**
-- Detect files/topics from discussion
-- Load relevant skills (e.g., `typescript:testing` for TypeScript comments)
+**Purpose:** Analyze each discussion thread and suggest fixes.
 
-**Prompt:**
+**Pattern:** Spawn one subagent per actionable discussion **concurrently**.
+
+### Subagent Invocation (One per Discussion)
+
+```yaml
+subagent_type: general
+description: "Analyze PR discussion thread"
+prompt: |
+  Analyze this code review discussion and suggest how to address it.
+
+  DISCUSSION:
+  - Author: @{author}
+  - File: {file_path}
+  - Line: {line_number}
+  - Comment: {main_comment}
+  - Thread replies: {replies}
+  - Current resolution status: {status}
+
+  RELEVANT CODE:
+  ```{language}
+  {code_snippet}
+  ```
+
+  LOAD RELEVANT SKILLS FIRST:
+  Based on the file type ({language}) and discussion topic, load relevant skills:
+  - Use `skill` tool to load: {language}:testing (if available)
+  - Use `skill` tool to load: code:security (if security-related)
+  - Use `skill` tool to load: code:perf (if performance-related)
+  - Use `skill` tool to load: oracle:architect (if architecture-related)
+
+  These skills contain patterns and guidance to help you analyze the feedback accurately.
+
+  Tasks:
+  1. Load relevant skills based on the discussion topic
+  2. Understand what the reviewer is asking for
+  3. Identify the specific issue or suggestion
+  4. Determine the exact code location that needs changes
+  5. Check if this has already been addressed in recent commits (check git log)
+  6. Suggest a concrete fix or appropriate response
+
+  CRITICAL: Be specific. Include exact file paths, line numbers, and code changes.
+
+  Return JSON:
+  {
+    "analysis": {
+      "understanding": "Clear description of what reviewer wants",
+      "issue_type": "bug|suggestion|question|style|documentation",
+      "severity": "Blocker|Issue|Suggestion|Nit",
+      "location": {
+        "file": "exact/path/to/file.ts",
+        "line": 42,
+        "snippet": "relevant code"
+      }
+    },
+    "status_check": {
+      "already_addressed": true|false,
+      "addressed_in_commit": "abc123 (if applicable)"
+    },
+    "suggested_fix": {
+      "applicable": true|false,
+      "description": "What change to make",
+      "before": "original code",
+      "after": "fixed code"
+    },
+    "suggested_response": {
+      "text": "Response to post on PR",
+      "tone": "agree|disagree|question|acknowledge"
+    }
+  }
 ```
-You are analyzing a code review comment.
 
-Discussion: <thread>
-File: <path>
-Line: <n>
-Author: @username
+### Parallel Execution Pattern
 
-Tasks:
-1. Understand what the reviewer is asking
-2. Identify the issue or suggestion
-3. Determine affected code location
-4. Check if already addressed in recent commits
-5. Suggest a fix or response
-
-Output:
-```json
-{
-  "understanding": "...",
-  "issue": "...",
-  "location": {"file": "...", "line": n},
-  "already_addressed": false,
-  "suggested_fix": "...",
-  "suggested_response": "..."
-}
 ```
+Concurrent invocations (one per actionable discussion):
+├── Discussion #1: "Missing validation on line 45"
+├── Discussion #2: "Consider using const instead of let"
+├── Discussion #3: "This could cause N+1 query"
+└── Discussion #4: "Typo in comment"
 ```
 
-## Step 5: Validate Fixes
+### Error Handling (per code:subagents)
 
-For each suggested fix, check:
-1. Does this address the actual issue?
-2. Does this introduce new problems?
-3. Is the response appropriate and professional?
+- If a subagent fails/times out: Log error, continue with other discussions
+- If all subagents fail: Report error to user
+- Partial results: Use analyses from successful subagents only
 
-Flag any fixes that may cause regressions.
+### Aggregating Results
 
-## Step 6: Synthesize
+Collect analyses from all subagents:
 
-Merge analyses:
+```python
+all_analyses = []
+for discussion in actionable_discussions:
+    result = await analysis_subagent(discussion)
+    if result.success:
+        all_analyses.append(result.analysis)
+```
+
+---
+
+## Step 5: Validation Subagent
+
+**Purpose:** Validate that suggested fixes don't introduce problems.
+
+### Subagent Invocation
+
+```yaml
+subagent_type: general
+description: "Validate suggested code review fixes"
+prompt: |
+  Validate these suggested fixes for code review feedback.
+
+  SUGGESTED FIXES:
+  {all_analyses_json}
+
+  FULL DIFF CONTEXT:
+  {pr_diff}
+
+  Tasks:
+  For each suggested fix:
+  1. Does this actually address the issue raised?
+  2. Could this introduce new problems or regressions?
+  3. Is the response tone appropriate and professional?
+  4. Are there any edge cases not considered?
+
+  Return JSON:
+  {
+    "validations": [
+      {
+        "discussion_id": "identifier",
+        "fix_valid": true|false,
+        "concerns": ["List any concerns or risks"],
+        "recommended_action": "apply|skip|modify",
+        "confidence": "high|medium|low"
+      }
+    ],
+    "conflicts": [
+      {
+        "between": ["fix_a", "fix_b"],
+        "description": "How they conflict"
+      }
+    ]
+  }
+```
+
+---
+
+## Step 6: Synthesize (Inline)
+
+Merge analyses and validations (done **inline**):
 - Dedupe overlapping fixes
 - Group by file
 - Order by priority
+
+---
 
 ## Step 7: Show Analysis
 
@@ -95,7 +219,9 @@ Present each discussion with:
 - Issue: ...
 - Suggested fix: ...
 - Suggested response: ...
-- Validation: <any concerns>
+- Validation: <any concerns from validation subagent>
+
+---
 
 ## Step 8: Confirm Fixes
 
@@ -104,10 +230,12 @@ For each suggested fix:
 "<file>:<line> - <suggestion>. Apply this fix? [y/N/q]"
 
 - y: Apply this fix
-- N: Skip this fix  
+- N: Skip this fix
 - q: Stop asking, skip remaining
 
 **CRITICAL:** Never apply changes without user confirmation.
+
+---
 
 ## Step 9: Commit and Push
 
@@ -120,6 +248,8 @@ git commit -m "fix: <summary of changes> (review feedback)"
 git push
 ```
 
+---
+
 ## Step 10: Post Responses
 
 For each addressed comment:
@@ -129,3 +259,12 @@ gfreview review start <id>
 gfreview review comment <id> --file <path> --line <n> --body "Response: <message>"
 gfreview review submit <id>
 ```
+
+---
+
+## Subagent Summary
+
+| Step | Subagent Type | Parallel? | Purpose |
+|------|--------------|-----------|---------|
+| 4 | general | Yes (per discussion) | Analyze feedback and suggest fixes |
+| 5 | general | No | Validate fixes for safety |

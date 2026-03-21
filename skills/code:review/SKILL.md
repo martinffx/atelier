@@ -11,6 +11,8 @@ user-invocable: true
 
 Multi-agent code analysis with parallel reviewers and challenge validation.
 
+Uses explicit subagent dispatch patterns from [code:subagents](../code:subagents/SKILL.md).
+
 ## Arguments
 
 $0 = command (rq or rs)
@@ -33,6 +35,32 @@ $1 = target (branch or PR number)
 gh pr list --head $(git branch --show-current) --json number --jq '.[0].number'
 ```
 
+## Subagent Architecture
+
+### rq (Request Review) Subagents
+
+| Step | Subagent | Parallel | Purpose |
+|------|----------|----------|---------|
+| 2 | Triage | No | Analyze diff, select reviewers |
+| 3 | Reviewers | Yes (per reviewer) | Specialty analysis |
+| 4 | Synthesis 1 | No | Deduplicate findings |
+| 5 | Challenge | No | Validate findings |
+
+### rs (Respond to Review) Subagents
+
+| Step | Subagent | Parallel | Purpose |
+|------|----------|----------|---------|
+| 4 | Analysis | Yes (per discussion) | Analyze feedback |
+| 5 | Validation | No | Validate fixes |
+
+### Dispatch Patterns
+
+Follows [code:subagents](../code:subagents/SKILL.md) patterns:
+- **Parallel dispatch** for independent reviewers/discussions
+- **Sequential dispatch** for dependent steps
+- **Fresh subagent per task** — no context pollution
+- **Error handling**: Log failures, continue with partial results
+
 ## Workflow Routing
 
 - `$0` == `rq` or no arguments → [rq.md](./references/rq.md)
@@ -44,7 +72,7 @@ See [reviewers.md](./references/reviewers.md)
 
 ## Output Format
 
-See [output.md](./references/output.md)
+See [output.md](./output.md)
 
 ## gfreview Integration
 

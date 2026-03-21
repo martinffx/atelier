@@ -1,5 +1,71 @@
 # Reviewer Definitions
 
+## Subagent Invocation Pattern
+
+All reviewers are dispatched as **parallel subagents** following [code:subagents](../../code:subagents/SKILL.md) patterns.
+
+### Task Tool Invocation Template
+
+```yaml
+# Dispatch ONE subagent per selected reviewer
+subagent_type: general
+description: "{ReviewerName} code review"
+prompt: |
+  You are a {ReviewerName} analyzing code for {focus_area}.
+
+  CONTEXT:
+  - Language: {language}
+  - Framework: {framework}
+  - Files changed: {files}
+
+  GIT DIFF:
+  ```diff
+  {git_diff}
+  ```
+
+  LOAD RELEVANT SKILLS FIRST:
+  As a {ReviewerName}, you should load skills relevant to your specialty:
+  {skill_list_from_table_below}
+  
+  Use the `skill` tool to load each relevant skill before reviewing.
+
+  {PROMPT_TEMPLATE_FROM_BELOW}
+  
+  Return findings as JSON:
+  {
+    "findings": [
+      {
+        "location": "file:line",
+        "severity": "Critical|High|Medium|Low",
+        "title": "Brief finding name",
+        "issue": "What's wrong",
+        "impact": "Why this matters",
+        "suggestion": "How to fix",
+        "pre_existing": true|false
+      }
+    ]
+  }
+```
+
+### Parallel Dispatch Pattern
+
+```
+Spawn all reviewer subagents simultaneously:
+├── Security Reviewer ───→ findings.json
+├── Correctness Reviewer ───→ findings.json
+├── Performance Reviewer ───→ findings.json
+└── (etc.)
+```
+
+### Error Handling
+
+Per [code:subagents](../../code:subagents/SKILL.md):
+- Subagent timeout/failure → Log error, continue with others
+- All subagents fail → Report error to user, abort review
+- Partial success → Use findings from successful reviewers
+
+---
+
 ## Concern-Type Reviewers
 
 ### Security Reviewer
@@ -475,3 +541,177 @@ Each reviewer should load relevant skills before reviewing:
 | Operator | None (experience-based) |
 | New Hire | None (fresh-eyes-based) |
 | Hybrid | Combine constituent reviewers' skills |
+
+---
+
+## Complete Example: Dispatching Reviewer Subagents
+
+Given triage output:
+```json
+{
+  "context": { "language": "typescript", "framework": "fastify" },
+  "reviewers": ["Security", "Correctness", "PerformanceOperator"],
+  "files": ["src/auth/login.ts", "src/middleware/auth.ts"]
+}
+```
+
+### Dispatch Reviewer Subagents (Parallel)
+
+Each subagent loads its own relevant skills before reviewing:
+
+**Security Reviewer:**
+```yaml
+subagent_type: general
+description: "Security review of PR"
+prompt: |
+  You are a Security Reviewer analyzing code for security vulnerabilities.
+
+  CONTEXT:
+  - Language: typescript
+  - Framework: fastify
+  - Files: src/auth/login.ts, src/middleware/auth.ts
+
+  GIT DIFF:
+  ```diff
+  {paste diff here}
+  ```
+
+  YOUR FIRST TASK - LOAD SKILLS:
+  As a Security Reviewer, you should load relevant skills before reviewing:
+  1. Load `skill: code:security` - Use the `skill` tool
+  2. Load `skill: typescript:testing` (if available) - Use the `skill` tool
+
+  These skills contain security patterns and TypeScript testing guidance that will help you identify issues.
+
+  Focus areas after loading skills:
+  - Authentication and authorization flaws
+  - Injection vulnerabilities (SQL, command, XSS)
+  - Secrets in code (API keys, passwords, tokens)
+  - Surface area exposure
+  - Input validation gaps
+
+  Return findings as JSON:
+  {
+    "findings": [
+      {
+        "location": "src/auth/login.ts:45",
+        "severity": "Critical",
+        "title": "Token stored in localStorage",
+        "issue": "Access token stored in localStorage, vulnerable to XSS",
+        "impact": "Any XSS vulnerability exposes user tokens",
+        "suggestion": "Use httpOnly cookies or secure session storage",
+        "pre_existing": false
+      }
+    ]
+  }
+```
+
+**Correctness Reviewer:**
+```yaml
+subagent_type: general
+description: "Correctness review of PR"
+prompt: |
+  You are a Correctness Reviewer analyzing code for logic errors.
+
+  CONTEXT:
+  - Language: typescript
+  - Framework: fastify
+  - Files: src/auth/login.ts, src/middleware/auth.ts
+
+  GIT DIFF:
+  ```diff
+  {paste diff here}
+  ```
+
+  YOUR FIRST TASK - LOAD SKILLS:
+  As a Correctness Reviewer, you should load relevant skills before reviewing:
+  1. Load `skill: typescript:testing` - Use the `skill` tool
+
+  This skill contains TypeScript testing patterns and correctness guidance.
+
+  Focus areas after loading skills:
+  - Logic errors and edge cases
+  - Error handling completeness
+  - Type soundness
+  - Null/undefined handling
+  - Boundary conditions
+
+  Return findings as JSON:
+  {
+    "findings": [...]
+  }
+```
+
+**PerformanceOperator Reviewer:**
+```yaml
+subagent_type: general
+description: "Performance review of PR"
+prompt: |
+  You are a Performance Operator - performance with production reality.
+
+  CONTEXT:
+  - Language: typescript
+  - Framework: fastify
+  - Files: src/auth/login.ts, src/middleware/auth.ts
+
+  GIT DIFF:
+  ```diff
+  {paste diff here}
+  ```
+
+  YOUR FIRST TASK - LOAD SKILLS:
+  As a PerformanceOperator Reviewer, you should load relevant skills before reviewing:
+  1. Load `skill: code:perf` (if available) - Use the `skill` tool
+  2. Load `skill: typescript:testing` (if available) - Use the `skill` tool
+
+  Focus areas after loading skills:
+  - Performance issues that matter in prod
+  - N+1 queries at scale
+  - Memory leaks over time
+  - Resource exhaustion scenarios
+  - Real-world performance costs
+
+  Return findings as JSON:
+  {
+    "findings": [...]
+  }
+```
+
+### Aggregate Results
+
+Collect all findings from parallel subagents:
+
+```python
+all_findings = []
+
+# Security results
+if security_result.success:
+    all_findings.extend(security_result.findings)
+else:
+    log.error(f"Security reviewer failed: {security_result.error}")
+
+# Correctness results
+if correctness_result.success:
+    all_findings.extend(correctness_result.findings)
+else:
+    log.error(f"Correctness reviewer failed: {correctness_result.error}")
+
+# PerformanceOperator results
+if perf_result.success:
+    all_findings.extend(perf_result.findings)
+else:
+    log.error(f"Performance reviewer failed: {perf_result.error}")
+
+# Continue with synthesis even if some reviewers failed
+if not all_findings:
+    report_error("All reviewers failed")
+    return
+```
+
+### Key Points
+
+1. **Parallel dispatch** — All reviewers run simultaneously
+2. **Fresh subagent per reviewer** — No context pollution between reviewers
+3. **Self-loading skills** — Each subagent loads its own relevant skills using the `skill` tool
+4. **Error isolation** — One reviewer failing doesn't block others
+5. **Structured output** — JSON format for easy aggregation
