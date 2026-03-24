@@ -1,8 +1,6 @@
 ---
 name: code:review
-description: Multi-agent code review. Use `rq` to request review,
-  `rs` to respond to feedback. Triggers on "review this",
-  "code review", "check for bugs".
+description: Multi-agent code review with parallel specialized reviewers, architecture validation, and challenge validation. Use `rq` to request a review of diffs (defaults to main branch), `rs` to respond to PR feedback. Triggers on "review this", "review my code", "code review", "check for bugs", "audit this", when examining PRs, pull requests, branches, or diffs. Supports line-by-line PR comments via gfreview with severity prefixes (Blocker/Issue/Suggestion/Nit). Always asks user before applying fixes or posting responses.
 argument-hint: <rq|rs> <branch|PR>
 user-invocable: true
 ---
