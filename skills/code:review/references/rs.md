@@ -2,11 +2,45 @@
 
 ## Overview
 
-This workflow uses **2 subagent invocations** plus inline processing:
-1. **Analysis Subagents** (parallel) - One per discussion thread (loads relevant skills)
-2. **Validation Subagent** - Validates suggested fixes
+This workflow responds to PR review feedback.
 
-Follows the [code:subagents](../SKILL.md) patterns for dispatch and error handling.
+**Requires gfreview.**
+
+Steps:
+0. Check gfreview installed
+1. Get target PR
+2. Fetch discussions
+3. Triage discussions (inline)
+4. Analysis Subagents (parallel)
+5. Validation Subagent
+6. Confirm fixes with user [y/N/a]
+7. Commit and push
+8. Post responses [y/N]
+9. Summary
+
+---
+
+## Step 0: Check Prerequisites
+
+**rs requires gfreview.**
+
+```bash
+which gfreview 2>/dev/null && gfreview --version
+```
+
+If not installed:
+
+```
+Error: rs requires gfreview.
+
+Install from: https://github.com/martinffx/gfreview
+
+curl -fsSL https://raw.githubusercontent.com/martinffx/gfreview/main/install.sh | bash
+
+After installation, run `rs` again.
+```
+
+Abort workflow if gfreview not available.
 
 ---
 
@@ -135,18 +169,6 @@ Concurrent invocations (one per actionable discussion):
 - If all subagents fail: Report error to user
 - Partial results: Use analyses from successful subagents only
 
-### Aggregating Results
-
-Collect analyses from all subagents:
-
-```python
-all_analyses = []
-for discussion in actionable_discussions:
-    result = await analysis_subagent(discussion)
-    if result.success:
-        all_analyses.append(result.analysis)
-```
-
 ---
 
 ## Step 5: Validation Subagent
@@ -205,59 +227,92 @@ Merge analyses and validations (done **inline**):
 
 ---
 
-## Step 7: Show Analysis
+## Step 7: Show Analysis and Confirm Fixes
 
-Present each discussion with:
+### Show Analysis
 
-**Discussion with @author:**
-> <main comment>
+Present each discussion:
 
-**Thread:** <replies if any>
+```
+Discussion #1 with @{author}:
+> {main_comment}
 
-**Analysis:**
-- Understanding: ...
-- Issue: ...
-- Suggested fix: ...
-- Suggested response: ...
-- Validation: <any concerns from validation subagent>
+Thread: {replies if any}
 
----
+Analysis:
+- Understanding: {understanding}
+- Issue: {issue_type}
+- Suggested fix: {description}
+- Validation: {concerns if any}
+```
 
-## Step 8: Confirm Fixes
+### Confirm Fixes with User
+
+**Always ask user before applying fixes.**
 
 For each suggested fix:
 
-"<file>:<line> - <suggestion>. Apply this fix? [y/N/q]"
+```
+{file}:{line} - {suggestion}
 
-- y: Apply this fix
+Apply this fix? [y/N/a]
+- y: Apply this fix only
 - N: Skip this fix
-- q: Stop asking, skip remaining
+- a: Apply all remaining fixes without asking
+```
 
 **CRITICAL:** Never apply changes without user confirmation.
 
+If `a` selected: Set flag `APPLY_ALL=true`, skip remaining confirmations.
+
 ---
 
-## Step 9: Commit and Push
+## Step 8: Commit and Push
 
 If fixes were applied:
 
-Generate commit message from applied fixes:
+```
+Commit these changes? [y/N]
+```
+
+If yes:
 ```bash
 git add <files>
 git commit -m "fix: <summary of changes> (review feedback)"
 git push
 ```
 
+If `APPLY_ALL=true`: Commit automatically without asking.
+
 ---
 
-## Step 10: Post Responses
+## Step 9: Post Responses
 
-For each addressed comment:
+```
+Post {N} responses to PR comments? [y/N]
+```
 
+If yes:
 ```bash
 gfreview review start <id>
+
+# For each addressed comment:
 gfreview review comment <id> --file <path> --line <n> --body "Response: <message>"
-gfreview review submit <id>
+
+gfreview review submit <id> --body "Addressed review feedback."
+```
+
+---
+
+## Step 10: Summary
+
+Show summary of actions taken:
+
+```
+=== Review Response Summary ===
+Fixes applied: N
+Responses posted: N
+Remaining discussions: N
 ```
 
 ---
@@ -266,5 +321,13 @@ gfreview review submit <id>
 
 | Step | Subagent | Uses | Parallel? | Purpose |
 |------|----------|------|----------|---------|
+| 0 | Prereqs | inline | — | Check gfreview installed |
+| 1 | Get Target | inline | — | Find PR for branch |
+| 2 | Fetch | inline | — | gfreview discussions |
+| 3 | Triage | inline | — | Prioritize discussions |
 | 4 | Analysis | `general` subagent | Yes (per discussion) | Analyze feedback (loads relevant skills) |
 | 5 | Validation | `general` subagent | No | Validate fixes for safety |
+| 6 | Confirm | inline | — | Ask user [y/N/a] before applying fixes |
+| 7 | Commit | inline | — | Commit and push |
+| 8 | Respond | inline | — | Ask user [y/N], post responses |
+| 9 | Summary | inline | — | Show actions taken |

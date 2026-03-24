@@ -1,22 +1,57 @@
 # gfreview Integration
 
+## Installation
+
+https://github.com/martinffx/gfreview
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/martinffx/gfreview/main/install.sh | bash
+```
+
 ## Prerequisites
 
 - gfreview CLI installed
-- `GFREVIEW_TOKEN` environment variable set
-- `GFREVIEW_FORGE` set (github or gitlab)
-- `GFREVIEW_PROJECT` set (owner/repo or group/project)
+- `GITHUB_TOKEN` or `GITLAB_TOKEN` environment variable set
+- `GFREVIEW_FORGE` set (github or gitlab, auto-detected from git remote)
+- `GFREVIEW_PROJECT` set (owner/repo, defaults to git remote)
 
 ## Commands Used
 
 | Phase | Command |
 |-------|---------|
+| Check installed | `which gfreview` |
+| List PRs | `gfreview list --json --state open` |
+| Create PR | `gfreview create --title <t> --source-branch <b> --target-branch <b>` |
 | View PR | `gfreview view <id>` |
 | Get diff | `gfreview diff <id>` |
 | Get discussions | `gfreview discussions <id>` |
 | Start review | `gfreview review start <id>` |
-| Post comment | `gfreview review comment <id> --file <path> --line <n> --body <text>` |
-| Submit review | `gfreview review submit <id>` |
+| Post comment | `gfreview review comment <id> --file <p> --line <n> --body <t>` |
+| Submit review | `gfreview review submit <id> --body <t>` |
+
+## Line-by-Line Comment Posting
+
+Each finding becomes a separate inline comment:
+
+```bash
+gfreview review start 42
+
+# Finding 1 - Critical:
+gfreview review comment 42 --file src/auth/login.ts --line 45 --body "Blocker: Token stored in localStorage
+
+Access token stored in localStorage is vulnerable to XSS attacks.
+
+Use httpOnly cookies or secure session storage."
+
+# Finding 2 - High:
+gfreview review comment 42 --file src/auth/middleware.ts --line 12 --body "Issue: Token validated on every request
+
+This adds 50-200ms latency per request.
+
+Cache validation results or use JWT verification."
+
+gfreview review submit 42 --body "Code review complete. Please address blockers and issues before merging."
+```
 
 ## Severity Prefix Mapping
 
@@ -27,36 +62,38 @@
 | Medium | `Suggestion:` |
 | Low | `Nit:` |
 
-## Posting Findings
-
-After review completes, ask user: "Post findings to PR via gfreview? [y/N]"
-
-If yes:
+## PR Creation Workflow
 
 ```bash
-# Start review session
-gfreview review start <id>
+CURRENT_BRANCH=$(git branch --show-current)
 
-# Post each finding as inline comment
-gfreview review comment <id> --file <path> --line <n> --body "<prefix>: <message>
+# Check if PR exists
+PR_NUMBER=$(gfreview list --json --state open | jq -r --arg branch "$CURRENT_BRANCH" \
+  '.[] | select(.sourceBranch == $branch) | .number')
 
-<extended_reasoning>"
+if [ -z "$PR_NUMBER" ]; then
+  # Push branch
+  git push -u origin $CURRENT_BRANCH
+  
+  # Create PR (targets main by default)
+  gfreview create --title "My PR Title" --source-branch $CURRENT_BRANCH --target-branch main
+  
+  # Get new PR number
+  PR_NUMBER=$(gfreview list --json --state open | jq -r --arg branch "$CURRENT_BRANCH" \
+    '.[] | select(.sourceBranch == $branch) | .number')
+fi
 
-# Submit review
-gfreview review submit <id>
+# Post review
+gfreview review start $PR_NUMBER
+# ... comments ...
+gfreview review submit $PR_NUMBER
 ```
 
 ## Line Number Rules
 
-Use line numbers from `gfreview diff <id>` output:
-- `-` prefix = added line, use new file line number
-- Context lines use new file line number
-
-## Finding PR for Current Branch
-
-```bash
-gh pr list --head $(git branch --show-current) --json number --jq '.[0].number'
-```
+From `gfreview diff <id>` output:
+- `-` prefix = added line → use new file line number
+- Space prefix = context line → use new file line number
 
 ## Error Handling
 
@@ -66,25 +103,3 @@ gh pr list --head $(git branch --show-current) --json number --jq '.[0].number'
 | "Line out of range" | Re-run `gfreview diff <id>` for current line numbers |
 | "Permission denied" | Check token has repo scope |
 | "Stale review" | Run `gfreview review refresh <id>` or `gfreview review discard <id>` |
-
-## Multi-line Comments
-
-For commenting on a range of lines:
-
-```bash
-gfreview review comment <id> --file <path> --line-start <n> --line-end <m> --body <text>
-```
-
-## Reading Body from File
-
-For long comments:
-
-```bash
-gfreview review comment <id> --file <path> --line <n> --body @/path/to/comment.md
-```
-
-Or from stdin:
-
-```bash
-echo "Multi-line comment" | gfreview review comment <id> --file <path> --line <n> --body -
-```
