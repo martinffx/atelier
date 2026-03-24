@@ -25,15 +25,17 @@ gfreview diff <id>
 
 ## Step 2: Triage Subagent
 
-**Purpose:** Analyze diff to determine which reviewers are needed.
+**Purpose:** Analyze diff to determine context, select reviewers, identify skills to load.
+
+**Uses:** `clerk` agent (minimax-m2.5) - See [agents/clerk.md](../../agents/clerk.md)
 
 ### Subagent Invocation
 
 ```yaml
-subagent_type: general
+subagent_type: clerk
 description: "Triage diff for code review"
 prompt: |
-  Analyze this code diff and determine what type of review is needed.
+  Analyze this code diff to determine review needs.
 
   FILES: {files_changed}
   DIFF: {git_diff}
@@ -50,7 +52,11 @@ prompt: |
      - SecuritySkeptic (security + failure scenarios)
      - PerformanceOperator (performance at scale)
      - MaintainabilityPedant (quality + precision)
-  4. List skills that should be loaded based on detected language
+  4. **Identify skills to load** based on detected language/framework:
+     - TypeScript → typescript:testing, typescript:fastify (if fastify framework)
+     - Python → python:testing, python:fastapi (if fastapi framework)
+     - Security concerns → code:security
+     - Performance concerns → code:perf
 
   Return ONLY valid JSON (no markdown, no code blocks):
   {
@@ -60,7 +66,7 @@ prompt: |
       "domain": "web-api|frontend|database|..."
     },
     "reviewers": ["Security", "Correctness"],
-    "skills": ["typescript:testing", "code:security"]
+    "skills_to_load": ["typescript:testing", "code:security"]
   }
 ```
 
@@ -70,7 +76,7 @@ prompt: |
 {
   "context": { "language": "typescript", "framework": "fastify", "domain": "web-api" },
   "reviewers": ["Security", "Correctness", "PerformanceOperator"],
-  "skills": ["typescript:testing", "code:security"]
+  "skills_to_load": ["typescript:testing", "code:security"]
 }
 ```
 
@@ -80,7 +86,18 @@ prompt: |
 
 **Purpose:** Each selected reviewer analyzes the code from their specialty perspective.
 
+**Uses:** `general` subagent - One per reviewer, dispatched concurrently
+
 **Pattern:** Spawn one subagent per reviewer **concurrently** (parallel execution).
+
+### Skill Loading Pre-Step
+
+Before dispatching reviewers, the detected skills are passed to each reviewer:
+```json
+{
+  "skills_to_load": ["typescript:testing", "code:security"]
+}
+```
 
 ### Subagent Invocation (One per Reviewer)
 
@@ -95,13 +112,14 @@ prompt: |
   - Framework: {framework}
   - Files: {files}
 
+  **PRE-STEP: Load Relevant Skills**
+  Before reviewing, load these skills:
+  {skills_to_load}
+
+  Use the `skill` tool to load each skill.
+
   DIFF:
   {git_diff}
-
-  LOAD RELEVANT SKILLS:
-  Before reviewing, load any skills relevant to {language} and security:
-  - Use `skill` tool to load: code:security
-  - Use `skill` tool to load: {language}:testing (if available)
 
   Focus areas:
   - Authentication and authorization flaws
@@ -164,6 +182,8 @@ for reviewer in reviewers:
 
 **Purpose:** Group, deduplicate, and assign initial severity.
 
+**Uses:** `general` subagent
+
 ### Subagent Invocation
 
 ```yaml
@@ -201,26 +221,86 @@ prompt: |
 
 ---
 
-## Step 5: Challenge Subagent
+## Step 5: Architect Subagent
 
-**Purpose:** Validate findings by challenging assumptions.
+**Purpose:** Review architecture-specific concerns.
+
+**Uses:** `architect` agent (kimi-k2.5) - See [agents/architect.md](../../agents/architect.md)
 
 ### Subagent Invocation
 
 ```yaml
-subagent_type: oracle:challenge
-description: "Challenge code review findings"
+subagent_type: architect
+description: "Architecture review of code diff"
 prompt: |
-  Challenge these code review findings critically.
+  You are an Architecture Reviewer analyzing structural issues.
+
+  CONTEXT:
+  - Language: {language}
+  - Framework: {framework}
+  - Files: {files}
 
   SYNTHESIZED FINDINGS:
   {synthesized_findings_json}
 
-  For each flagged finding, answer:
+  **PRE-STEP: Load Relevant Skills**
+  Before reviewing, load:
+  - Use `skill` tool to load: oracle:architect
+
+  Focus areas:
+  - Boundary violations
+  - Responsibility leakage
+  - Dependency direction
+  - Layer separation
+  - SOLID violations
+  - Data model design
+  - API contract design
+
+  Return findings as JSON:
+  {
+    "architecture_findings": [
+      {
+        "location": "file:line",
+        "severity": "High|Medium",
+        "title": "Architecture Finding",
+        "issue": "What's wrong",
+        "impact": "Architectural debt",
+        "suggestion": "How to fix",
+        "pre_existing": true|false
+      }
+    ]
+  }
+```
+
+---
+
+## Step 6: Challenge Subagent
+
+**Purpose:** Validate findings by challenging assumptions.
+
+**Uses:** `oracle` agent (glm-5) - See [agents/oracle.md](../../agents/oracle.md)
+
+### Subagent Invocation
+
+```yaml
+subagent_type: oracle
+description: "Challenge code review findings"
+prompt: |
+  Challenge these code review findings critically using sequential-thinking.
+
+  ALL FINDINGS (includes synthesized + architecture):
+  {all_findings_json}
+
+  **PRE-STEP: Load Relevant Skills**
+  Before challenging, load:
+  - Use `skill` tool to load: oracle:challenge
+
+  For each flagged finding, use `mcp__sequential-thinking__sequentialthinking` to analyze:
   1. Is this handled elsewhere in the codebase?
   2. Is this the correct place for this concern?
   3. Is this a valid concern or a false positive?
   4. What evidence supports or refutes this finding?
+  5. What are alternative perspectives to consider?
 
   Return JSON with validated findings:
   {
@@ -247,7 +327,7 @@ prompt: |
 
 ---
 
-## Step 6: Final Synthesis
+## Step 7: Final Synthesis
 
 **Purpose:** Produce final report with extended reasoning sections.
 
@@ -255,13 +335,13 @@ This step is done **inline** (no subagent needed) - format the validated finding
 
 ---
 
-## Step 7: Show Findings
+## Step 8: Show Findings
 
 Present structured findings (see [output.md](./output.md)).
 
 ---
 
-## Step 8: Ask to Post
+## Step 9: Ask to Post
 
 "Post findings to PR via gfreview? [y/N]"
 
@@ -271,9 +351,10 @@ If yes, see [gfreview.md](./gfreview.md) for posting workflow.
 
 ## Subagent Summary
 
-| Step | Subagent Type | Parallel? | Purpose |
-|------|--------------|-----------|---------|
-| 2 | general | No | Analyze diff, select reviewers |
-| 3 | general | Yes (per reviewer) | Specialty analysis |
-| 4 | general | No | Deduplicate and group |
-| 5 | oracle:challenge | No | Validate findings |
+| Step | Subagent | Uses | Parallel? | Purpose |
+|------|----------|------|----------|---------|
+| 2 | Triage | `clerk` agent | No | Detect context, select reviewers, identify skills |
+| 3 | Reviewers | `general` subagent | Yes (per reviewer) | Specialty analysis |
+| 4 | Synthesis | `general` subagent | No | Deduplicate and group |
+| 5 | Architect | `architect` agent | No | Architecture review |
+| 6 | Challenge | `oracle` agent | No | Validate findings |

@@ -39,41 +39,53 @@ gh pr list --head $(git branch --show-current) --json number --jq '.[0].number'
 
 ### rq (Request Review) Subagents
 
-| Step | Subagent | Parallel | Purpose |
-|------|----------|----------|---------|
-| 2 | Triage | No | Analyze diff, select reviewers |
-| 3 | Reviewers | Yes (per reviewer) | Specialty analysis |
-| 4 | Synthesis 1 | No | Deduplicate findings |
-| 5 | Challenge | No | Validate findings |
+| Step | Subagent | Uses | Parallel | Purpose |
+|------|----------|------|----------|---------|
+| 1 | Triage | `clerk` agent (minimax-m2.5) | No | Detect context, select reviewers, identify skills to load |
+| 2 | Reviewers | `general` subagent | Yes (per reviewer) | Specialty analysis (loads detected skills) |
+| 3 | Synthesis | `general` subagent | No | Deduplicate findings |
+| 4 | Architect | `architect` agent (kimi-k2.5) | No | Architecture review |
+| 5 | Challenge | `oracle` agent (glm-5) | No | Validate findings with sequential-thinking |
 
 ### rs (Respond to Review) Subagents
 
-| Step | Subagent | Parallel | Purpose |
-|------|----------|----------|---------|
-| 4 | Analysis | Yes (per discussion) | Analyze feedback |
-| 5 | Validation | No | Validate fixes |
+| Step | Subagent | Uses | Parallel | Purpose |
+|------|----------|------|----------|---------|
+| 1 | Analysis | `general` subagent | Yes (per discussion) | Analyze feedback (loads relevant skills) |
+| 2 | Validation | `general` subagent | No | Validate suggested fixes |
 
-### Dispatch Patterns
+## Dispatch Patterns
 
 Follows [code:subagents](../code:subagents/SKILL.md) patterns:
 - **Parallel dispatch** for independent reviewers/discussions
 - **Sequential dispatch** for dependent steps
 - **Fresh subagent per task** — no context pollution
+- **Skill loading pre-step** before each analysis phase
 - **Error handling**: Log failures, continue with partial results
+
+## Agent Dispatch
+
+| Agent | Model | Used In Step |
+|-------|-------|--------------|
+| `clerk` | minimax-m2.5 | Triage (context retrieval, file analysis) |
+| `architect` | kimi-k2.5 | Architect (architecture review) |
+| `oracle` | glm-5 | Challenge (validate findings, sequential-thinking) |
+| `general` | (varies) | Reviewers, Synthesis, Validation |
+
+See [agents/](../agents/) for agent definitions.
+
+## References
+
+| Reference | Purpose |
+|-----------|---------|
+| [rq.md](./references/rq.md) | Request review workflow - detailed steps with prompts |
+| [rs.md](./references/rs.md) | Respond to review workflow - detailed steps with prompts |
+| [reviewers.md](./references/reviewers.md) | Reviewer definitions and prompts |
+| [output.md](./references/output.md) | Output format specification |
+| [gfreview.md](./references/gfreview.md) | gfreview CLI integration |
+| [context-flow.md](./references/context-flow.md) | Data flow between workflow steps |
 
 ## Workflow Routing
 
 - `$0` == `rq` or no arguments → [rq.md](./references/rq.md)
 - `$0` == `rs` → [rs.md](./references/rs.md)
-
-## Reviewer Pool
-
-See [reviewers.md](./references/reviewers.md)
-
-## Output Format
-
-See [output.md](./output.md)
-
-## gfreview Integration
-
-See [gfreview.md](./references/gfreview.md)

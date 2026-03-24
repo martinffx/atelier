@@ -3,7 +3,7 @@
 ## Overview
 
 This workflow uses **2 subagent invocations** plus inline processing:
-1. **Analysis Subagents** (parallel) - One per discussion thread
+1. **Analysis Subagents** (parallel) - One per discussion thread (loads relevant skills)
 2. **Validation Subagent** - Validates suggested fixes
 
 Follows the [code:subagents](../SKILL.md) patterns for dispatch and error handling.
@@ -48,6 +48,8 @@ Group and prioritize (done **inline**, no subagent):
 
 **Purpose:** Analyze each discussion thread and suggest fixes.
 
+**Uses:** `general` subagent - One per discussion, dispatched concurrently
+
 **Pattern:** Spawn one subagent per actionable discussion **concurrently**.
 
 ### Subagent Invocation (One per Discussion)
@@ -71,17 +73,15 @@ prompt: |
   {code_snippet}
   ```
 
-  LOAD RELEVANT SKILLS FIRST:
-  Based on the file type ({language}) and discussion topic, load relevant skills:
+  **PRE-STEP: Load Relevant Skills**
+  Before analyzing, load skills based on file type and discussion topic:
   - Use `skill` tool to load: {language}:testing (if available)
   - Use `skill` tool to load: code:security (if security-related)
   - Use `skill` tool to load: code:perf (if performance-related)
   - Use `skill` tool to load: oracle:architect (if architecture-related)
 
-  These skills contain patterns and guidance to help you analyze the feedback accurately.
-
   Tasks:
-  1. Load relevant skills based on the discussion topic
+  1. Load relevant skills using the `skill` tool
   2. Understand what the reviewer is asking for
   3. Identify the specific issue or suggestion
   4. Determine the exact code location that needs changes
@@ -264,7 +264,7 @@ gfreview review submit <id>
 
 ## Subagent Summary
 
-| Step | Subagent Type | Parallel? | Purpose |
-|------|--------------|-----------|---------|
-| 4 | general | Yes (per discussion) | Analyze feedback and suggest fixes |
-| 5 | general | No | Validate fixes for safety |
+| Step | Subagent | Uses | Parallel? | Purpose |
+|------|----------|------|----------|---------|
+| 4 | Analysis | `general` subagent | Yes (per discussion) | Analyze feedback (loads relevant skills) |
+| 5 | Validation | `general` subagent | No | Validate fixes for safety |

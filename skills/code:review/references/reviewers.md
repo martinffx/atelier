@@ -4,6 +4,8 @@
 
 All reviewers are dispatched as **parallel subagents** following [code:subagents](../../code:subagents/SKILL.md) patterns.
 
+**Uses:** `general` subagent - One per reviewer, dispatched concurrently
+
 ### Task Tool Invocation Template
 
 ```yaml
@@ -18,19 +20,19 @@ prompt: |
   - Framework: {framework}
   - Files changed: {files}
 
+  **PRE-STEP: Load Relevant Skills**
+  Before reviewing, load these skills:
+  {skills_to_load}
+
+  Use the `skill` tool to load each skill.
+
   GIT DIFF:
   ```diff
   {git_diff}
   ```
 
-  LOAD RELEVANT SKILLS FIRST:
-  As a {ReviewerName}, you should load skills relevant to your specialty:
-  {skill_list_from_table_below}
-  
-  Use the `skill` tool to load each relevant skill before reviewing.
-
   {PROMPT_TEMPLATE_FROM_BELOW}
-  
+
   Return findings as JSON:
   {
     "findings": [
