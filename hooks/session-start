@@ -4,8 +4,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-# Read spec:orchestrator content
-orchestrator_content=$(cat "${PLUGIN_ROOT}/skills/spec:orchestrator/SKILL.md")
+# Read spec-orchestrator content
+orchestrator_content=$(cat "${PLUGIN_ROOT}/skills/spec-orchestrator/SKILL.md")
 
 # Escape for JSON
 escape_for_json() {

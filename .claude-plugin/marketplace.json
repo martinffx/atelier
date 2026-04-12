@@ -31,12 +31,12 @@
         "./agents/clerk"
       ],
       "skills": [
-        "./skills/spec:finish",
-        "./skills/spec:implement",
-        "./skills/spec:install",
-        "./skills/spec:plan",
-        "./skills/spec:research",
-        "./skills/spec:orchestrator"
+        "./skills/spec-finish",
+        "./skills/spec-implement",
+        "./skills/spec-install",
+        "./skills/spec-plan",
+        "./skills/spec-research",
+        "./skills/spec-orchestrator"
       ]
     },
     {
@@ -45,10 +45,10 @@
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/oracle:architect",
-        "./skills/oracle:challenge",
-        "./skills/oracle:testing",
-        "./skills/oracle:thinkdeep"
+        "./skills/oracle-architect",
+        "./skills/oracle-challenge",
+        "./skills/oracle-testing",
+        "./skills/oracle-thinkdeep"
       ]
     },
     {
@@ -57,14 +57,14 @@
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/typescript:api-design",
-        "./skills/typescript:build-tools",
-        "./skills/typescript:drizzle-orm",
-        "./skills/typescript:dynamodb-toolbox",
-        "./skills/typescript:effect-ts",
-        "./skills/typescript:fastify",
-        "./skills/typescript:functional-patterns",
-        "./skills/typescript:testing"
+        "./skills/typescript-api-design",
+        "./skills/typescript-build-tools",
+        "./skills/typescript-drizzle-orm",
+        "./skills/typescript-dynamodb-toolbox",
+        "./skills/typescript-effect-ts",
+        "./skills/typescript-fastify",
+        "./skills/typescript-functional-patterns",
+        "./skills/typescript-testing"
       ]
     },
     {
@@ -73,14 +73,14 @@
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/python:architecture",
-        "./skills/python:build-tools",
-        "./skills/python:fastapi",
-        "./skills/python:modern-python",
-        "./skills/python:monorepo",
-        "./skills/python:sqlalchemy",
-        "./skills/python:temporal",
-        "./skills/python:testing"
+        "./skills/python-architecture",
+        "./skills/python-build-tools",
+        "./skills/python-fastapi",
+        "./skills/python-modern-python",
+        "./skills/python-monorepo",
+        "./skills/python-sqlalchemy",
+        "./skills/python-temporal",
+        "./skills/python-testing"
       ]
     },
     {
@@ -89,15 +89,15 @@
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/code:conventional-commit",
-        "./skills/code:debug",
-        "./skills/code:subagents",
-        "./skills/code:docs",
-        "./skills/code:git-worktrees",
-        "./skills/code:perf",
-        "./skills/code:review",
-        "./skills/code:security",
-        "./skills/code:stacked-commit"
+        "./skills/code-conventional-commit",
+        "./skills/code-debug",
+        "./skills/code-subagents",
+        "./skills/code-docs",
+        "./skills/code-git-worktrees",
+        "./skills/code-perf",
+        "./skills/code-review",
+        "./skills/code-security",
+        "./skills/code-stacked-commit"
       ]
     }
   ]

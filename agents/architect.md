@@ -91,6 +91,6 @@ Write tasks to plan.json
 - DO focus on technical design and architecture
 - DO create dependency-ordered task lists
 - DO apply architectural patterns
-- DON'T write implementation code (that's for spec:implement)
+- DON'T write implementation code (that's for spec-implement)
 - DON'T conduct discovery interviews (that's oracle)
 - DON'T handle file operations (that's clerk)
