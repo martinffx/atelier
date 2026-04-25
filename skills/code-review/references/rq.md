@@ -3,27 +3,13 @@
 ## Overview
 
 This workflow:
-1. Checks for gfreview availability
-2. Gets diff (git diff by default, gfreview if PR number given)
-3. Triage Subagent - Analyzes diff, selects reviewers, identifies skills to load
-4. Reviewer Subagents (parallel) - Each selected reviewer analyzes code
-5. Synthesis Subagent - Deduplicates findings
-6. Architect Subagent - Architecture review
-7. Challenge Subagent - Validates findings
-8. Handles output (terminal + optional gfreview PR integration)
-
----
-
-## Step 0: Check Prerequisites
-
-Check if gfreview is available:
-
-```bash
-which gfreview 2>/dev/null && gfreview --version
-```
-
-- `HAS_GFREVIEW=true`: Enable full PR integration
-- `HAS_GFREVIEW=false`: Continue with git diff only (no PR posting)
+1. Gets diff (git diff against target branch)
+2. Triage Subagent - Analyzes diff, selects reviewers, identifies skills to load
+3. Reviewer Subagents (parallel) - Each selected reviewer analyzes code
+4. Synthesis Subagent - Deduplicates findings
+5. Architect Subagent - Architecture review
+6. Challenge Subagent - Validates findings
+7. Final synthesis and output
 
 ---
 
@@ -35,26 +21,12 @@ which gfreview 2>/dev/null && gfreview --version
 git diff main
 ```
 
-If `--target <branch>` specified:
+If target branch specified:
 ```bash
 git diff <branch>
 ```
 
-### With PR number
-
-If PR number provided:
-- `HAS_GFREVIEW=true`: Use `gfreview diff <id>`
-- `HAS_GFREVIEW=false`: Show error, fallback to git diff
-
-#### If gfreview not installed but PR number given:
-
-```
-PR review requires gfreview.
-
-Install: curl -fsSL https://raw.githubusercontent.com/martinffx/gfreview/main/install.sh | bash
-
-Falling back to git diff main...
-```
+Capture the list of changed files and the full diff.
 
 ---
 
@@ -362,93 +334,13 @@ prompt: |
 
 ---
 
-## Step 7: Final Synthesis
+## Step 7: Final Synthesis and Output
 
 **Purpose:** Produce final report with extended reasoning sections.
 
 This step is done **inline** (no subagent needed) - format the validated findings into the output structure defined in [output.md](./output.md).
 
----
-
-## Step 8: Handle Findings Output
-
-### Terminal Output (always)
-
 Display findings in terminal per [output.md](./output.md).
-
----
-
-### If gfreview NOT Installed
-
-Output to terminal only.
-
-```
-Install gfreview to enable PR integration:
-
-curl -fsSL https://raw.githubusercontent.com/martinffx/gfreview/main/install.sh | bash
-```
-
----
-
-### If gfreview IS Installed
-
-#### Check for existing PR
-
-```bash
-CURRENT_BRANCH=$(git branch --show-current)
-TARGET_BRANCH=${TARGET_BRANCH:-main}
-
-PR_NUMBER=$(gfreview list --json --state open | jq -r --arg branch "$CURRENT_BRANCH" \
-  '.[] | select(.sourceBranch == $branch) | .number')
-```
-
-#### Case 1: PR Exists
-
-```
-Found PR #{PR_NUMBER} for branch '{CURRENT_BRANCH}'.
-Post {N} findings as line-by-line comments? [y/N]
-```
-
-If yes:
-```bash
-gfreview review start $PR_NUMBER
-
-# For each finding:
-gfreview review comment $PR_NUMBER --file <path> --line <n> --body "<severity>: <title>
-
-<issue>
-
-<impact>
-
-<suggestion>"
-
-gfreview review submit $PR_NUMBER --body "Code review complete. Please address blockers and issues before merging."
-```
-
-#### Case 2: No PR Exists
-
-```
-No PR found for branch '{CURRENT_BRANCH}'.
-Create PR and post findings? [y/N]
-```
-
-If yes:
-```bash
-# Push branch to remote
-git push -u origin $CURRENT_BRANCH
-
-# Create PR (targets main by default)
-gfreview create --title "<title>" --source-branch $CURRENT_BRANCH --target-branch main
-
-# Get new PR number
-PR_NUMBER=$(gfreview list --json --state open | jq -r --arg branch "$CURRENT_BRANCH" \
-  '.[] | select(.sourceBranch == $branch) | .number')
-
-# Post findings line-by-line
-gfreview review start $PR_NUMBER
-# ... comments ...
-gfreview review submit $PR_NUMBER --body "Code review complete."
-```
 
 ---
 
@@ -456,12 +348,10 @@ gfreview review submit $PR_NUMBER --body "Code review complete."
 
 | Step | Subagent | Uses | Parallel? | Purpose |
 |------|----------|------|----------|---------|
-| 0 | Prereqs | inline | — | Check gfreview installed |
-| 1 | Get Diff | inline | — | `git diff` or `gfreview diff` |
+| 1 | Get Diff | inline | — | `git diff <branch>` |
 | 2 | Triage | `clerk` agent | No | Detect context, select reviewers, identify skills |
 | 3 | Reviewers | `general` subagent | Yes (per reviewer) | Specialty analysis |
 | 4 | Synthesis | `general` subagent | No | Deduplicate and group |
 | 5 | Architect | `architect` agent | No | Architecture review |
 | 6 | Challenge | `oracle` agent | No | Validate findings |
-| 7 | Final Synthesis | inline | — | Format findings |
-| 8 | Output | inline | — | Terminal + optional gfreview |
+| 7 | Output | inline | — | Format and display findings |
