@@ -15,7 +15,7 @@ You are implementing Task {TASK_ID}: {TASK_NAME}
 ## Context
 
 {Scene-setting: where this fits in the feature, what was built before this task,
-relevant architectural decisions from spec.md, existing patterns to follow}
+relevant architectural decisions from design.md, existing patterns to follow}
 
 ## Before You Begin
 

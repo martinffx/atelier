@@ -31,11 +31,10 @@
         "./agents/clerk"
       ],
       "skills": [
+        "./skills/spec-brainstorm",
         "./skills/spec-finish",
         "./skills/spec-implement",
-        "./skills/spec-install",
         "./skills/spec-plan",
-        "./skills/spec-research",
         "./skills/spec-orchestrator"
       ]
     },

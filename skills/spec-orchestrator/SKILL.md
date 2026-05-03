@@ -38,18 +38,18 @@ and get approval.
 Every feature produces two artifacts in `docs/specs/YYYY-MM-DD-<feature>/`:
 
 ```
-spec.md      ← spec-research (requirements + research + architecture)
-plan.json    ← spec-plan (tasks, dependencies → feeds beads)
+design.md    ← spec-brainstorm (requirements + research + architecture)
+plan.json    ← spec-plan (tasks, dependencies)
 ```
 
 ## Skill Routing
 
 ```
-spec-research    → Discovery + research + architecture → spec.md
+spec-brainstorm → Discovery + design + architecture → design.md
 spec-plan        → Implementation plan + tasks → plan.json
 spec-implement   → Execute tasks, track progress, report
 spec-finish      → Post-implementation validation
-code-subagents  → Parallel dispatch, two-stage review
+code-subagents   → Parallel dispatch, two-stage review
 oracle-architect → DDD patterns, component responsibilities
 oracle-testing   → TDD patterns, boundary testing
 ```
@@ -57,13 +57,13 @@ oracle-testing   → TDD patterns, boundary testing
 ### "Create a spec for X" / Build / Add Feature
 
 ```
-spec-research → spec-plan → spec-implement → spec-finish
+spec-brainstorm → spec-plan → spec-implement → spec-finish
 ```
 
 ### Fix Complex Bug / Refactor
 
 ```
-spec-research (research-heavy) → spec-plan (targeted) → spec-implement
+spec-brainstorm (research-heavy) → spec-plan (targeted) → spec-implement
 ```
 
 ### Write Tests / Testing Questions
@@ -87,7 +87,7 @@ But be honest. If there's any doubt, plan it.
 
 | After completing... | The ONLY next step is... |
 |---------------------|--------------------------|
-| spec-research | spec-plan |
+| spec-brainstorm | spec-plan |
 | spec-plan | spec-implement |
 | spec-implement | spec-finish |
 
@@ -98,20 +98,20 @@ Do NOT jump from requirements to code. Do NOT jump from research to implementati
 The workflow is not purely linear. Expect backflows:
 
 ### Research → Research (discovery loop)
-- Research reveals new requirements → loop back to discovery phase
-- Human adds new scope mid-research → continue discovery
+- Brainstorm reveals new requirements → loop back to discovery phase
+- Human adds new scope mid-brainstorm → continue discovery
 
 ### Plan → Research (design flaw)
-- Planning reveals design assumptions are wrong → back to research
-- Tasks can't be decomposed without more context → back to research
+- Planning reveals design assumptions are wrong → back to brainstorm
+- Tasks can't be decomposed without more context → back to brainstorm
 
 ### Implement → Plan (missing tasks)
 - Implementation reveals missing tasks → update plan.json
 - Blocked on dependency not in plan → back to plan
 
 ### Implement → Research (fundamental issue)
-- Implementation reveals design is fundamentally wrong → back to research
-- "This can't work as designed" → back to research
+- Implementation reveals design is fundamentally wrong → back to brainstorm
+- "This can't work as designed" → back to brainstorm
 
 ### Finish → Implement (bugs found)
 - Validation finds bugs → back to implement
@@ -130,7 +130,7 @@ If you loop 2+ times on the same issue, stop and ask the human:
 | "I already know how to do this" | Knowing how ≠ having the human's approval for how |
 | "The human seems impatient" | Wasting time on wrong code is worse than planning |
 | "I'll just do a quick prototype" | Prototypes become production. Plan it. |
-| "I need to explore the code first" | That's the research phase. Write it in spec.md. |
+| "I need to explore the code first" | That's the brainstorm phase. Write it in design.md. |
 | "Let me just fix this one thing" | One thing becomes three. Plan it. |
 | "I can plan in my head" | Plans in your head can't be reviewed or annotated |
 | "This is just a refactor" | Refactors touch more code than features. Plan it. |
@@ -142,7 +142,7 @@ If you loop 2+ times on the same issue, stop and ask the human:
 
 ## Skill Types
 
-**Process skills** (spec-research, spec-plan, spec-implement, spec-finish): Follow exactly.
+**Process skills** (spec-brainstorm, spec-plan, spec-implement, spec-finish): Follow exactly.
 Don't adapt away discipline.
 
 **Knowledge skills** (oracle-architect, oracle-testing): Adapt principles to

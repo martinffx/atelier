@@ -105,7 +105,7 @@ Check:
 1. Are all requirements from the task spec implemented?
 2. Is anything implemented that wasn't specified? (over-building)
 3. Do tests cover the specified acceptance criteria?
-4. Does the implementation match the design in spec.md?
+4. Does the implementation match the design in design.md?
 
 Report: List any gaps or extras. Mark ✅ if compliant, ❌ if not.
 ```
@@ -180,5 +180,5 @@ If a subagent fails a task:
 
 If failure reveals a design problem:
 
-> "This task is failing because [reason]. The design in spec.md may need to change.
-> Want me to go back to spec-research?"
+> "This task is failing because [reason]. The design in design.md may need to change.
+> Want me to go back to spec-brainstorm?"
