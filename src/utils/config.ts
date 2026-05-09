@@ -1,9 +1,10 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { dirname } from 'path';
 import type { AtelierConfig, Harness } from '../types.js';
+import { defaultModels } from '../models.js';
 
 const CONFIG_PATH = '.atelier/config.json';
-const CURRENT_VERSION = '1.0.0';
+const CURRENT_VERSION = '0.1.0';
 
 export function readConfig(path: string = CONFIG_PATH): AtelierConfig | null {
   try {
@@ -23,15 +24,12 @@ export function writeConfig(config: AtelierConfig, path: string = CONFIG_PATH): 
 }
 
 export function getDefaultConfig(harness: Harness): AtelierConfig {
-  const defaults: Record<Harness, string[]> = {
-    claude: ['haiku', 'opus', 'opus'],
-    opencode: ['opencode/deepseek-v4-flash', 'opencode-go/kimi-k2.6', 'opencode-go/deepseek-v4-pro'],
-  };
+  const defaults = defaultModels[harness];
 
-  const agents = ['scout', 'oracle', 'architect'].map((name, i) => ({
+  const agents = (['scout', 'oracle', 'architect'] as const).map(name => ({
     template: name,
     name,
-    model: defaults[harness][i],
+    model: defaults[name],
   }));
 
   return {

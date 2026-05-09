@@ -34,11 +34,11 @@ Uses explicit subagent dispatch patterns from [code-subagents](../code-subagents
 
 | Step | Subagent | Uses | Parallel | Purpose |
 |------|----------|------|----------|---------|
-| 1 | Triage | `clerk` agent (minimax-m2.5) | No | Detect context, select reviewers, identify skills to load |
+| 1 | Triage | `scout` agent | No | Detect context, select reviewers, identify skills to load |
 | 2 | Reviewers | `general` subagent | Yes (per reviewer) | Specialty analysis (loads detected skills) |
 | 3 | Synthesis | `general` subagent | No | Deduplicate findings |
-| 4 | Architect | `architect` agent (kimi-k2.5) | No | Architecture review |
-| 5 | Challenge | `oracle` agent (glm-5) | No | Validate findings with sequential-thinking |
+| 4 | Architect | `architect` agent | No | Architecture review |
+| 5 | Challenge | `oracle` agent | No | Validate findings with sequential-thinking |
 
 ### rs (Respond to Review)
 
@@ -55,12 +55,12 @@ Follows [code-subagents](../code-subagents/SKILL.md) patterns:
 
 ## Agent Dispatch
 
-| Agent | Model | Used In Step |
-|-------|-------|--------------|
-| `clerk` | minimax-m2.5 | Triage (context retrieval, file analysis) |
-| `architect` | kimi-k2.5 | Architect (architecture review) |
-| `oracle` | glm-5 | Challenge (validate findings, sequential-thinking) |
-| `general` | (varies) | Reviewers, Synthesis |
+| Agent | Used In Step |
+|-------|--------------|
+| `scout` | Triage (context retrieval, file analysis) |
+| `architect` | Architect (architecture review) |
+| `oracle` | Challenge (validate findings, sequential-thinking) |
+| `general` | Reviewers, Synthesis |
 
 See [agents/](../agents/) for agent definitions.
 

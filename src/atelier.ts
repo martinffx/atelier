@@ -1,6 +1,8 @@
 #!/usr/bin/env bun
 import { Command } from 'commander';
-import type { Harness } from './types.js';
+import { init } from './commands/init.js';
+import { update } from './commands/update.js';
+import { remove } from './commands/remove.js';
 
 const program = new Command();
 
@@ -10,29 +12,22 @@ program
   .version('0.1.0');
 
 program
-  .command('init')
+  .command('init', { isDefault: true })
   .description('Initialize atelier in the current project')
   .option('--harness <type>', 'Harness type (claude or opencode)')
   .option('--all', 'Also install skills')
   .option('--yes', 'Non-interactive mode with defaults')
-  .option('--global', 'Install skills globally')
-  .action((options) => {
-    console.log('init command - not yet implemented');
-    console.log('Options:', options);
-  });
+  .option('--project', 'Install skills in project directory instead of global')
+  .action(init);
 
 program
   .command('update')
   .description('Update atelier hooks and agents')
-  .action(() => {
-    console.log('update command - not yet implemented');
-  });
+  .action(update);
 
 program
   .command('remove')
   .description('Remove atelier from the current project')
-  .action(() => {
-    console.log('remove command - not yet implemented');
-  });
+  .action(remove);
 
 program.parse();

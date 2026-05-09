@@ -16,7 +16,7 @@
 - Spec-driven development workflow skills (research, plan, implement, finish, subagents)
 - Dedicated /spec:init command with guided setup
 - Structured workflows with parallel execution and validation
-- Deep thinking agents (oracle, architect, clerk)
+- Deep thinking agents (oracle, architect, scout)
 - Python ecosystem patterns plugin
 - TypeScript ecosystem patterns (Effect-TS, Drizzle ORM, DynamoDB Toolbox, Fastify, testing)
 - Git workflow skills (worktrees, Graphite stacked commits, branch completion)
