@@ -1,0 +1,283 @@
+{
+  "feature": "atelier-cli",
+  "spec": "docs/specs/2025-05-07-atelier-cli/design.md",
+  "goal": "Build a CLI installer (with deps: commander, inquirer) that sets up atelier hooks and agents for Claude Code and OpenCode",
+  "phases": [
+    {
+      "id": "P0",
+      "name": "Prerequisites",
+      "tasks": [
+        {
+          "id": "T0",
+          "name": "Prepare agent files as templates",
+          "depends_on": [],
+          "inputs": ["Current agents/scout.md, agents/oracle.md, agents/architect.md"],
+          "description": "Remove harness-specific fields (model) from agent files. Keep only name, description. These become the canonical templates fetched by the CLI.",
+          "files": {
+            "create": [],
+            "modify": ["agents/scout.md", "agents/oracle.md", "agents/architect.md"]
+          },
+          "validation": {
+            "tests": ["No model field in agent frontmatter", "Valid YAML frontmatter"],
+            "acceptance": ["Agents are harness-agnostic templates"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P1",
+      "name": "Foundation",
+      "tasks": [
+        {
+          "id": "T1",
+          "name": "CLI entry point and argument parsing",
+          "depends_on": [],
+          "inputs": ["Design doc commands section", "commander library"],
+          "description": "Create bin/atelier.js with commander. Commands: init, update, remove. Flags: --harness, --all, --yes. Update package.json with bin entry and dependencies (commander, inquirer).",
+          "files": {
+            "create": ["bin/atelier.js"],
+            "modify": ["package.json"]
+          },
+          "validation": {
+            "tests": ["atelier init --help shows usage", "atelier --version works", "Flags parsed correctly"],
+            "acceptance": ["Command dispatch works", "package.json has bin entry and deps"]
+          }
+        },
+        {
+          "id": "T2",
+          "name": "Harness detection utility",
+          "depends_on": ["T1"],
+          "inputs": ["Claude Code env vars (CLAUDE_PLUGIN_ROOT)", "OpenCode directory structure (.opencode/)"],
+          "description": "Create src/utils/detect.js. Detects harness from env vars, directory presence, or CLI availability. Returns 'claude', 'opencode', or null. --harness flag overrides detection.",
+          "files": {
+            "create": ["src/utils/detect.js"],
+            "modify": []
+          },
+          "validation": {
+            "tests": ["Detects claude when CLAUDE_PLUGIN_ROOT set", "Detects opencode when .opencode/ exists", "Returns null when neither found"],
+            "acceptance": ["Detection accurate", "Override works"]
+          }
+        },
+        {
+          "id": "T3",
+          "name": "Config read/write utility",
+          "depends_on": ["T1"],
+          "inputs": [".atelier/config.json schema"],
+          "description": "Create src/utils/config.js. readConfig() and writeConfig(). Creates .atelier/ dir. Validates JSON schema. Handles missing config.",
+          "files": {
+            "create": ["src/utils/config.js"],
+            "modify": []
+          },
+          "validation": {
+            "tests": ["writeConfig creates file", "readConfig parses JSON", "Handles missing gracefully"],
+            "acceptance": ["Config round-trips", "Validation works"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "name": "Template Fetching",
+      "tasks": [
+        {
+          "id": "T4",
+          "name": "GitHub fetch utility",
+          "depends_on": [],
+          "inputs": ["GitHub raw content API"],
+          "description": "Create src/utils/fetch.js. fetchText(url) using built-in fetch. Handles 404s, network errors. GitHub base URL constant.",
+          "files": {
+            "create": ["src/utils/fetch.js"],
+            "modify": []
+          },
+          "validation": {
+            "tests": ["Fetches raw text from GitHub", "Throws on 404", "Throws on network error"],
+            "acceptance": ["Works with built-in fetch only"]
+          }
+        },
+        {
+          "id": "T5",
+          "name": "Agent template fetching",
+          "depends_on": ["T4"],
+          "inputs": ["Agent template URL: github.com/martinffx/atelier/agents/{name}.md"],
+          "description": "Create src/utils/templates.js. Fetches agent templates from GitHub. Parses YAML frontmatter and markdown body. Returns {frontmatter, body} object.",
+          "files": {
+            "create": ["src/utils/templates.js"],
+            "modify": []
+          },
+          "validation": {
+            "tests": ["Fetches scout.md from GitHub", "Parses YAML frontmatter", "Returns name, description, body"],
+            "acceptance": ["All 3 agents fetchable"]
+          }
+        },
+        {
+          "id": "T6",
+          "name": "Model registry",
+          "depends_on": [],
+          "inputs": ["Claude and OpenCode model lists"],
+          "description": "Create src/models.json with available models per harness. Raw model names, no abstraction.",
+          "files": {
+            "create": ["src/models.json"],
+            "modify": []
+          },
+          "validation": {
+            "tests": ["Lists haiku/sonnet/opus for claude", "Lists opencode-go/* and opencode/* for opencode"],
+            "acceptance": ["JSON valid", "Readable by CLI"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P3",
+      "name": "Generators",
+      "tasks": [
+        {
+          "id": "T7",
+          "name": "Claude Code generator",
+          "depends_on": ["T3", "T5", "T6"],
+          "inputs": ["Claude settings.json format", "Session-start hook format", "Agent templates"],
+          "description": "Create src/generators/claude.js. Generates .claude/settings.json (model + hooks), hooks/atelier-session-start, and .claude/agents/*.md. Injects model into agent frontmatter. Settings merges with existing. Hook reads skills path from config.",
+          "files": {
+            "create": ["src/generators/claude.js"],
+            "modify": []
+          },
+          "validation": {
+            "tests": ["Generates .claude/settings.json with model and hooks", "Generates hooks/atelier-session-start", "Generates .claude/agents/*.md with injected model", "Merges settings without overwriting existing fields"],
+            "acceptance": ["Files match Claude Code expectations"]
+          }
+        },
+        {
+          "id": "T8",
+          "name": "OpenCode generator",
+          "depends_on": ["T3", "T5", "T6"],
+          "inputs": ["OpenCode plugin JS format", "Agent markdown format"],
+          "description": "Create src/generators/opencode.js. Generates .opencode/plugins/atelier.js and .opencode/agents/*.md. Injects model into agent frontmatter. Plugin registers skills paths and injects bootstrap.",
+          "files": {
+            "create": ["src/generators/opencode.js"],
+            "modify": []
+          },
+          "validation": {
+            "tests": ["Generates atelier.js plugin", "Generates .opencode/agents/*.md with mode: subagent and injected model", "Plugin registers skills"],
+            "acceptance": ["Files match OpenCode expectations"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P4",
+      "name": "Commands",
+      "tasks": [
+        {
+          "id": "T10",
+          "name": "init command - detection and config",
+          "depends_on": ["T2", "T3"],
+          "inputs": ["detect.js", "config.js"],
+          "description": "Implement init harness detection and config creation. Handles fresh install vs re-run. Detects harness, reads/writes config, detects harness switching.",
+          "files": {
+            "create": ["src/commands/init.js"],
+            "modify": ["bin/atelier.js"]
+          },
+          "validation": {
+            "tests": ["Fresh install detects harness", "Re-run reads existing config", "Harness switch shows warning"],
+            "acceptance": ["Config created/updated correctly"]
+          }
+        },
+        {
+          "id": "T11",
+          "name": "init command - interactive prompts",
+          "depends_on": ["T10", "T6"],
+          "inputs": ["models.json", "inquirer library"],
+          "description": "Implement interactive model selection. Uses inquirer select prompts. Shows current model as default. Skipped with --yes flag (uses first model in list).",
+          "files": {
+            "create": [],
+            "modify": ["src/commands/init.js"]
+          },
+          "validation": {
+            "tests": ["Prompts for each agent", "Shows current model", "--yes skips prompts", "Invalid input handled"],
+            "acceptance": ["Model selection works interactively and non-interactively"]
+          }
+        },
+        {
+          "id": "T12",
+          "name": "init command - file generation",
+          "depends_on": ["T11", "T7", "T8"],
+          "inputs": ["All generators", "config with selected models"],
+          "description": "Implement init file generation. Calls appropriate generator based on harness. Generates hook and all agent files. Overwrites existing.",
+          "files": {
+            "create": [],
+            "modify": ["src/commands/init.js"]
+          },
+          "validation": {
+            "tests": ["Generates hook file", "Generates 3 agent files", "Files have correct models"],
+            "acceptance": ["All files generated correctly", "Idempotent"]
+          }
+        },
+        {
+          "id": "T13",
+          "name": "update command",
+          "depends_on": ["T12"],
+          "inputs": ["init command implementation"],
+          "description": "Implement update. Reads config, re-fetches templates, regenerates hook and agents. Preserves model selections. Does not touch skills.",
+          "files": {
+            "create": ["src/commands/update.js"],
+            "modify": ["bin/atelier.js"]
+          },
+          "validation": {
+            "tests": ["Re-fetches templates", "Regenerates hook", "Regenerates agents", "Config unchanged"],
+            "acceptance": ["Update refreshes without data loss"]
+          }
+        },
+        {
+          "id": "T14",
+          "name": "remove command",
+          "depends_on": ["T12"],
+          "inputs": ["init file generation list"],
+          "description": "Implement remove. Reads config, deletes generated files, deletes .atelier/ directory. Optionally removes skills with --remove-skills.",
+          "files": {
+            "create": ["src/commands/remove.js"],
+            "modify": ["bin/atelier.js"]
+          },
+          "validation": {
+            "tests": ["Deletes .atelier/", "Deletes hook", "Deletes agents", "Deletes harness config"],
+            "acceptance": ["Project restored to pre-installation state"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P5",
+      "name": "Integration",
+      "tasks": [
+        {
+          "id": "T15",
+          "name": "Error handling",
+          "depends_on": ["T12", "T13", "T14"],
+          "inputs": ["All commands"],
+          "description": "Add comprehensive error handling. Network errors, GitHub 404s, invalid configs, missing skills CLI. Clear error messages with next steps.",
+          "files": {
+            "create": ["src/utils/errors.js"],
+            "modify": ["src/commands/*.js"]
+          },
+          "validation": {
+            "tests": ["GitHub 404 shows clear message", "Network error suggests retry", "Invalid config shows validation errors"],
+            "acceptance": ["All errors handled gracefully"]
+          }
+        },
+        {
+          "id": "T16",
+          "name": "End-to-end test",
+          "depends_on": ["T15"],
+          "inputs": ["All commands implemented"],
+          "description": "Test full workflow: init -> verify files -> update -> verify -> remove -> verify cleaned. Test both harnesses.",
+          "files": {
+            "create": [],
+            "modify": []
+          },
+          "validation": {
+            "tests": ["init creates expected files", "update refreshes", "remove cleans", "Cross-harness switch works"],
+            "acceptance": ["Full cycle works in temp directory"]
+          }
+        }
+      ]
+    }
+  ]
+}
