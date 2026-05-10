@@ -2,59 +2,86 @@ import { writeFileSync, mkdirSync, readFileSync, chmodSync } from 'fs';
 import { join } from 'path';
 import { readTemplate } from '../utils/templates.js';
 import type { AtelierConfig } from '../types.js';
+import { FileWriteError } from '../utils/errors.js';
 
-const CLAUDE_DIR = '.claude';
-const CLAUDE_AGENTS_DIR = '.claude/agents';
-const HOOKS_DIR = 'hooks';
-const HOOK_SCRIPT = 'hooks/atelier-session-start';
+export function generateClaude(config: AtelierConfig, basePath = process.cwd()): void {
+  const claudeDir = join(basePath, '.claude');
+  const agentsDir = join(claudeDir, 'agents');
+  const hooksDir = join(basePath, 'hooks');
 
-export function generateClaude(config: AtelierConfig): void {
-  mkdirSync(CLAUDE_AGENTS_DIR, { recursive: true });
-  mkdirSync(HOOKS_DIR, { recursive: true });
+  try {
+    mkdirSync(agentsDir, { recursive: true });
+    mkdirSync(hooksDir, { recursive: true });
+  } catch (err) {
+    throw new FileWriteError(agentsDir, err instanceof Error ? err.message : String(err));
+  }
 
-  writeSettingsJson(config);
-  writeHookScript(config);
-  writeAgentFiles(config);
+  try {
+    writeSettingsJson(config, basePath);
+    writeHookScript(config, basePath);
+    writeAgentFiles(config, basePath);
+  } catch (err) {
+    throw new FileWriteError('generateClaude', err instanceof Error ? err.message : String(err));
+  }
 }
 
-function writeSettingsJson(config: AtelierConfig): void {
-  const existing = readExistingSettings();
+function writeSettingsJson(config: AtelierConfig, basePath: string): void {
+  const settingsPath = join(basePath, '.claude/settings.json');
+  const existing = readExistingSettings(settingsPath);
 
-  const settings = {
+  const atelierHook: SessionStartHook = {
+    hooks: [
+      {
+        command: 'hooks/atelier-session-start',
+        type: 'command',
+      },
+    ],
+    matcher: 'startup|clear|compact',
+  };
+
+  const existingSessionStart = existing.hooks?.SessionStart || [];
+  const hasAtelierHook = existingSessionStart.some(
+    (h) => h.hooks?.some((hook) => hook.command === 'hooks/atelier-session-start')
+  );
+
+  const newSessionStart = hasAtelierHook
+    ? existingSessionStart
+    : [...existingSessionStart, atelierHook];
+
+  const settings: ExistingSettings = {
     ...existing,
     $schema: 'https://json.schemastore.org/claude-code-settings.json',
     model: 'opusplan',
     hooks: {
-      SessionStart: [
-        {
-          hooks: [
-            {
-              command: 'hooks/atelier-session-start',
-              type: 'command',
-            },
-          ],
-          matcher: 'startup|clear|compact',
-        },
-      ],
+      ...(existing.hooks || {}),
+      SessionStart: newSessionStart,
     },
   };
 
-  writeFileSync(
-    join(CLAUDE_DIR, 'settings.json'),
-    JSON.stringify(settings, null, 2) + '\n'
-  );
+  writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n');
 }
 
-function readExistingSettings(): Record<string, unknown> {
+interface SessionStartHook {
+  hooks: { command?: string; type?: string }[];
+  matcher?: string;
+}
+
+interface ExistingSettings {
+  model?: string;
+  hooks?: { SessionStart?: SessionStartHook[] };
+  [key: string]: unknown;
+}
+
+function readExistingSettings(settingsPath: string): ExistingSettings {
   try {
-    const content = readFileSync(join(CLAUDE_DIR, 'settings.json'), 'utf-8');
-    return JSON.parse(content);
+    const content = readFileSync(settingsPath, 'utf-8');
+    return JSON.parse(content) as ExistingSettings;
   } catch {
     return {};
   }
 }
 
-function writeHookScript(config: AtelierConfig): void {
+function writeHookScript(config: AtelierConfig, basePath: string): void {
   const skillsPath = config.skills_path || '~/.agents/skills/atelier';
 
   const script = `#!/bin/bash
@@ -70,19 +97,19 @@ else
 fi
 `;
 
-  writeFileSync(HOOK_SCRIPT, script);
-  chmodSync(HOOK_SCRIPT, 0o755);
+  const hookPath = join(basePath, 'hooks/atelier-session-start');
+  writeFileSync(hookPath, script);
+  chmodSync(hookPath, 0o755);
 }
 
-function writeAgentFiles(config: AtelierConfig): void {
+function writeAgentFiles(config: AtelierConfig, basePath: string): void {
+  const agentsDir = join(basePath, '.claude/agents');
+
   for (const agent of config.agents) {
     const template = readTemplate(agent.template);
     const frontmatter = `---\nname: ${agent.name}\nmodel: ${agent.model}\n---\n`;
     const content = frontmatter + template.body;
 
-    writeFileSync(
-      join(CLAUDE_AGENTS_DIR, `${agent.name}.md`),
-      content
-    );
+    writeFileSync(join(agentsDir, `${agent.name}.md`), content);
   }
 }

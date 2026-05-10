@@ -5,7 +5,7 @@ description: >
   when there's an approved spec (design.md) and the next step is breaking it into implementable
   work. Trigger when the user says "write a plan", "plan this out", "break this down",
   "I added notes" (annotation cycle), or after spec-brainstorm completes. Also trigger for
-  "create tasks" or "add to beads". Do NOT use for research (use spec-brainstorm) or
+  "create tasks". Do NOT use for research (use spec-brainstorm) or
   execution (use spec-implement).
 user-invocable: true
 ---
@@ -183,22 +183,30 @@ explicitly approves it.
 When the human approves — "looks good", "approved", "create tasks" — convert the plan
 into plan.json.
 
-### Skill Loading
+### Task Tracking
 
-Check available skills for task tracking support. If a task tracking skill exists
-(e.g., beads), load it and use it for task creation and progress tracking.
-If no task tracking skill is available, use TodoWrite as fallback.
+**Preferred:** Use beads for dependency-aware task tracking:
+```bash
+# Create epic and tasks with dependencies
+bd create "Feature: {name}" --label {feature} --type epic
+bd create "Task: {name}" --label {feature} --type task --epic {epic-id}
+bd dep add --type blocks {task-a} {task-b}  # task-a blocks task-b
+```
+
+**Fallback:** If beads is not available, use the harness's native todo system.
+The harness provides todo management — use it directly.
 
 ### What to do
 
 1. Convert the annotated plan draft into structured plan.json
 2. Each task maps to a unit with inputs, description, files, and validation
 3. Dependencies between tasks are captured in `depends_on` fields
-4. Use the loaded task tracking skill (or TodoWrite fallback) to create tasks:
-   - Create an epic for the feature
-   - Create tasks per phase
-   - Add dependencies between tasks (e.g., Entity before Repository)
-5. Follow the task tracking skill's conventions or TodoWrite structure
+4. Create tasks using beads (preferred) or harness todos:
+   - Create an epic/feature container
+   - Add tasks per phase with clear descriptions
+   - Mark dependencies between tasks (beads: `bd dep add`, harness: manual ordering)
+5. The plan.json is the source of truth for task details; the task tracker
+tracks execution state
 
 ### Verification
 

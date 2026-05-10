@@ -5,7 +5,9 @@
     "moduleResolution": "bundler",
     "strict": true,
     "noEmit": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["bun-types"]
   },
-  "include": ["bin/", "src/"]
+  "include": ["src/"],
+  "exclude": ["src/**/*.test.ts"]
 }

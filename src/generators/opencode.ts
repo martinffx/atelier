@@ -2,22 +2,31 @@ import { writeFileSync, mkdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { readTemplate } from '../utils/templates.js';
 import type { AtelierConfig } from '../types.js';
+import { FileWriteError } from '../utils/errors.js';
 
-const OPENCODE_DIR = '.opencode';
-const OPENCODE_AGENTS_DIR = '.opencode/agents';
-const OPENCODE_PLUGINS_DIR = '.opencode/plugins';
+export function generateOpenCode(config: AtelierConfig, basePath = process.cwd()): void {
+  const agentsDir = join(basePath, '.opencode/agents');
+  const pluginsDir = join(basePath, '.opencode/plugins');
 
-export function generateOpenCode(config: AtelierConfig): void {
-  mkdirSync(OPENCODE_AGENTS_DIR, { recursive: true });
-  mkdirSync(OPENCODE_PLUGINS_DIR, { recursive: true });
+  try {
+    mkdirSync(agentsDir, { recursive: true });
+    mkdirSync(pluginsDir, { recursive: true });
+  } catch (err) {
+    throw new FileWriteError(agentsDir, err instanceof Error ? err.message : String(err));
+  }
 
-  writeOpenCodeJson(config);
-  writePluginJs(config);
-  writeAgentFiles(config);
+  try {
+    writeOpenCodeJson(config, basePath);
+    writePluginJs(config, basePath);
+    writeAgentFiles(config, basePath);
+  } catch (err) {
+    throw new FileWriteError('generateOpenCode', err instanceof Error ? err.message : String(err));
+  }
 }
 
-function writeOpenCodeJson(config: AtelierConfig): void {
-  const existing = readExistingOpenCodeJson();
+function writeOpenCodeJson(config: AtelierConfig, basePath: string): void {
+  const opencodeJsonPath = join(basePath, 'opencode.json');
+  const existing = readExistingOpenCodeJson(opencodeJsonPath);
 
   const atelierFields = {
     agent: {
@@ -34,15 +43,12 @@ function writeOpenCodeJson(config: AtelierConfig): void {
 
   const merged = deepMerge(existing, atelierFields);
 
-  writeFileSync(
-    'opencode.json',
-    JSON.stringify(merged, null, 2) + '\n'
-  );
+  writeFileSync(opencodeJsonPath, JSON.stringify(merged, null, 2) + '\n');
 }
 
-function readExistingOpenCodeJson(): Record<string, unknown> {
+function readExistingOpenCodeJson(opencodeJsonPath: string): Record<string, unknown> {
   try {
-    const content = readFileSync('opencode.json', 'utf-8');
+    const content = readFileSync(opencodeJsonPath, 'utf-8');
     return JSON.parse(content);
   } catch {
     return {};
@@ -68,7 +74,7 @@ function deepMerge(target: Record<string, unknown>, source: Record<string, unkno
   return result;
 }
 
-function writePluginJs(config: AtelierConfig): void {
+function writePluginJs(config: AtelierConfig, basePath: string): void {
   const skillsPath = config.skills_path || '~/.agents/skills/atelier';
 
   const plugin = `export default {
@@ -81,21 +87,18 @@ function writePluginJs(config: AtelierConfig): void {
 };
 `;
 
-  writeFileSync(
-    join(OPENCODE_PLUGINS_DIR, 'atelier.js'),
-    plugin
-  );
+  const pluginPath = join(basePath, '.opencode/plugins/atelier.js');
+  writeFileSync(pluginPath, plugin);
 }
 
-function writeAgentFiles(config: AtelierConfig): void {
+function writeAgentFiles(config: AtelierConfig, basePath: string): void {
+  const agentsDir = join(basePath, '.opencode/agents');
+
   for (const agent of config.agents) {
     const template = readTemplate(agent.template);
     const frontmatter = `---\nname: ${agent.name}\nmodel: ${agent.model}\nmode: subagent\n---\n`;
     const content = frontmatter + template.body;
 
-    writeFileSync(
-      join(OPENCODE_AGENTS_DIR, `${agent.name}.md`),
-      content
-    );
+    writeFileSync(join(agentsDir, `${agent.name}.md`), content);
   }
 }

@@ -2,8 +2,8 @@
 name: spec-implement
 description: >
   Execute implementation tasks from an approved plan.json. Use when spec-plan has produced
-  approved tasks and the human is ready to start coding. Tracks progress via beads, enforces
-  TDD, reports between batches. Trigger when the user says "implement", "go", "start",
+  approved tasks and the human is ready to start coding. Tracks progress via beads
+  (preferred) or harness-native todos, enforces TDD, reports between batches. Trigger when the user says "implement", "go", "start",
   "do it", or after spec-plan completes task creation. Do NOT use without an approved plan —
   invoke spec-plan first.
 user-invocable: true
@@ -24,7 +24,7 @@ Before starting, verify these exist:
 
 1. **Approved spec** — `docs/specs/YYYY-MM-DD-<feature>/design.md`
 2. **Approved plan** — `docs/specs/YYYY-MM-DD-<feature>/plan.json`
-3. **Tasks created** — In beads or plan.json task list
+3. **Tasks created** — In beads, harness todo list, or plan.json task list
 4. **Not on main/master** — Never start implementation on main/master without explicit
    user consent. Create a branch or use a git worktree first.
 
@@ -57,7 +57,7 @@ If the human hasn't specified a mode, ask.
 > "Implement it all. Don't stop until you're done."
 
 - Execute all tasks in dependency order
-- Track progress in beads: `bd update <id> --status in_progress` → `bd close <id>`
+- Track progress: beads `bd update <id> --status in_progress` → `bd close <id>`, or harness todo list
 - Run type checking / linting continuously
 - Only stop if blocked
 
@@ -86,15 +86,23 @@ Default to batched if the human hasn't expressed a preference.
 
 For each task, follow the plan exactly. Find the next ready task:
 
+**With beads (preferred):**
 ```bash
 bd ready --label <feature> --json
 ```
 
+**With harness todos:**
+Check the todo list for the next unblocked task (respecting `depends_on` from plan.json).
+
 Mark it in progress:
 
+**With beads:**
 ```bash
 bd update <task-id> --status in_progress
 ```
+
+**With harness todos:**
+Update the todo status to in_progress.
 
 ### For each task
 
@@ -128,9 +136,13 @@ This catches issues early rather than accumulating debt across multiple tasks.
 
 Mark the task done:
 
+**With beads:**
 ```bash
 bd close <task-id> --reason "Implemented with tests"
 ```
+
+**With harness todos:**
+Mark the task as completed.
 
 ### Referencing existing code
 
@@ -238,7 +250,7 @@ When all tasks are done, verify and present the work.
 1. **Run full test suite** — all tests must pass, not just the new ones
 2. **Run type check / lint** — clean output, no new warnings
 3. **Invoke code-review** — full review of all changes
-4. **Verify beads tasks** — `bd list --label <feature> --json` — all tasks must be closed
+4. **Verify tasks closed** — `bd list --label <feature> --json` (beads) or check harness todo list — all tasks must be done
 5. **Diff review** — review the full diff against main/master. Look for:
    - Files that changed but shouldn't have
    - Debug code or temporary hacks left behind

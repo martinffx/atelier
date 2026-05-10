@@ -3,6 +3,7 @@ import { Command } from 'commander';
 import { init } from './commands/init.js';
 import { update } from './commands/update.js';
 import { remove } from './commands/remove.js';
+import { handleError } from './utils/errors.js';
 
 const program = new Command();
 
@@ -18,16 +19,16 @@ program
   .option('--all', 'Also install skills')
   .option('--yes', 'Non-interactive mode with defaults')
   .option('--project', 'Install skills in project directory instead of global')
-  .action(init);
+  .action((options) => { init(options).catch(handleError); });
 
 program
   .command('update')
   .description('Update atelier hooks and agents')
-  .action(update);
+  .action(() => { try { update(); } catch (e) { handleError(e); } });
 
 program
   .command('remove')
   .description('Remove atelier from the current project')
-  .action(remove);
+  .action(() => { try { remove(); } catch (e) { handleError(e); } });
 
 program.parse();

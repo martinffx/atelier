@@ -1,12 +1,12 @@
 import { rmSync, existsSync } from 'fs';
 import { readConfig } from '../utils/config.js';
+import { ConfigNotFoundError } from '../utils/errors.js';
 
 export function remove(): void {
   const config = readConfig();
 
   if (!config) {
-    console.error('Error: .atelier/config.json not found. Nothing to remove.');
-    process.exit(1);
+    throw new ConfigNotFoundError('remove');
   }
 
   if (config.harness === 'claude') {

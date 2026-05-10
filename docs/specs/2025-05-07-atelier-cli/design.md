@@ -408,9 +408,17 @@ opencode.json                 # Primary agents (Build, Plan) - created/updated b
 
 ## Open Questions
 
-1. Should `remove` uninstall skills via `npx skills remove` or leave them?
-2. Should we cache fetched templates in `.atelier/cache/` to avoid re-fetching?
-3. How do we handle GitHub API rate limits for template fetching?
+1. ~~Should `remove` uninstall skills via `npx skills remove` or leave them?~~ **Resolved:** Leave skills installed. User can manually remove via `npx skills remove martinffx/atelier`.
+2. ~~Should we cache fetched templates in `.atelier/cache/` to avoid re-fetching?~~ **Resolved:** No caching needed. Templates are bundled in the npm package.
+3. ~~How do we handle GitHub API rate limits for template fetching?~~ **Not applicable.** Templates are bundled (local filesystem), not fetched from GitHub. CLI is installed via `bunx martinffx/atelier` which ships all templates.
+
+## Architecture Decision
+
+**Template delivery:** Templates are bundled in the npm package (in `agents/` directory), not fetched from GitHub. The `readTemplate()` function reads from `../../agents/{name}.md` relative to the source. This:
+- Works offline after installation
+- Eliminates GitHub API rate limit concerns
+- Simplifies error handling (no network failures for template reading)
+- Requires CLI update only when templates change significantly
 
 ## Files to Create
 
@@ -438,11 +446,19 @@ atelier/
 
 ## Success Criteria
 
-- [ ] `bunx atelier@latest init` completes without errors on Claude Code project
-- [ ] `bunx atelier@latest init` completes without errors on OpenCode project
-- [ ] `.claude/settings.json` sets model and hooks correctly
-- [ ] `opencode.json` configures primary agents (Build, Plan)
-- [ ] Subagents generated with correct model per harness
-- [ ] `bunx atelier@latest update` refreshes templates without losing config
-- [ ] `bunx atelier@latest remove` deletes all generated files
-- [ ] User project has zero dependencies after installation
+- [x] `bunx atelier@latest init` completes without errors on Claude Code project
+- [x] `bunx atelier@latest init` completes without errors on OpenCode project
+- [x] `.claude/settings.json` sets model and hooks correctly
+- [x] `opencode.json` configures primary agents (Build, Plan)
+- [x] Subagents generated with correct model per harness
+- [x] `bunx atelier@latest update` refreshes templates without losing config
+- [x] `bunx atelier@latest remove` deletes all generated files
+- [x] User project has zero dependencies after installation
+
+## Implementation Notes
+
+- **Entry point:** `src/atelier.ts` (not `bin/`). Compiled to `dist/atelier.js` via `bun build`.
+- **Generators:** Accept `basePath` parameter (defaults to `process.cwd()`) for testability.
+- **Error handling:** Centralized in `src/utils/errors.ts` with typed error classes.
+- **Template reading:** Uses bundled templates in `agents/` directory (local filesystem).
+- **Tests:** Layer boundary tests at `src/commands/*.test.ts` (mocked), `src/generators/*.test.ts` (tmp dir), `src/utils/config.test.ts` (tmp dir).

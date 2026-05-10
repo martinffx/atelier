@@ -3,7 +3,8 @@ import { detectHarness } from '../utils/detect.js';
 import { readConfig, writeConfig, getDefaultConfig } from '../utils/config.js';
 import { generateClaude } from '../generators/claude.js';
 import { generateOpenCode } from '../generators/opencode.js';
-import { getModelsForHarness, getDefaultModel } from '../utils/templates.js';
+import { getModelsForHarness } from '../utils/templates.js';
+import { HarnessNotDetectedError, ConfigNotFoundError, SkillsInstallError, handleError } from '../utils/errors.js';
 import inquirer from 'inquirer';
 import type { Harness, AtelierConfig } from '../types.js';
 
@@ -31,8 +32,7 @@ export async function init(options: InitOptions): Promise<void> {
   }
 
   if (!detected) {
-    console.error('Error: Could not detect harness. Use --harness claude or --harness opencode.');
-    process.exit(1);
+    throw new HarnessNotDetectedError();
   }
 
   const config = readConfig();
@@ -108,8 +108,7 @@ export async function init(options: InitOptions): Promise<void> {
         stdio: 'inherit',
       });
     } catch (error) {
-      console.error('Failed to install skills:', error);
-      console.log('Run `npx skills add martinffx/atelier` manually.');
+      throw new SkillsInstallError(error instanceof Error ? error.message : String(error));
     }
   }
 

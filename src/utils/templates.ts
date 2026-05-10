@@ -6,7 +6,7 @@ import type { Harness } from '../types.js';
 import { claudModels, opencodeModels, defaultModels } from '../models.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const AGENTS_DIR = join(__dirname, '..', 'agents');
+const AGENTS_DIR = join(__dirname, '..', '..', 'agents');
 
 export interface AgentTemplate {
   name: string;

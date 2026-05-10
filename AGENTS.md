@@ -183,6 +183,16 @@ Process skills come first. Knowledge skills get invoked by process skills when n
 - `python-temporal` - Workflow orchestration, activities
 - `python-testing` - Stub-Driven TDD, layer boundary testing
 
+**Code Utilities** (8 skills)
+- `code-conventional-commit` - Generate and validate conventional commits
+- `code-debug` - Systematic debugging workflow and techniques
+- `code-docs` - Documentation generation for code projects
+- `code-git-worktrees` - Git worktree management for isolated workspaces
+- `code-perf` - Performance profiling and optimization
+- `code-review` - Multi-agent code review with parallel reviewers
+- `code-security` - Security audit and vulnerability detection
+- `code-subagents` - Subagent dispatch patterns for implementation tasks
+
 ## Installation
 
 ```bash
