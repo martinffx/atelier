@@ -3,10 +3,10 @@ import { detectHarness } from '../utils/detect.js';
 import { readConfig, writeConfig, getDefaultConfig } from '../utils/config.js';
 import { generateClaude } from '../generators/claude.js';
 import { generateOpenCode } from '../generators/opencode.js';
-import { getModelsForHarness } from '../utils/templates.js';
+import { getModelsForProvider } from '../utils/templates.js';
 import { HarnessNotDetectedError, ConfigNotFoundError, SkillsInstallError, handleError } from '../utils/errors.js';
 import inquirer from 'inquirer';
-import type { Harness, AtelierConfig } from '../types.js';
+import type { Harness, AtelierConfig, Provider } from '../types.js';
 
 interface InitOptions {
   harness?: string;
@@ -14,6 +14,12 @@ interface InitOptions {
   yes?: boolean;
   project?: boolean;
 }
+
+const providerChoices: { name: string; value: Provider }[] = [
+  { name: 'OpenCode Zen', value: 'opencode-zen' },
+  { name: 'OpenCode Go', value: 'opencode-go' },
+  { name: 'Amazon Bedrock', value: 'amazon-bedrock' },
+];
 
 export async function init(options: InitOptions): Promise<void> {
   let detected = detectHarness(options.harness as Harness | undefined);
@@ -54,12 +60,14 @@ export async function init(options: InitOptions): Promise<void> {
   }
 
   let finalConfig: AtelierConfig;
+  let selectedProvider: Provider | undefined;
 
   if (config) {
     finalConfig = config;
     if (options.harness && options.harness !== config.harness) {
       finalConfig.harness = options.harness as Harness;
     }
+    selectedProvider = finalConfig.provider;
   } else {
     const skillsPath = options.project
       ? './.agents/skills/atelier'
@@ -68,14 +76,53 @@ export async function init(options: InitOptions): Promise<void> {
     finalConfig.skills_path = skillsPath;
   }
 
+  // Provider selection for opencode harness
+  if (detected === 'opencode') {
+    if (options.yes) {
+      selectedProvider = finalConfig.provider || 'opencode-zen';
+      if (!finalConfig.provider) {
+        finalConfig.provider = selectedProvider;
+      }
+      // Only regenerate defaults if no existing config
+      if (!config) {
+        finalConfig = getDefaultConfig(detected, selectedProvider);
+        finalConfig.skills_path = options.project
+          ? './.agents/skills/atelier'
+          : '~/.agents/skills/atelier';
+      }
+    } else if (!selectedProvider) {
+      const { provider } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'provider',
+          message: 'Which provider are you using?',
+          choices: providerChoices,
+          default: 'opencode-zen',
+        },
+      ]);
+      selectedProvider = provider;
+      finalConfig.provider = selectedProvider;
+      // Only regenerate defaults if no existing config
+      if (!config) {
+        finalConfig = getDefaultConfig(detected, selectedProvider);
+        finalConfig.skills_path = options.project
+          ? './.agents/skills/atelier'
+          : '~/.agents/skills/atelier';
+      }
+    }
+  }
+
   if (!options.yes) {
-    const harnessModels = getModelsForHarness(finalConfig.harness);
+    const provider = detected === 'opencode'
+      ? (selectedProvider || 'opencode-zen')
+      : 'anthropic';
+    const harnessModels = getModelsForProvider(provider);
     const agentNames = ['scout', 'oracle', 'architect'] as const;
 
     const prompts = agentNames.map((name, i) => {
       const currentModel = finalConfig.agents[i].model;
       return {
-        type: 'list',
+        type: 'list' as const,
         name,
         message: `Select model for ${name} (current: ${currentModel})`,
         choices: harnessModels,

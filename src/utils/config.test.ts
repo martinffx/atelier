@@ -63,21 +63,53 @@ describe('config', () => {
     expect(architect?.model).toBe('opus');
   });
 
-  test('getDefaultConfig returns valid config with default models for opencode', async () => {
+  test('getDefaultConfig returns valid config with default models for opencode zen', async () => {
     const { getDefaultConfig } = await import('./config.js');
 
-    const config = getDefaultConfig('opencode');
+    const config = getDefaultConfig('opencode', 'opencode-zen');
 
     expect(config.harness).toBe('opencode');
+    expect(config.provider).toBe('opencode-zen');
 
     const scout = config.agents.find(a => a.name === 'scout');
     expect(scout?.model).toBe('opencode/deepseek-v4-flash');
+
+    const oracle = config.agents.find(a => a.name === 'oracle');
+    expect(oracle?.model).toBe('opencode/kimi-k2.6');
+
+    const architect = config.agents.find(a => a.name === 'architect');
+    expect(architect?.model).toBe('opencode/deepseek-v4-pro');
+  });
+
+  test('getDefaultConfig returns valid config with default models for opencode go', async () => {
+    const { getDefaultConfig } = await import('./config.js');
+
+    const config = getDefaultConfig('opencode', 'opencode-go');
+
+    expect(config.harness).toBe('opencode');
+    expect(config.provider).toBe('opencode-go');
+
+    const scout = config.agents.find(a => a.name === 'scout');
+    expect(scout?.model).toBe('opencode-go/deepseek-v4-flash');
 
     const oracle = config.agents.find(a => a.name === 'oracle');
     expect(oracle?.model).toBe('opencode-go/kimi-k2.6');
 
     const architect = config.agents.find(a => a.name === 'architect');
     expect(architect?.model).toBe('opencode-go/deepseek-v4-pro');
+  });
+
+  test('getDefaultConfig defaults to opencode-zen when no provider given for opencode', async () => {
+    const { getDefaultConfig } = await import('./config.js');
+
+    const config = getDefaultConfig('opencode');
+
+    expect(config.harness).toBe('opencode');
+    expect(config.provider).toBeUndefined();
+
+    // Should use opencode-zen defaults
+    const scout = config.agents.find(a => a.name === 'scout');
+    expect(scout?.model).toBe('opencode/deepseek-v4-flash');
   });
 
   test('writeConfig creates parent directory if missing', async () => {

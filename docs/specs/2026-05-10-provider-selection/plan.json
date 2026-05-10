@@ -1,0 +1,173 @@
+{
+  "feature": "provider-selection",
+  "spec": "docs/specs/2026-05-10-provider-selection/design.md",
+  "goal": "Add provider selection to atelier init for OpenCode harness, restructure model registry to be provider-scoped, and maintain backward compatibility for Claude harness",
+  "phases": [
+    {
+      "id": "P1",
+      "name": "Domain Model & Types",
+      "tasks": [
+        {
+          "id": "T1",
+          "name": "Update src/models.ts with provider-scoped registry",
+          "depends_on": [],
+          "inputs": [
+            "Approved design.md with provider definitions",
+            "Current models.ts structure (flat arrays)"
+          ],
+          "description": "Replace flat claudModels and opencodeModels arrays with provider-scoped registry. Add Provider type, providers map, providerModels map, and defaultModels keyed by provider.",
+          "files": {
+            "create": [],
+            "modify": ["src/models.ts"]
+          },
+          "validation": {
+            "tests": [
+              "All provider IDs are valid",
+              "All model arrays are non-empty",
+              "Default models exist in their provider's model list"
+            ],
+            "acceptance": [
+              "TypeScript compiles without errors"
+            ]
+          }
+        },
+        {
+          "id": "T2",
+          "name": "Update src/types.ts to add provider to config",
+          "depends_on": ["T1"],
+          "inputs": [
+            "New Provider type from T1",
+            "Current AtelierConfig interface"
+          ],
+          "description": "Add optional provider?: string field to AtelierConfig. Add Provider export. Ensure backward compatibility (provider optional, omitted for claude).",
+          "files": {
+            "create": [],
+            "modify": ["src/types.ts"]
+          },
+          "validation": {
+            "tests": [
+              "AtelierConfig type-checks with and without provider"
+            ],
+            "acceptance": [
+              "Provider type is exported and usable"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "name": "Utilities",
+      "tasks": [
+        {
+          "id": "T3",
+          "name": "Update src/utils/templates.ts for provider-scoped queries",
+          "depends_on": ["T1", "T2"],
+          "inputs": [
+            "New providerModels and defaultModels from T1",
+            "Current getModelsForHarness() and getDefaultModel() signatures"
+          ],
+          "description": "Replace getModelsForHarness with getModelsForProvider. Replace getDefaultModel(harness, agent) with getDefaultModel(provider, agent). Keep getModelsForHarness as backward-compatible wrapper for claude.",
+          "files": {
+            "create": [],
+            "modify": ["src/utils/templates.ts"]
+          },
+          "validation": {
+            "tests": [
+              "getModelsForProvider returns correct models for each provider",
+              "getDefaultModel returns correct defaults for each provider"
+            ],
+            "acceptance": [
+              "Existing tests pass or are updated"
+            ]
+          }
+        },
+        {
+          "id": "T4",
+          "name": "Update src/utils/config.ts for provider-aware defaults",
+          "depends_on": ["T1", "T2", "T3"],
+          "inputs": [
+            "New getDefaultModel(provider, agent) from T3",
+            "Current getDefaultConfig(harness) signature"
+          ],
+          "description": "Update getDefaultConfig to accept optional provider parameter. Use provider to look up defaults. Add readConfig validation for provider/harness consistency.",
+          "files": {
+            "create": [],
+            "modify": ["src/utils/config.ts"]
+          },
+          "validation": {
+            "tests": [
+              "getDefaultConfig('claude') returns config without provider",
+              "getDefaultConfig('opencode', 'opencode-zen') returns config with provider",
+              "readConfig validates provider/harness consistency"
+            ],
+            "acceptance": [
+              "Config type safety maintained"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P3",
+      "name": "CLI Command",
+      "tasks": [
+        {
+          "id": "T5",
+          "name": "Update src/commands/init.ts with provider selection",
+          "depends_on": ["T1", "T2", "T3", "T4"],
+          "inputs": [
+            "New getModelsForProvider() and getDefaultConfig(harness, provider)",
+            "Current init.ts interactive flow",
+            "Current init.test.ts"
+          ],
+          "description": "Add provider selection prompt when harness is opencode and not --yes mode. Update --yes default to opencode-zen. Update all tests for provider flow.",
+          "files": {
+            "create": [],
+            "modify": ["src/commands/init.ts", "src/commands/init.test.ts"]
+          },
+          "validation": {
+            "tests": [
+              "Interactive init for opencode prompts for provider",
+              "Provider selection shows correct model list",
+              "--yes defaults to opencode-zen",
+              "Claude flow unchanged"
+            ],
+            "acceptance": [
+              "All tests pass"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P4",
+      "name": "Generators",
+      "tasks": [
+        {
+          "id": "T6",
+          "name": "Update src/generators/opencode.ts with provider hints",
+          "depends_on": ["T5"],
+          "inputs": [
+            "Config with provider field",
+            "Current opencode.ts generator"
+          ],
+          "description": "Optional: When generating opencode.json for amazon-bedrock, include config hints for region/profile setup.",
+          "files": {
+            "create": [],
+            "modify": ["src/generators/opencode.ts"]
+          },
+          "validation": {
+            "tests": [
+              "Generated files still valid",
+              "No breaking changes"
+            ],
+            "acceptance": [
+              "Optional enhancement, can be skipped if complex"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

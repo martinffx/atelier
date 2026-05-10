@@ -1,4 +1,5 @@
 export type Harness = 'claude' | 'opencode';
+export type Provider = 'anthropic' | 'opencode-zen' | 'opencode-go' | 'amazon-bedrock';
 
 export interface AgentConfig {
   template: string;
@@ -9,6 +10,7 @@ export interface AgentConfig {
 export interface AtelierConfig {
   version: string;
   harness: Harness;
+  provider?: Provider;
   skills_source: string;
   skills_path: string;
   agents: AgentConfig[];

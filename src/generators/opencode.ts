@@ -31,18 +31,32 @@ function writeOpenCodeJson(config: AtelierConfig, basePath: string): void {
   const opencodeJsonPath = join(basePath, 'opencode.json');
   const existing = readExistingOpenCodeJson(opencodeJsonPath);
 
-  const atelierFields = {
+  const scout = config.agents.find(a => a.name === 'scout');
+  const architect = config.agents.find(a => a.name === 'architect');
+
+  const atelierFields: Record<string, unknown> = {
     agent: {
       build: {
         mode: 'primary',
-        model: 'opencode/deepseek-v4-flash',
+        model: scout?.model || 'opencode/deepseek-v4-flash',
       },
       plan: {
         mode: 'primary',
-        model: 'opencode/deepseek-v4-pro',
+        model: architect?.model || 'opencode/deepseek-v4-pro',
       },
     },
   };
+
+  // Add provider-specific config for Amazon Bedrock
+  if (config.provider === 'amazon-bedrock') {
+    atelierFields.provider = {
+      'amazon-bedrock': {
+        options: {
+          region: 'us-east-1',
+        },
+      },
+    };
+  }
 
   const merged = deepMerge(existing, atelierFields);
 

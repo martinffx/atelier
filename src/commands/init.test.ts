@@ -6,6 +6,7 @@ let mockReadConfig: ReturnType<typeof mock>;
 let mockWriteConfig: ReturnType<typeof mock>;
 let mockGetDefaultConfig: ReturnType<typeof mock>;
 let mockDetectHarness: ReturnType<typeof mock>;
+let mockGetModelsForProvider: ReturnType<typeof mock>;
 let mockGetModelsForHarness: ReturnType<typeof mock>;
 
 beforeEach(() => {
@@ -15,6 +16,7 @@ beforeEach(() => {
   mockWriteConfig = mock();
   mockGetDefaultConfig = mock();
   mockDetectHarness = mock();
+  mockGetModelsForProvider = mock();
   mockGetModelsForHarness = mock();
 });
 
@@ -39,7 +41,7 @@ describe('init', () => {
     mockReadConfig.mockReturnValue(null);
     mockGetDefaultConfig.mockReturnValue({ ...defaultConfig });
     mockDetectHarness.mockReturnValue('claude');
-    mockGetModelsForHarness.mockReturnValue(['haiku', 'sonnet', 'opus']);
+    mockGetModelsForProvider.mockReturnValue(['haiku', 'sonnet', 'opus']);
 
     mock.module('../utils/detect.js', () => ({
       detectHarness: mockDetectHarness,
@@ -60,6 +62,7 @@ describe('init', () => {
     }));
 
     mock.module('../utils/templates.js', () => ({
+      getModelsForProvider: mockGetModelsForProvider,
       getModelsForHarness: mockGetModelsForHarness,
     }));
 
@@ -79,19 +82,24 @@ describe('init', () => {
     const defaultConfig = {
       version: '1.0.0' as const,
       harness: 'opencode' as const,
+      provider: 'opencode-zen' as const,
       skills_source: 'martinffx/atelier',
       skills_path: '~/.agents/skills/atelier',
       agents: [
         { template: 'scout', name: 'scout', model: 'opencode/deepseek-v4-flash' },
-        { template: 'oracle', name: 'oracle', model: 'opencode-go/kimi-k2.6' },
-        { template: 'architect', name: 'architect', model: 'opencode-go/deepseek-v4-pro' },
+        { template: 'oracle', name: 'oracle', model: 'opencode/kimi-k2.6' },
+        { template: 'architect', name: 'architect', model: 'opencode/deepseek-v4-pro' },
       ],
     };
 
     mockReadConfig.mockReturnValue(null);
     mockGetDefaultConfig.mockReturnValue({ ...defaultConfig });
     mockDetectHarness.mockReturnValue('opencode');
-    mockGetModelsForHarness.mockReturnValue(['opencode/deepseek-v4-flash', 'opencode-go/kimi-k2.6']);
+    mockGetModelsForProvider.mockReturnValue([
+      'opencode/deepseek-v4-flash',
+      'opencode/kimi-k2.6',
+      'opencode/deepseek-v4-pro',
+    ]);
 
     mock.module('../utils/detect.js', () => ({
       detectHarness: mockDetectHarness,
@@ -112,11 +120,21 @@ describe('init', () => {
     }));
 
     mock.module('../utils/templates.js', () => ({
+      getModelsForProvider: mockGetModelsForProvider,
       getModelsForHarness: mockGetModelsForHarness,
     }));
 
     mock.module('inquirer', () => ({
-      default: { prompt: async () => ({ harness: 'opencode', confirm: true }) },
+      default: {
+        prompt: async () => ({
+          harness: 'opencode',
+          confirm: true,
+          provider: 'opencode-zen',
+          scout: 'opencode/deepseek-v4-flash',
+          oracle: 'opencode/kimi-k2.6',
+          architect: 'opencode/deepseek-v4-pro',
+        }),
+      },
     }));
 
     const { init } = await import('./init.js');
@@ -127,11 +145,27 @@ describe('init', () => {
     expect(mockGenerateClaude).not.toHaveBeenCalled();
   });
 
-  test('throws HarnessNotDetectedError when harness not detected and --yes', async () => {
+  test('defaults to opencode-zen provider in --yes mode for opencode harness', async () => {
+    const defaultConfig = {
+      version: '1.0.0' as const,
+      harness: 'opencode' as const,
+      provider: 'opencode-zen' as const,
+      skills_source: 'martinffx/atelier',
+      skills_path: '~/.agents/skills/atelier',
+      agents: [
+        { template: 'scout', name: 'scout', model: 'opencode/deepseek-v4-flash' },
+        { template: 'oracle', name: 'oracle', model: 'opencode/kimi-k2.6' },
+        { template: 'architect', name: 'architect', model: 'opencode/deepseek-v4-pro' },
+      ],
+    };
+
     mockReadConfig.mockReturnValue(null);
-    mockGetDefaultConfig.mockReturnValue({} as any);
-    mockDetectHarness.mockReturnValue(null);
-    mockGetModelsForHarness.mockReturnValue(['haiku', 'sonnet', 'opus']);
+    mockGetDefaultConfig.mockReturnValue({ ...defaultConfig });
+    mockDetectHarness.mockReturnValue('opencode');
+    mockGetModelsForProvider.mockReturnValue([
+      'opencode/deepseek-v4-flash',
+      'opencode/kimi-k2.6',
+    ]);
 
     mock.module('../utils/detect.js', () => ({
       detectHarness: mockDetectHarness,
@@ -152,6 +186,110 @@ describe('init', () => {
     }));
 
     mock.module('../utils/templates.js', () => ({
+      getModelsForProvider: mockGetModelsForProvider,
+      getModelsForHarness: mockGetModelsForHarness,
+    }));
+
+    mock.module('inquirer', () => ({
+      default: { prompt: async () => ({}) },
+    }));
+
+    const { init } = await import('./init.js');
+    await init({ yes: true, harness: 'opencode' });
+
+    expect(mockGetDefaultConfig).toHaveBeenCalledWith('opencode', 'opencode-zen');
+    expect(mockGenerateOpenCode).toHaveBeenCalled();
+  });
+
+  test('prompts for provider when opencode harness and no provider set', async () => {
+    const defaultConfig = {
+      version: '1.0.0' as const,
+      harness: 'opencode' as const,
+      skills_source: 'martinffx/atelier',
+      skills_path: '~/.agents/skills/atelier',
+      agents: [
+        { template: 'scout', name: 'scout', model: 'opencode/deepseek-v4-flash' },
+        { template: 'oracle', name: 'oracle', model: 'opencode/kimi-k2.6' },
+        { template: 'architect', name: 'architect', model: 'opencode/deepseek-v4-pro' },
+      ],
+    };
+
+    mockReadConfig.mockReturnValue(null);
+    mockGetDefaultConfig.mockReturnValue({ ...defaultConfig });
+    mockDetectHarness.mockReturnValue('opencode');
+    mockGetModelsForProvider.mockReturnValue([
+      'opencode/deepseek-v4-flash',
+      'opencode/kimi-k2.6',
+    ]);
+
+    mock.module('../utils/detect.js', () => ({
+      detectHarness: mockDetectHarness,
+    }));
+
+    mock.module('../utils/config.js', () => ({
+      readConfig: mockReadConfig,
+      writeConfig: mockWriteConfig,
+      getDefaultConfig: mockGetDefaultConfig,
+    }));
+
+    mock.module('../generators/claude.js', () => ({
+      generateClaude: mockGenerateClaude,
+    }));
+
+    mock.module('../generators/opencode.js', () => ({
+      generateOpenCode: mockGenerateOpenCode,
+    }));
+
+    mock.module('../utils/templates.js', () => ({
+      getModelsForProvider: mockGetModelsForProvider,
+      getModelsForHarness: mockGetModelsForHarness,
+    }));
+
+    const promptMock = mock(() => ({
+      harness: 'opencode',
+      provider: 'opencode-go',
+      scout: 'opencode-go/deepseek-v4-flash',
+      oracle: 'opencode-go/kimi-k2.6',
+      architect: 'opencode-go/deepseek-v4-pro',
+    }));
+
+    mock.module('inquirer', () => ({
+      default: { prompt: promptMock },
+    }));
+
+    const { init } = await import('./init.js');
+    await init({ harness: 'opencode' });
+
+    expect(promptMock).toHaveBeenCalled();
+    expect(mockGetDefaultConfig).toHaveBeenCalledWith('opencode', 'opencode-go');
+  });
+
+  test('throws HarnessNotDetectedError when harness not detected and --yes', async () => {
+    mockReadConfig.mockReturnValue(null);
+    mockGetDefaultConfig.mockReturnValue({} as any);
+    mockDetectHarness.mockReturnValue(null);
+    mockGetModelsForProvider.mockReturnValue(['haiku', 'sonnet', 'opus']);
+
+    mock.module('../utils/detect.js', () => ({
+      detectHarness: mockDetectHarness,
+    }));
+
+    mock.module('../utils/config.js', () => ({
+      readConfig: mockReadConfig,
+      writeConfig: mockWriteConfig,
+      getDefaultConfig: mockGetDefaultConfig,
+    }));
+
+    mock.module('../generators/claude.js', () => ({
+      generateClaude: mockGenerateClaude,
+    }));
+
+    mock.module('../generators/opencode.js', () => ({
+      generateOpenCode: mockGenerateOpenCode,
+    }));
+
+    mock.module('../utils/templates.js', () => ({
+      getModelsForProvider: mockGetModelsForProvider,
       getModelsForHarness: mockGetModelsForHarness,
     }));
 
@@ -226,6 +364,7 @@ describe('update', () => {
     const config = {
       version: '1.0.0' as const,
       harness: 'opencode' as const,
+      provider: 'opencode-zen' as const,
       skills_source: 'martinffx/atelier',
       skills_path: '~/.agents/skills/atelier',
       agents: [
