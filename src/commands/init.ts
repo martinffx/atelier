@@ -1,18 +1,20 @@
 import { execSync } from 'child_process';
+import { join } from 'path';
 import { detectHarness } from '../utils/detect.js';
-import { readConfig, writeConfig, getDefaultConfig } from '../utils/config.js';
+import { readConfig, writeConfig, getDefaultConfig, validateConfig, CONFIG_FILE } from '../utils/config.js';
 import { generateClaude } from '../generators/claude.js';
 import { generateOpenCode } from '../generators/opencode.js';
 import { getModelsForProvider } from '../utils/templates.js';
-import { HarnessNotDetectedError, ConfigNotFoundError, SkillsInstallError, handleError } from '../utils/errors.js';
+import { HarnessNotDetectedError, SkillsInstallError, handleError } from '../utils/errors.js';
 import inquirer from 'inquirer';
 import type { Harness, AtelierConfig, Provider } from '../types.js';
 
-interface InitOptions {
+export interface InitOptions {
   harness?: string;
   all?: boolean;
   yes?: boolean;
   project?: boolean;
+  cwd?: string;
 }
 
 const providerChoices: { name: string; value: Provider }[] = [
@@ -21,8 +23,22 @@ const providerChoices: { name: string; value: Provider }[] = [
   { name: 'Amazon Bedrock', value: 'amazon-bedrock' },
 ];
 
+function isHarness(value: string): value is Harness {
+  return value === 'claude' || value === 'opencode';
+}
+
+function getSkillsPath(project?: boolean): string {
+  return project ? './.agents/skills/atelier' : '~/.agents/skills/atelier';
+}
+
 export async function init(options: InitOptions): Promise<void> {
-  let detected = detectHarness(options.harness as Harness | undefined);
+  const basePath = options.cwd || process.cwd();
+  const harnessOption = options.harness;
+  if (harnessOption !== undefined && !isHarness(harnessOption)) {
+    throw new HarnessNotDetectedError();
+  }
+
+  let detected = detectHarness(harnessOption);
 
   if (!detected && !options.yes) {
     const { harness } = await inquirer.prompt([
@@ -41,7 +57,8 @@ export async function init(options: InitOptions): Promise<void> {
     throw new HarnessNotDetectedError();
   }
 
-  const config = readConfig();
+  const configPath = join(basePath, CONFIG_FILE);
+  const config = readConfig(configPath);
 
   if (config && config.harness !== detected) {
     console.warn(`Warning: Switching harness from ${config.harness} to ${detected}.`);
@@ -55,7 +72,8 @@ export async function init(options: InitOptions): Promise<void> {
       },
     ]);
     if (!confirm) {
-      process.exit(0);
+      console.log('Cancelled.');
+      return;
     }
   }
 
@@ -64,16 +82,13 @@ export async function init(options: InitOptions): Promise<void> {
 
   if (config) {
     finalConfig = config;
-    if (options.harness && options.harness !== config.harness) {
-      finalConfig.harness = options.harness as Harness;
+    if (harnessOption && harnessOption !== config.harness) {
+      finalConfig.harness = harnessOption;
     }
     selectedProvider = finalConfig.provider;
   } else {
-    const skillsPath = options.project
-      ? './.agents/skills/atelier'
-      : '~/.agents/skills/atelier';
     finalConfig = getDefaultConfig(detected);
-    finalConfig.skills_path = skillsPath;
+    finalConfig.skills_path = getSkillsPath(options.project);
   }
 
   // Provider selection for opencode harness
@@ -83,12 +98,9 @@ export async function init(options: InitOptions): Promise<void> {
       if (!finalConfig.provider) {
         finalConfig.provider = selectedProvider;
       }
-      // Only regenerate defaults if no existing config
       if (!config) {
         finalConfig = getDefaultConfig(detected, selectedProvider);
-        finalConfig.skills_path = options.project
-          ? './.agents/skills/atelier'
-          : '~/.agents/skills/atelier';
+        finalConfig.skills_path = getSkillsPath(options.project);
       }
     } else if (!selectedProvider) {
       const { provider } = await inquirer.prompt([
@@ -102,12 +114,9 @@ export async function init(options: InitOptions): Promise<void> {
       ]);
       selectedProvider = provider;
       finalConfig.provider = selectedProvider;
-      // Only regenerate defaults if no existing config
       if (!config) {
         finalConfig = getDefaultConfig(detected, selectedProvider);
-        finalConfig.skills_path = options.project
-          ? './.agents/skills/atelier'
-          : '~/.agents/skills/atelier';
+        finalConfig.skills_path = getSkillsPath(options.project);
       }
     }
   }
@@ -119,8 +128,9 @@ export async function init(options: InitOptions): Promise<void> {
     const harnessModels = getModelsForProvider(provider);
     const agentNames = ['scout', 'oracle', 'architect'] as const;
 
-    const prompts = agentNames.map((name, i) => {
-      const currentModel = finalConfig.agents[i].model;
+    const prompts = agentNames.map((name) => {
+      const agent = finalConfig.agents.find(a => a.name === name);
+      const currentModel = agent?.model ?? harnessModels[0];
       return {
         type: 'list' as const,
         name,
@@ -132,17 +142,23 @@ export async function init(options: InitOptions): Promise<void> {
 
     const answers = await inquirer.prompt(prompts);
 
-    for (let i = 0; i < agentNames.length; i++) {
-      finalConfig.agents[i].model = answers[agentNames[i]];
+    for (const name of agentNames) {
+      const agent = finalConfig.agents.find(a => a.name === name);
+      if (agent) {
+        agent.model = answers[name];
+      }
     }
   }
 
-  writeConfig(finalConfig);
+  // Validate the final config before writing
+  validateConfig(finalConfig);
+
+  writeConfig(finalConfig, configPath);
 
   if (finalConfig.harness === 'claude') {
-    generateClaude(finalConfig);
+    generateClaude(finalConfig, basePath);
   } else {
-    generateOpenCode(finalConfig);
+    generateOpenCode(finalConfig, basePath);
   }
 
   console.log(`\nAtelier initialized for ${finalConfig.harness}.`);

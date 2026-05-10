@@ -1,414 +1,167 @@
 import { describe, test, expect, mock, beforeEach, afterEach } from 'bun:test';
+import { mkdtempSync, rmSync, existsSync, readFileSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
 
-let mockGenerateClaude: ReturnType<typeof mock>;
-let mockGenerateOpenCode: ReturnType<typeof mock>;
-let mockReadConfig: ReturnType<typeof mock>;
-let mockWriteConfig: ReturnType<typeof mock>;
-let mockGetDefaultConfig: ReturnType<typeof mock>;
-let mockDetectHarness: ReturnType<typeof mock>;
-let mockGetModelsForProvider: ReturnType<typeof mock>;
-let mockGetModelsForHarness: ReturnType<typeof mock>;
+let inquirerAnswers: Record<string, unknown> = {};
+let mockDetectHarnessResult: string | null = null;
+
+// Hoisted mock: prevents interactive hangs during tests
+mock.module('inquirer', () => ({
+  default: {
+    prompt: async () => inquirerAnswers,
+  },
+}));
+
+mock.module('../utils/detect.js', () => ({
+  detectHarness: () => mockDetectHarnessResult,
+}));
+
+import { init } from './init.js';
+import { update } from './update.js';
+import { remove } from './remove.js';
+
+let tempDir: string;
 
 beforeEach(() => {
-  mockGenerateClaude = mock();
-  mockGenerateOpenCode = mock();
-  mockReadConfig = mock();
-  mockWriteConfig = mock();
-  mockGetDefaultConfig = mock();
-  mockDetectHarness = mock();
-  mockGetModelsForProvider = mock();
-  mockGetModelsForHarness = mock();
+  tempDir = mkdtempSync(join(tmpdir(), 'atelier-init-test-'));
+  inquirerAnswers = {};
+  mockDetectHarnessResult = null;
 });
 
 afterEach(() => {
-  mock.restore();
+  rmSync(tempDir, { recursive: true, force: true });
 });
 
 describe('init', () => {
-  test('calls generateClaude with correct config for claude harness', async () => {
-    const defaultConfig = {
-      version: '1.0.0' as const,
-      harness: 'claude' as const,
-      skills_source: 'martinffx/atelier',
-      skills_path: '~/.agents/skills/atelier',
-      agents: [
-        { template: 'scout', name: 'scout', model: 'haiku' },
-        { template: 'oracle', name: 'oracle', model: 'opus' },
-        { template: 'architect', name: 'architect', model: 'opus' },
-      ],
-    };
+  test('creates claude config and files with --yes', async () => {
+    mockDetectHarnessResult = 'claude';
+    await init({ yes: true, harness: 'claude', cwd: tempDir });
 
-    mockReadConfig.mockReturnValue(null);
-    mockGetDefaultConfig.mockReturnValue({ ...defaultConfig });
-    mockDetectHarness.mockReturnValue('claude');
-    mockGetModelsForProvider.mockReturnValue(['haiku', 'sonnet', 'opus']);
+    expect(existsSync(join(tempDir, '.atelier/config.json'))).toBe(true);
+    expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(true);
+    expect(existsSync(join(tempDir, 'hooks/atelier-session-start'))).toBe(true);
+    expect(existsSync(join(tempDir, '.claude/agents/scout.md'))).toBe(true);
+    expect(existsSync(join(tempDir, '.claude/agents/oracle.md'))).toBe(true);
+    expect(existsSync(join(tempDir, '.claude/agents/architect.md'))).toBe(true);
 
-    mock.module('../utils/detect.js', () => ({
-      detectHarness: mockDetectHarness,
-    }));
-
-    mock.module('../utils/config.js', () => ({
-      readConfig: mockReadConfig,
-      writeConfig: mockWriteConfig,
-      getDefaultConfig: mockGetDefaultConfig,
-    }));
-
-    mock.module('../generators/claude.js', () => ({
-      generateClaude: mockGenerateClaude,
-    }));
-
-    mock.module('../generators/opencode.js', () => ({
-      generateOpenCode: mockGenerateOpenCode,
-    }));
-
-    mock.module('../utils/templates.js', () => ({
-      getModelsForProvider: mockGetModelsForProvider,
-      getModelsForHarness: mockGetModelsForHarness,
-    }));
-
-    mock.module('inquirer', () => ({
-      default: { prompt: async () => ({ harness: 'claude', confirm: true }) },
-    }));
-
-    const { init } = await import('./init.js');
-    await init({ yes: true, harness: 'claude' });
-
-    expect(mockWriteConfig).toHaveBeenCalled();
-    expect(mockGenerateClaude).toHaveBeenCalled();
-    expect(mockGenerateOpenCode).not.toHaveBeenCalled();
+    const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
+    expect(config.harness).toBe('claude');
+    expect(config.provider).toBeUndefined();
+    expect(config.agents).toHaveLength(3);
   });
 
-  test('calls generateOpenCode with correct config for opencode harness', async () => {
-    const defaultConfig = {
-      version: '1.0.0' as const,
-      harness: 'opencode' as const,
-      provider: 'opencode-zen' as const,
-      skills_source: 'martinffx/atelier',
-      skills_path: '~/.agents/skills/atelier',
-      agents: [
-        { template: 'scout', name: 'scout', model: 'opencode/deepseek-v4-flash' },
-        { template: 'oracle', name: 'oracle', model: 'opencode/kimi-k2.6' },
-        { template: 'architect', name: 'architect', model: 'opencode/deepseek-v4-pro' },
-      ],
-    };
+  test('creates opencode config and files with --yes', async () => {
+    mockDetectHarnessResult = 'opencode';
+    await init({ yes: true, harness: 'opencode', cwd: tempDir });
 
-    mockReadConfig.mockReturnValue(null);
-    mockGetDefaultConfig.mockReturnValue({ ...defaultConfig });
-    mockDetectHarness.mockReturnValue('opencode');
-    mockGetModelsForProvider.mockReturnValue([
-      'opencode/deepseek-v4-flash',
-      'opencode/kimi-k2.6',
-      'opencode/deepseek-v4-pro',
-    ]);
+    expect(existsSync(join(tempDir, '.atelier/config.json'))).toBe(true);
+    expect(existsSync(join(tempDir, 'opencode.json'))).toBe(true);
+    expect(existsSync(join(tempDir, '.opencode/plugins/atelier.js'))).toBe(true);
+    expect(existsSync(join(tempDir, '.opencode/agents/scout.md'))).toBe(true);
+    expect(existsSync(join(tempDir, '.opencode/agents/oracle.md'))).toBe(true);
+    expect(existsSync(join(tempDir, '.opencode/agents/architect.md'))).toBe(true);
 
-    mock.module('../utils/detect.js', () => ({
-      detectHarness: mockDetectHarness,
-    }));
-
-    mock.module('../utils/config.js', () => ({
-      readConfig: mockReadConfig,
-      writeConfig: mockWriteConfig,
-      getDefaultConfig: mockGetDefaultConfig,
-    }));
-
-    mock.module('../generators/claude.js', () => ({
-      generateClaude: mockGenerateClaude,
-    }));
-
-    mock.module('../generators/opencode.js', () => ({
-      generateOpenCode: mockGenerateOpenCode,
-    }));
-
-    mock.module('../utils/templates.js', () => ({
-      getModelsForProvider: mockGetModelsForProvider,
-      getModelsForHarness: mockGetModelsForHarness,
-    }));
-
-    mock.module('inquirer', () => ({
-      default: {
-        prompt: async () => ({
-          harness: 'opencode',
-          confirm: true,
-          provider: 'opencode-zen',
-          scout: 'opencode/deepseek-v4-flash',
-          oracle: 'opencode/kimi-k2.6',
-          architect: 'opencode/deepseek-v4-pro',
-        }),
-      },
-    }));
-
-    const { init } = await import('./init.js');
-    await init({ yes: true, harness: 'opencode' });
-
-    expect(mockWriteConfig).toHaveBeenCalled();
-    expect(mockGenerateOpenCode).toHaveBeenCalled();
-    expect(mockGenerateClaude).not.toHaveBeenCalled();
+    const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
+    expect(config.harness).toBe('opencode');
+    expect(config.provider).toBe('opencode-zen');
   });
 
-  test('defaults to opencode-zen provider in --yes mode for opencode harness', async () => {
-    const defaultConfig = {
-      version: '1.0.0' as const,
-      harness: 'opencode' as const,
-      provider: 'opencode-zen' as const,
-      skills_source: 'martinffx/atelier',
-      skills_path: '~/.agents/skills/atelier',
-      agents: [
-        { template: 'scout', name: 'scout', model: 'opencode/deepseek-v4-flash' },
-        { template: 'oracle', name: 'oracle', model: 'opencode/kimi-k2.6' },
-        { template: 'architect', name: 'architect', model: 'opencode/deepseek-v4-pro' },
-      ],
-    };
+  test('defaults to opencode-zen provider in --yes mode', async () => {
+    mockDetectHarnessResult = 'opencode';
+    await init({ yes: true, harness: 'opencode', cwd: tempDir });
 
-    mockReadConfig.mockReturnValue(null);
-    mockGetDefaultConfig.mockReturnValue({ ...defaultConfig });
-    mockDetectHarness.mockReturnValue('opencode');
-    mockGetModelsForProvider.mockReturnValue([
-      'opencode/deepseek-v4-flash',
-      'opencode/kimi-k2.6',
-    ]);
-
-    mock.module('../utils/detect.js', () => ({
-      detectHarness: mockDetectHarness,
-    }));
-
-    mock.module('../utils/config.js', () => ({
-      readConfig: mockReadConfig,
-      writeConfig: mockWriteConfig,
-      getDefaultConfig: mockGetDefaultConfig,
-    }));
-
-    mock.module('../generators/claude.js', () => ({
-      generateClaude: mockGenerateClaude,
-    }));
-
-    mock.module('../generators/opencode.js', () => ({
-      generateOpenCode: mockGenerateOpenCode,
-    }));
-
-    mock.module('../utils/templates.js', () => ({
-      getModelsForProvider: mockGetModelsForProvider,
-      getModelsForHarness: mockGetModelsForHarness,
-    }));
-
-    mock.module('inquirer', () => ({
-      default: { prompt: async () => ({}) },
-    }));
-
-    const { init } = await import('./init.js');
-    await init({ yes: true, harness: 'opencode' });
-
-    expect(mockGetDefaultConfig).toHaveBeenCalledWith('opencode', 'opencode-zen');
-    expect(mockGenerateOpenCode).toHaveBeenCalled();
+    const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
+    expect(config.provider).toBe('opencode-zen');
   });
 
-  test('prompts for provider when opencode harness and no provider set', async () => {
-    const defaultConfig = {
-      version: '1.0.0' as const,
-      harness: 'opencode' as const,
-      skills_source: 'martinffx/atelier',
-      skills_path: '~/.agents/skills/atelier',
-      agents: [
-        { template: 'scout', name: 'scout', model: 'opencode/deepseek-v4-flash' },
-        { template: 'oracle', name: 'oracle', model: 'opencode/kimi-k2.6' },
-        { template: 'architect', name: 'architect', model: 'opencode/deepseek-v4-pro' },
-      ],
-    };
-
-    mockReadConfig.mockReturnValue(null);
-    mockGetDefaultConfig.mockReturnValue({ ...defaultConfig });
-    mockDetectHarness.mockReturnValue('opencode');
-    mockGetModelsForProvider.mockReturnValue([
-      'opencode/deepseek-v4-flash',
-      'opencode/kimi-k2.6',
-    ]);
-
-    mock.module('../utils/detect.js', () => ({
-      detectHarness: mockDetectHarness,
-    }));
-
-    mock.module('../utils/config.js', () => ({
-      readConfig: mockReadConfig,
-      writeConfig: mockWriteConfig,
-      getDefaultConfig: mockGetDefaultConfig,
-    }));
-
-    mock.module('../generators/claude.js', () => ({
-      generateClaude: mockGenerateClaude,
-    }));
-
-    mock.module('../generators/opencode.js', () => ({
-      generateOpenCode: mockGenerateOpenCode,
-    }));
-
-    mock.module('../utils/templates.js', () => ({
-      getModelsForProvider: mockGetModelsForProvider,
-      getModelsForHarness: mockGetModelsForHarness,
-    }));
-
-    const promptMock = mock(() => ({
-      harness: 'opencode',
+  test('prompts for provider and creates config', async () => {
+    mockDetectHarnessResult = 'opencode';
+    inquirerAnswers = {
       provider: 'opencode-go',
       scout: 'opencode-go/deepseek-v4-flash',
       oracle: 'opencode-go/kimi-k2.6',
       architect: 'opencode-go/deepseek-v4-pro',
-    }));
+    };
 
-    mock.module('inquirer', () => ({
-      default: { prompt: promptMock },
-    }));
+    await init({ harness: 'opencode', cwd: tempDir });
 
-    const { init } = await import('./init.js');
-    await init({ harness: 'opencode' });
-
-    expect(promptMock).toHaveBeenCalled();
-    expect(mockGetDefaultConfig).toHaveBeenCalledWith('opencode', 'opencode-go');
+    const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
+    expect(config.harness).toBe('opencode');
+    expect(config.provider).toBe('opencode-go');
+    expect(existsSync(join(tempDir, '.opencode/agents/scout.md'))).toBe(true);
   });
 
-  test('throws HarnessNotDetectedError when harness not detected and --yes', async () => {
-    mockReadConfig.mockReturnValue(null);
-    mockGetDefaultConfig.mockReturnValue({} as any);
-    mockDetectHarness.mockReturnValue(null);
-    mockGetModelsForProvider.mockReturnValue(['haiku', 'sonnet', 'opus']);
+  test('throws when harness not detected and --yes', async () => {
+    await expect(init({ yes: true, cwd: tempDir })).rejects.toThrow('Could not detect harness');
+  });
 
-    mock.module('../utils/detect.js', () => ({
-      detectHarness: mockDetectHarness,
-    }));
+  test('uses --project flag for local skills path', async () => {
+    mockDetectHarnessResult = 'claude';
+    await init({ yes: true, harness: 'claude', project: true, cwd: tempDir });
 
-    mock.module('../utils/config.js', () => ({
-      readConfig: mockReadConfig,
-      writeConfig: mockWriteConfig,
-      getDefaultConfig: mockGetDefaultConfig,
-    }));
-
-    mock.module('../generators/claude.js', () => ({
-      generateClaude: mockGenerateClaude,
-    }));
-
-    mock.module('../generators/opencode.js', () => ({
-      generateOpenCode: mockGenerateOpenCode,
-    }));
-
-    mock.module('../utils/templates.js', () => ({
-      getModelsForProvider: mockGetModelsForProvider,
-      getModelsForHarness: mockGetModelsForHarness,
-    }));
-
-    mock.module('inquirer', () => ({
-      default: { prompt: async () => ({ harness: 'claude', confirm: true }) },
-    }));
-
-    const { init } = await import('./init.js');
-    await expect(init({ yes: true })).rejects.toThrow('Could not detect harness');
+    const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
+    expect(config.skills_path).toBe('./.agents/skills/atelier');
   });
 });
 
 describe('update', () => {
-  test('throws ConfigNotFoundError when no config', async () => {
-    mockReadConfig.mockReturnValue(null);
-
-    mock.module('../utils/config.js', () => ({
-      readConfig: mockReadConfig,
-      writeConfig: mockWriteConfig,
-      getDefaultConfig: mockGetDefaultConfig,
-    }));
-
-    mock.module('../generators/claude.js', () => ({
-      generateClaude: mockGenerateClaude,
-    }));
-
-    mock.module('../generators/opencode.js', () => ({
-      generateOpenCode: mockGenerateOpenCode,
-    }));
-
-    const { update } = await import('./update.js');
-    expect(() => update()).toThrow('.atelier/config.json not found');
+  test('throws when no config exists', async () => {
+    expect(() => update(tempDir)).toThrow('.atelier/config.json not found');
   });
 
-  test('calls generateClaude when harness is claude', async () => {
-    const config = {
-      version: '1.0.0' as const,
-      harness: 'claude' as const,
-      skills_source: 'martinffx/atelier',
-      skills_path: '~/.agents/skills/atelier',
-      agents: [
-        { template: 'scout', name: 'scout', model: 'haiku' },
-        { template: 'oracle', name: 'oracle', model: 'opus' },
-        { template: 'architect', name: 'architect', model: 'opus' },
-      ],
-    };
+  test('regenerates claude files', async () => {
+    mockDetectHarnessResult = 'claude';
+    await init({ yes: true, harness: 'claude', cwd: tempDir });
+    expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(true);
 
-    mockReadConfig.mockReturnValue(config);
+    // Delete a file to prove regeneration
+    rmSync(join(tempDir, '.claude/settings.json'));
+    expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(false);
 
-    mock.module('../utils/config.js', () => ({
-      readConfig: mockReadConfig,
-      writeConfig: mockWriteConfig,
-      getDefaultConfig: mockGetDefaultConfig,
-    }));
-
-    mock.module('../generators/claude.js', () => ({
-      generateClaude: mockGenerateClaude,
-    }));
-
-    mock.module('../generators/opencode.js', () => ({
-      generateOpenCode: mockGenerateOpenCode,
-    }));
-
-    const { update } = await import('./update.js');
-    update();
-
-    expect(mockGenerateClaude).toHaveBeenCalledWith(config);
-    expect(mockGenerateOpenCode).not.toHaveBeenCalled();
+    update(tempDir);
+    expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(true);
   });
 
-  test('calls generateOpenCode when harness is opencode', async () => {
-    const config = {
-      version: '1.0.0' as const,
-      harness: 'opencode' as const,
-      provider: 'opencode-zen' as const,
-      skills_source: 'martinffx/atelier',
-      skills_path: '~/.agents/skills/atelier',
-      agents: [
-        { template: 'scout', name: 'scout', model: 'opencode/deepseek-v4-flash' },
-        { template: 'oracle', name: 'oracle', model: 'opencode-go/kimi-k2.6' },
-        { template: 'architect', name: 'architect', model: 'opencode-go/deepseek-v4-pro' },
-      ],
-    };
+  test('regenerates opencode files', async () => {
+    mockDetectHarnessResult = 'opencode';
+    await init({ yes: true, harness: 'opencode', cwd: tempDir });
+    expect(existsSync(join(tempDir, 'opencode.json'))).toBe(true);
 
-    mockReadConfig.mockReturnValue(config);
+    rmSync(join(tempDir, 'opencode.json'));
+    expect(existsSync(join(tempDir, 'opencode.json'))).toBe(false);
 
-    mock.module('../utils/config.js', () => ({
-      readConfig: mockReadConfig,
-      writeConfig: mockWriteConfig,
-      getDefaultConfig: mockGetDefaultConfig,
-    }));
-
-    mock.module('../generators/claude.js', () => ({
-      generateClaude: mockGenerateClaude,
-    }));
-
-    mock.module('../generators/opencode.js', () => ({
-      generateOpenCode: mockGenerateOpenCode,
-    }));
-
-    const { update } = await import('./update.js');
-    update();
-
-    expect(mockGenerateOpenCode).toHaveBeenCalledWith(config);
-    expect(mockGenerateClaude).not.toHaveBeenCalled();
+    update(tempDir);
+    expect(existsSync(join(tempDir, 'opencode.json'))).toBe(true);
   });
 });
 
 describe('remove', () => {
-  test('throws ConfigNotFoundError when no config', async () => {
-    mockReadConfig.mockReturnValue(null);
+  test('throws when no config exists', async () => {
+    expect(() => remove(tempDir)).toThrow('.atelier/config.json not found');
+  });
 
-    mock.module('../utils/config.js', () => ({
-      readConfig: mockReadConfig,
-      writeConfig: mockWriteConfig,
-      getDefaultConfig: mockGetDefaultConfig,
-    }));
+  test('removes claude files', async () => {
+    mockDetectHarnessResult = 'claude';
+    await init({ yes: true, harness: 'claude', cwd: tempDir });
+    expect(existsSync(join(tempDir, '.claude'))).toBe(true);
+    expect(existsSync(join(tempDir, '.atelier'))).toBe(true);
 
-    const { remove } = await import('./remove.js');
-    expect(() => remove()).toThrow('.atelier/config.json not found');
+    remove(tempDir);
+
+    expect(existsSync(join(tempDir, '.claude'))).toBe(false);
+    expect(existsSync(join(tempDir, '.atelier'))).toBe(false);
+  });
+
+  test('removes opencode files', async () => {
+    mockDetectHarnessResult = 'opencode';
+    await init({ yes: true, harness: 'opencode', cwd: tempDir });
+    expect(existsSync(join(tempDir, '.opencode'))).toBe(true);
+    expect(existsSync(join(tempDir, '.atelier'))).toBe(true);
+
+    remove(tempDir);
+
+    expect(existsSync(join(tempDir, '.opencode'))).toBe(false);
+    expect(existsSync(join(tempDir, '.atelier'))).toBe(false);
   });
 });

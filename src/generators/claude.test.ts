@@ -55,7 +55,7 @@ describe('generateClaude', () => {
     const hookPath = join(tempDir, 'hooks/atelier-session-start');
     const script = readFileSync(hookPath, 'utf-8');
 
-    expect(script).toContain('SKILLS_DIR="~/.agents/skills/atelier"');
+    expect(script).toContain("SKILLS_DIR='~/.agents/skills/atelier'");
     expect(script).toContain('atelier');
   });
 

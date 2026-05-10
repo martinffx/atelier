@@ -43,6 +43,26 @@ describe('config', () => {
     expect(read).toBeNull();
   });
 
+  test('readConfig throws on invalid JSON', async () => {
+    const { writeFileSync } = await import('fs');
+    const { readConfig } = await import('./config.js');
+
+    const badConfigPath = join(tempDir, 'bad-config.json');
+    writeFileSync(badConfigPath, 'not valid json');
+
+    expect(() => readConfig(badConfigPath)).toThrow('Invalid JSON');
+  });
+
+  test('readConfig throws on invalid config structure', async () => {
+    const { writeFileSync } = await import('fs');
+    const { readConfig } = await import('./config.js');
+
+    const badConfigPath = join(tempDir, 'bad-structure.json');
+    writeFileSync(badConfigPath, JSON.stringify({ harness: 'invalid', agents: [] }));
+
+    expect(() => readConfig(badConfigPath)).toThrow('Invalid configuration');
+  });
+
   test('getDefaultConfig returns valid config with default models for claude', async () => {
     const { getDefaultConfig } = await import('./config.js');
 
@@ -120,7 +140,9 @@ describe('config', () => {
       harness: 'claude' as const,
       skills_source: 'martinffx/atelier',
       skills_path: '~/.agents/skills/atelier',
-      agents: [],
+      agents: [
+        { template: 'scout', name: 'scout', model: 'haiku' },
+      ],
     };
 
     const configPath = join(tempDir, '.atelier/nested/config.json');

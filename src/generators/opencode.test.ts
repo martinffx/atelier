@@ -12,8 +12,8 @@ const testConfig = {
   skills_path: '~/.agents/skills/atelier',
   agents: [
     { template: 'scout', name: 'scout', model: 'opencode/deepseek-v4-flash' },
-    { template: 'oracle', name: 'oracle', model: 'opencode-go/kimi-k2.6' },
-    { template: 'architect', name: 'architect', model: 'opencode-go/deepseek-v4-pro' },
+    { template: 'oracle', name: 'oracle', model: 'opencode/kimi-k2.6' },
+    { template: 'architect', name: 'architect', model: 'opencode/deepseek-v4-pro' },
   ],
 };
 
@@ -57,7 +57,7 @@ describe('generateOpenCode', () => {
     const plugin = readFileSync(pluginPath, 'utf-8');
 
     expect(plugin).toContain('skillsDir');
-    expect(plugin).toContain('~/.agents/skills/atelier/atelier');
+    expect(plugin).toContain('"~/.agents/skills/atelier/atelier"');
   });
 
   test('writes agent files with mode: subagent', async () => {
@@ -72,12 +72,12 @@ describe('generateOpenCode', () => {
 
     const oraclePath = join(tempDir, '.opencode/agents/oracle.md');
     const oracleContent = readFileSync(oraclePath, 'utf-8');
-    expect(oracleContent.startsWith('---\nname: oracle\nmodel: opencode-go/kimi-k2.6\nmode: subagent\n---')).toBe(true);
+    expect(oracleContent.startsWith('---\nname: oracle\nmodel: opencode/kimi-k2.6\nmode: subagent\n---')).toBe(true);
     expect(oracleContent).toContain('**Oracle**');
 
     const architectPath = join(tempDir, '.opencode/agents/architect.md');
     const architectContent = readFileSync(architectPath, 'utf-8');
-    expect(architectContent.startsWith('---\nname: architect\nmodel: opencode-go/deepseek-v4-pro\nmode: subagent\n---')).toBe(true);
+    expect(architectContent.startsWith('---\nname: architect\nmodel: opencode/deepseek-v4-pro\nmode: subagent\n---')).toBe(true);
     expect(architectContent).toContain('**Architect**');
   });
 

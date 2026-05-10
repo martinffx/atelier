@@ -1,6 +1,6 @@
 import { writeFileSync, mkdirSync, readFileSync, existsSync, readdirSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
+import { homedir } from 'os';
 import { readTemplate } from '../utils/templates.js';
 import type { AtelierConfig } from '../types.js';
 import { FileWriteError } from '../utils/errors.js';
@@ -93,10 +93,11 @@ function deepMerge(target: Record<string, unknown>, source: Record<string, unkno
 
 function writePluginJs(config: AtelierConfig, basePath: string): void {
   const skillsPath = config.skills_path || '~/.agents/skills/atelier';
+  const skillsDir = `${skillsPath}/atelier`;
 
   const plugin = `export default {
   config: {
-    skillsDir: '${skillsPath}/atelier',
+    skillsDir: ${JSON.stringify(skillsDir)},
   },
   'experimental.chat.system.transform': (systemPrompt) => {
     return systemPrompt;
@@ -137,8 +138,7 @@ function writeCommandFiles(config: AtelierConfig, basePath: string): void {
 
   let skillsBasePath = config.skills_path || '~/.agents/skills/atelier';
   if (skillsBasePath.startsWith('~/')) {
-    const home = dirname(dirname(fileURLToPath(import.meta.url)));
-    skillsBasePath = join(home, skillsBasePath.slice(2));
+    skillsBasePath = join(homedir(), skillsBasePath.slice(2));
   } else if (!skillsBasePath.startsWith('/')) {
     skillsBasePath = join(process.cwd(), skillsBasePath);
   }

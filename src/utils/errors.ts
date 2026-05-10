@@ -59,6 +59,16 @@ export class TemplateReadError extends AtelierError {
   }
 }
 
+export class InvalidConfigError extends AtelierError {
+  constructor(cause: string) {
+    super(
+      `Invalid configuration: ${cause}`,
+      'INVALID_CONFIG',
+      1
+    );
+  }
+}
+
 export function handleError(error: unknown): never {
   if (error instanceof AtelierError) {
     console.error(`Error: ${error.message}`);

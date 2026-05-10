@@ -30,7 +30,8 @@
   "dependencies": {
     "commander": "^13.1.0",
     "gray-matter": "^4.0.3",
-    "inquirer": "^12.5.2"
+    "inquirer": "^12.5.2",
+    "zod": "^3.25.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.0",

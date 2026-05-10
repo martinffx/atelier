@@ -81,14 +81,19 @@ function readExistingSettings(settingsPath: string): ExistingSettings {
   }
 }
 
+function escapeShellArg(arg: string): string {
+  return `'${arg.replace(/'/g, "'\\''")}'`;
+}
+
 function writeHookScript(config: AtelierConfig, basePath: string): void {
   const skillsPath = config.skills_path || '~/.agents/skills/atelier';
+  const safeSkillsPath = escapeShellArg(skillsPath);
 
   const script = `#!/bin/bash
 # Atelier session-start hook
 # Skills path: ${skillsPath}
 
-SKILLS_DIR="${skillsPath}"
+SKILLS_DIR=${safeSkillsPath}
 
 if [ -d "$SKILLS_DIR/atelier" ]; then
   echo '{"additionalContext": {"skillsDir": "'"$SKILLS_DIR"'/atelier"}}'
@@ -99,7 +104,7 @@ fi
 
   const hookPath = join(basePath, 'hooks/atelier-session-start');
   writeFileSync(hookPath, script);
-  chmodSync(hookPath, 0o755);
+  chmodSync(hookPath, 0o700);
 }
 
 function writeAgentFiles(config: AtelierConfig, basePath: string): void {

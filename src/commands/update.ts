@@ -1,19 +1,20 @@
-import { readConfig } from '../utils/config.js';
+import { join } from 'path';
+import { readConfig, CONFIG_FILE } from '../utils/config.js';
 import { generateClaude } from '../generators/claude.js';
 import { generateOpenCode } from '../generators/opencode.js';
 import { ConfigNotFoundError } from '../utils/errors.js';
 
-export function update(): void {
-  const config = readConfig();
+export function update(basePath: string = process.cwd()): void {
+  const config = readConfig(join(basePath, CONFIG_FILE));
 
   if (!config) {
     throw new ConfigNotFoundError('update');
   }
 
   if (config.harness === 'claude') {
-    generateClaude(config);
+    generateClaude(config, basePath);
   } else {
-    generateOpenCode(config);
+    generateOpenCode(config, basePath);
   }
 
   console.log('Atelier updated.');
