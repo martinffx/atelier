@@ -1,5 +1,5 @@
 import { describe, test, expect, afterEach, beforeEach } from 'bun:test';
-import { mkdtempSync, rmSync, readFileSync, statSync } from 'fs';
+import { mkdtempSync, rmSync, readFileSync, statSync, mkdirSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
@@ -100,5 +100,59 @@ describe('generateOpenCode', () => {
     expect(config.customField).toBe('preserved');
     expect(config.agent.custom).toBe('value');
     expect(config.agent.build.model).toBe('opencode/deepseek-v4-flash');
+  });
+
+  test('writes command files for user-invocable skills', async () => {
+    const { generateOpenCode } = await import('./opencode.js');
+
+    mkdirSync(join(tempDir, 'skills', 'atelier', 'spec-brainstorm'), { recursive: true });
+    mkdirSync(join(tempDir, 'skills', 'atelier', 'spec-plan'), { recursive: true });
+    mkdirSync(join(tempDir, 'skills', 'atelier', 'spec-implement'), { recursive: true });
+    mkdirSync(join(tempDir, 'skills', 'atelier', 'spec-orchestrator'), { recursive: true });
+    mkdirSync(join(tempDir, 'skills', 'atelier', 'oracle-architect'), { recursive: true });
+
+    writeFileSync(join(tempDir, 'skills', 'atelier', 'spec-brainstorm', 'SKILL.md'), '---\nname: spec-brainstorm\ndescription: Conversational design workshop\nuser-invocable: true\n---\n# Skill');
+    writeFileSync(join(tempDir, 'skills', 'atelier', 'spec-plan', 'SKILL.md'), '---\nname: spec-plan\ndescription: Write implementation plans\nuser-invocable: true\n---\n# Skill');
+    writeFileSync(join(tempDir, 'skills', 'atelier', 'spec-implement', 'SKILL.md'), '---\nname: spec-implement\ndescription: Execute implementation tasks\nuser-invocable: true\n---\n# Skill');
+    writeFileSync(join(tempDir, 'skills', 'atelier', 'spec-orchestrator', 'SKILL.md'), '---\nname: spec-orchestrator\ndescription: Route to correct skill\nuser-invocable: false\n---\n# Skill');
+    writeFileSync(join(tempDir, 'skills', 'atelier', 'oracle-architect', 'SKILL.md'), '---\nname: oracle-architect\ndescription: DDD patterns\nuser-invocable: false\n---\n# Skill');
+
+    const configWithSkills = {
+      ...testConfig,
+      skills_path: join(tempDir, 'skills', 'atelier', '..'),
+    };
+    generateOpenCode(configWithSkills, tempDir);
+
+    expect(statSync(join(tempDir, '.opencode', 'commands')).isDirectory()).toBe(true);
+
+    const specBrainstorm = readFileSync(join(tempDir, '.opencode', 'commands', 'spec-brainstorm.md'), 'utf-8');
+    expect(specBrainstorm).toContain('description:');
+    expect(specBrainstorm).toContain('Activate the spec-brainstorm skill');
+    expect(specBrainstorm).toContain('$ARGUMENTS');
+
+    const specPlan = readFileSync(join(tempDir, '.opencode', 'commands', 'spec-plan.md'), 'utf-8');
+    expect(specPlan).toContain('Write implementation plans');
+
+    const specImplement = readFileSync(join(tempDir, '.opencode', 'commands', 'spec-implement.md'), 'utf-8');
+    expect(specImplement).toContain('Execute implementation tasks');
+
+    const orchestratorCmd = join(tempDir, '.opencode', 'commands', 'spec-orchestrator.md');
+    expect(() => statSync(orchestratorCmd)).toThrow();
+
+    const architectCmd = join(tempDir, '.opencode', 'commands', 'oracle-architect.md');
+    expect(() => statSync(architectCmd)).toThrow();
+  });
+
+  test('skips command generation when skills dir does not exist', async () => {
+    const { generateOpenCode } = await import('./opencode.js');
+
+    const configWithMissingSkills = {
+      ...testConfig,
+      skills_path: join(tempDir, 'nonexistent', 'skills'),
+    };
+    generateOpenCode(configWithMissingSkills, tempDir);
+
+    const commandsDir = join(tempDir, '.opencode', 'commands');
+    expect(statSync(commandsDir).isDirectory()).toBe(true);
   });
 });

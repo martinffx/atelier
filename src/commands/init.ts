@@ -110,6 +110,7 @@ export async function init(options: InitOptions): Promise<void> {
     } catch (error) {
       throw new SkillsInstallError(error instanceof Error ? error.message : String(error));
     }
+    console.log('  atelier update                  # regenerate command files after install');
   }
 
   console.log('\nNext steps:');

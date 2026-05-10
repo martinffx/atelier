@@ -1,8 +1,10 @@
-import { writeFileSync, mkdirSync, readFileSync } from 'fs';
-import { join } from 'path';
+import { writeFileSync, mkdirSync, readFileSync, existsSync, readdirSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { readTemplate } from '../utils/templates.js';
 import type { AtelierConfig } from '../types.js';
 import { FileWriteError } from '../utils/errors.js';
+import matter from 'gray-matter';
 
 export function generateOpenCode(config: AtelierConfig, basePath = process.cwd()): void {
   const agentsDir = join(basePath, '.opencode/agents');
@@ -19,6 +21,7 @@ export function generateOpenCode(config: AtelierConfig, basePath = process.cwd()
     writeOpenCodeJson(config, basePath);
     writePluginJs(config, basePath);
     writeAgentFiles(config, basePath);
+    writeCommandFiles(config, basePath);
   } catch (err) {
     throw new FileWriteError('generateOpenCode', err instanceof Error ? err.message : String(err));
   }
@@ -100,5 +103,77 @@ function writeAgentFiles(config: AtelierConfig, basePath: string): void {
     const content = frontmatter + template.body;
 
     writeFileSync(join(agentsDir, `${agent.name}.md`), content);
+  }
+}
+
+interface SkillFrontmatter {
+  name?: string;
+  description?: string;
+  'user-invocable'?: boolean;
+}
+
+function writeCommandFiles(config: AtelierConfig, basePath: string): void {
+  const commandsDir = join(basePath, '.opencode/commands');
+
+  try {
+    mkdirSync(commandsDir, { recursive: true });
+  } catch (err) {
+    throw new FileWriteError(commandsDir, err instanceof Error ? err.message : String(err));
+  }
+
+  let skillsBasePath = config.skills_path || '~/.agents/skills/atelier';
+  if (skillsBasePath.startsWith('~/')) {
+    const home = dirname(dirname(fileURLToPath(import.meta.url)));
+    skillsBasePath = join(home, skillsBasePath.slice(2));
+  } else if (!skillsBasePath.startsWith('/')) {
+    skillsBasePath = join(process.cwd(), skillsBasePath);
+  }
+
+  const skillsDir = join(skillsBasePath, 'atelier');
+
+  if (!existsSync(skillsDir)) {
+    return;
+  }
+
+  let entries: string[];
+  try {
+    entries = readdirSync(skillsDir, { encoding: 'utf-8' });
+  } catch {
+    return;
+  }
+
+  for (const entry of entries) {
+    const skillMdPath = join(skillsDir, entry, 'SKILL.md');
+
+    if (!existsSync(skillMdPath)) {
+      continue;
+    }
+
+    let skillContent: string;
+    try {
+      skillContent = readFileSync(skillMdPath, { encoding: 'utf-8' });
+    } catch {
+      continue;
+    }
+
+    const { data } = matter(skillContent);
+    const fm = data as SkillFrontmatter;
+
+    if (fm['user-invocable'] !== true) {
+      continue;
+    }
+
+    const commandName = entry;
+    const description = fm.description || `Activate the ${commandName} skill`;
+
+    const commandContent = `---
+description: ${description}
+---
+Activate the ${commandName} skill and follow its instructions precisely.
+
+User request: $ARGUMENTS
+`;
+
+    writeFileSync(join(commandsDir, `${commandName}.md`), commandContent);
   }
 }
