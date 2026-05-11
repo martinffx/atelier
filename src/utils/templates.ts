@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
@@ -6,7 +6,9 @@ import type { Harness, Provider } from '../types.js';
 import { providerModels, defaultModels, claudModels, opencodeModels } from '../models.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const AGENTS_DIR = join(__dirname, '..', '..', 'agents');
+const AGENTS_DIR = existsSync(join(__dirname, '..', 'agents'))
+  ? join(__dirname, '..', 'agents')
+  : join(__dirname, '..', '..', 'agents');
 
 export interface AgentTemplate {
   name: string;

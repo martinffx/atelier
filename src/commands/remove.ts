@@ -1,24 +1,40 @@
 import { rmSync, existsSync } from 'fs';
 import { join } from 'path';
+import { homedir } from 'os';
 import { readConfig, CONFIG_FILE } from '../utils/config.js';
+import { GLOBAL_OPENCODE_DIR } from '../generators/opencode.js';
 import { ConfigNotFoundError } from '../utils/errors.js';
 
-export function remove(basePath: string = process.cwd()): void {
-  const config = readConfig(join(basePath, CONFIG_FILE));
+export function remove(basePath?: string): void {
+  const resolvedBasePath = basePath ?? process.cwd();
+  let config = readConfig(join(resolvedBasePath, CONFIG_FILE));
+  let harnessBasePath = resolvedBasePath;
+  let configBasePath = resolvedBasePath;
+
+  // Only fall back to global config when called without an explicit path
+  if (!config && basePath === undefined) {
+    configBasePath = homedir();
+    config = readConfig(join(configBasePath, CONFIG_FILE));
+    if (config) {
+      harnessBasePath = config.harness === 'opencode'
+        ? GLOBAL_OPENCODE_DIR
+        : homedir();
+    }
+  }
 
   if (!config) {
     throw new ConfigNotFoundError('remove');
   }
 
   if (config.harness === 'claude') {
-    removeClaudeFiles(basePath);
+    removeClaudeFiles(harnessBasePath);
   } else {
-    removeOpenCodeFiles(basePath);
+    removeOpenCodeFiles(harnessBasePath);
   }
 
-  rmSync(join(basePath, '.atelier'), { recursive: true, force: true });
+  rmSync(join(configBasePath, '.atelier'), { recursive: true, force: true });
 
-  console.log('Atelier removed from this project.');
+  console.log('Atelier removed.');
   console.log('Skills remain installed. Run `npx skills remove martinffx/atelier` to remove skills.');
 }
 
@@ -49,12 +65,14 @@ function removeClaudeFiles(basePath: string): void {
 }
 
 function removeOpenCodeFiles(basePath: string): void {
+  const isGlobal = basePath === GLOBAL_OPENCODE_DIR;
+  const opencodeDir = isGlobal ? basePath : join(basePath, '.opencode');
+
   const files = [
-    join(basePath, 'opencode.json'),
-    join(basePath, '.opencode/plugins/atelier.js'),
-    join(basePath, '.opencode/agents/scout.md'),
-    join(basePath, '.opencode/agents/oracle.md'),
-    join(basePath, '.opencode/agents/architect.md'),
+    join(opencodeDir, 'plugins/atelier.js'),
+    join(opencodeDir, 'agent/scout.md'),
+    join(opencodeDir, 'agent/oracle.md'),
+    join(opencodeDir, 'agent/architect.md'),
   ];
 
   for (const file of files) {
@@ -63,18 +81,31 @@ function removeOpenCodeFiles(basePath: string): void {
     }
   }
 
-  const agentsDir = join(basePath, '.opencode/agents');
+  const agentsDir = join(opencodeDir, 'agent');
   if (existsSync(agentsDir)) {
     rmSync(agentsDir, { recursive: true, force: true });
   }
 
-  const pluginsDir = join(basePath, '.opencode/plugins');
+  const pluginsDir = join(opencodeDir, 'plugins');
   if (existsSync(pluginsDir)) {
     rmSync(pluginsDir, { recursive: true, force: true });
   }
 
-  const opencodeDir = join(basePath, '.opencode');
-  if (existsSync(opencodeDir)) {
-    rmSync(opencodeDir, { recursive: true, force: true });
+  const commandsDir = join(opencodeDir, 'command');
+  if (existsSync(commandsDir)) {
+    rmSync(commandsDir, { recursive: true, force: true });
+  }
+
+  if (!isGlobal) {
+    const opencodeDirPath = join(basePath, '.opencode');
+    if (existsSync(opencodeDirPath)) {
+      rmSync(opencodeDirPath, { recursive: true, force: true });
+    }
+  }
+
+  // Also remove opencode.json
+  const opencodeJsonPath = join(basePath, 'opencode.json');
+  if (existsSync(opencodeJsonPath)) {
+    rmSync(opencodeJsonPath, { force: true });
   }
 }

@@ -1,6 +1,8 @@
 import { execSync } from 'child_process';
 import { join } from 'path';
+import { homedir } from 'os';
 import { detectHarness } from '../utils/detect.js';
+import { GLOBAL_OPENCODE_DIR } from '../generators/opencode.js';
 import { readConfig, writeConfig, getDefaultConfig, validateConfig, CONFIG_FILE } from '../utils/config.js';
 import { generateClaude } from '../generators/claude.js';
 import { generateOpenCode } from '../generators/opencode.js';
@@ -31,8 +33,18 @@ function getSkillsPath(project?: boolean): string {
   return project ? './.agents/skills/atelier' : '~/.agents/skills/atelier';
 }
 
+function getConfigBasePath(options: InitOptions): string {
+  return options.cwd || (options.project ? process.cwd() : homedir());
+}
+
+function getHarnessBasePath(harness: Harness, options: InitOptions): string {
+  if (options.cwd) return options.cwd;
+  if (options.project) return process.cwd();
+  if (harness === 'opencode') return GLOBAL_OPENCODE_DIR;
+  return homedir();
+}
+
 export async function init(options: InitOptions): Promise<void> {
-  const basePath = options.cwd || process.cwd();
   const harnessOption = options.harness;
   if (harnessOption !== undefined && !isHarness(harnessOption)) {
     throw new HarnessNotDetectedError();
@@ -57,7 +69,9 @@ export async function init(options: InitOptions): Promise<void> {
     throw new HarnessNotDetectedError();
   }
 
-  const configPath = join(basePath, CONFIG_FILE);
+  const configBasePath = getConfigBasePath(options);
+  const harnessBasePath = getHarnessBasePath(detected, options);
+  const configPath = join(configBasePath, CONFIG_FILE);
   const config = readConfig(configPath);
 
   if (config && config.harness !== detected) {
@@ -156,9 +170,9 @@ export async function init(options: InitOptions): Promise<void> {
   writeConfig(finalConfig, configPath);
 
   if (finalConfig.harness === 'claude') {
-    generateClaude(finalConfig, basePath);
+    generateClaude(finalConfig, harnessBasePath);
   } else {
-    generateOpenCode(finalConfig, basePath);
+    generateOpenCode(finalConfig, harnessBasePath);
   }
 
   console.log(`\nAtelier initialized for ${finalConfig.harness}.`);

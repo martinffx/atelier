@@ -58,9 +58,9 @@ describe('init', () => {
     expect(existsSync(join(tempDir, '.atelier/config.json'))).toBe(true);
     expect(existsSync(join(tempDir, 'opencode.json'))).toBe(true);
     expect(existsSync(join(tempDir, '.opencode/plugins/atelier.js'))).toBe(true);
-    expect(existsSync(join(tempDir, '.opencode/agents/scout.md'))).toBe(true);
-    expect(existsSync(join(tempDir, '.opencode/agents/oracle.md'))).toBe(true);
-    expect(existsSync(join(tempDir, '.opencode/agents/architect.md'))).toBe(true);
+    expect(existsSync(join(tempDir, '.opencode/agent/scout.md'))).toBe(true);
+    expect(existsSync(join(tempDir, '.opencode/agent/oracle.md'))).toBe(true);
+    expect(existsSync(join(tempDir, '.opencode/agent/architect.md'))).toBe(true);
 
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
     expect(config.harness).toBe('opencode');
@@ -89,7 +89,7 @@ describe('init', () => {
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
     expect(config.harness).toBe('opencode');
     expect(config.provider).toBe('opencode-go');
-    expect(existsSync(join(tempDir, '.opencode/agents/scout.md'))).toBe(true);
+    expect(existsSync(join(tempDir, '.opencode/agent/scout.md'))).toBe(true);
   });
 
   test('throws when harness not detected and --yes', async () => {
