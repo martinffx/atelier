@@ -24,7 +24,7 @@ program
 program
   .command('update')
   .description('Update atelier hooks and agents')
-  .action(() => { try { update(); } catch (e) { handleError(e); } });
+  .action(() => { update().catch(handleError); });
 
 program
   .command('remove')

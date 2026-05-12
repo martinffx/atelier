@@ -75,17 +75,20 @@ describe('generateClaude', () => {
     const scoutPath = join(tempDir, '.claude/agents/scout.md');
     const content = readFileSync(scoutPath, 'utf-8');
 
-    expect(content.startsWith('---\nname: scout\nmodel: haiku\n---')).toBe(true);
+    expect(content.startsWith('---\nname: scout\ndescription:')).toBe(true);
+    expect(content).toContain('model: haiku');
     expect(content).toContain('**Scout**');
 
     const oraclePath = join(tempDir, '.claude/agents/oracle.md');
     const oracleContent = readFileSync(oraclePath, 'utf-8');
-    expect(oracleContent.startsWith('---\nname: oracle\nmodel: opus\n---')).toBe(true);
+    expect(oracleContent.startsWith('---\nname: oracle\ndescription:')).toBe(true);
+    expect(oracleContent).toContain('model: opus');
     expect(oracleContent).toContain('**Oracle**');
 
     const architectPath = join(tempDir, '.claude/agents/architect.md');
     const architectContent = readFileSync(architectPath, 'utf-8');
-    expect(architectContent.startsWith('---\nname: architect\nmodel: sonnet\n---')).toBe(true);
+    expect(architectContent.startsWith('---\nname: architect\ndescription:')).toBe(true);
+    expect(architectContent).toContain('model: sonnet');
   });
 
   test('merges with existing settings.json', async () => {

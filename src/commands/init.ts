@@ -116,18 +116,20 @@ export async function init(options: InitOptions): Promise<void> {
         finalConfig = getDefaultConfig(detected, selectedProvider);
         finalConfig.skills_path = getSkillsPath(options.project);
       }
-    } else if (!selectedProvider) {
+    } else {
+      const currentProvider = selectedProvider || 'opencode-zen';
       const { provider } = await inquirer.prompt([
         {
           type: 'list',
           name: 'provider',
           message: 'Which provider are you using?',
           choices: providerChoices,
-          default: 'opencode-zen',
+          default: currentProvider,
         },
       ]);
       selectedProvider = provider;
       finalConfig.provider = selectedProvider;
+      // Only replace config completely on fresh init; on re-init preserve existing settings
       if (!config) {
         finalConfig = getDefaultConfig(detected, selectedProvider);
         finalConfig.skills_path = getSkillsPath(options.project);
@@ -144,13 +146,16 @@ export async function init(options: InitOptions): Promise<void> {
 
     const prompts = agentNames.map((name) => {
       const agent = finalConfig.agents.find(a => a.name === name);
-      const currentModel = agent?.model ?? harnessModels[0];
+      const currentModel = agent?.model;
+      const defaultModel = currentModel && harnessModels.includes(currentModel)
+        ? currentModel
+        : harnessModels[0];
       return {
         type: 'list' as const,
         name,
-        message: `Select model for ${name} (current: ${currentModel})`,
+        message: `Select model for ${name} (current: ${defaultModel})`,
         choices: harnessModels,
-        default: currentModel,
+        default: defaultModel,
       };
     });
 

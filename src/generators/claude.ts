@@ -125,7 +125,7 @@ function writeAgentFiles(config: AtelierConfig, basePath: string): void {
 
   for (const agent of config.agents) {
     const template = readTemplate(agent.template);
-    const frontmatter = `---\nname: ${agent.name}\nmodel: ${agent.model}\n---\n`;
+    const frontmatter = `---\nname: ${agent.name}\ndescription: ${template.description}\nmodel: ${agent.model}\n---\n`;
     const content = frontmatter + template.body;
 
     const agentPath = join(agentsDir, `${agent.name}.md`);
