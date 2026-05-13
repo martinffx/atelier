@@ -58,8 +58,8 @@ export async function init(options: InitOptions): Promise<void> {
         type: 'list',
         name: 'harness',
         message: 'Which harness are you using?',
-        choices: ['claude', 'opencode'],
-        default: 'claude',
+        choices: ['opencode', 'claude'],
+        default: 'opencode',
       },
     ]);
     detected = harness;

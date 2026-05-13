@@ -70,9 +70,9 @@ function removeOpenCodeFiles(basePath: string): void {
 
   const files = [
     join(opencodeDir, 'plugins/atelier.js'),
-    join(opencodeDir, 'agents/scout.md'),
-    join(opencodeDir, 'agents/oracle.md'),
-    join(opencodeDir, 'agents/architect.md'),
+    join(opencodeDir, 'agent/scout.md'),
+    join(opencodeDir, 'agent/oracle.md'),
+    join(opencodeDir, 'agent/architect.md'),
   ];
 
   for (const file of files) {
@@ -81,7 +81,7 @@ function removeOpenCodeFiles(basePath: string): void {
     }
   }
 
-  const agentsDir = join(opencodeDir, 'agents');
+  const agentsDir = join(opencodeDir, 'agent');
   if (existsSync(agentsDir)) {
     rmSync(agentsDir, { recursive: true, force: true });
   }
@@ -91,7 +91,7 @@ function removeOpenCodeFiles(basePath: string): void {
     rmSync(pluginsDir, { recursive: true, force: true });
   }
 
-  const commandsDir = join(opencodeDir, 'commands');
+  const commandsDir = join(opencodeDir, 'command');
   if (existsSync(commandsDir)) {
     rmSync(commandsDir, { recursive: true, force: true });
   }

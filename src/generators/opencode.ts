@@ -27,7 +27,7 @@ function displayPath(basePath: string, relativePath: string): string {
 
 export function generateOpenCode(config: AtelierConfig, basePath = process.cwd()): void {
   const opencodeRoot = getOpencodeRoot(basePath);
-  const agentsDir = join(opencodeRoot, 'agents');
+  const agentsDir = join(opencodeRoot, 'agent');
   const pluginsDir = join(opencodeRoot, 'plugins');
 
   try {
@@ -135,7 +135,7 @@ function writePluginJs(config: AtelierConfig, basePath: string): void {
 
 function writeAgentFiles(config: AtelierConfig, basePath: string): void {
   const opencodeRoot = getOpencodeRoot(basePath);
-  const agentsDir = join(opencodeRoot, 'agents');
+  const agentsDir = join(opencodeRoot, 'agent');
 
   for (const agent of config.agents) {
     const template = readTemplate(agent.template);
@@ -144,7 +144,7 @@ function writeAgentFiles(config: AtelierConfig, basePath: string): void {
 
     const agentPath = join(agentsDir, `${agent.name}.md`);
     writeFileSync(agentPath, content);
-    console.log(`Created ${displayPath(basePath, isGlobalOpencode(basePath) ? `agents/${agent.name}.md` : `.opencode/agents/${agent.name}.md`)}`);
+    console.log(`Created ${displayPath(basePath, isGlobalOpencode(basePath) ? `agent/${agent.name}.md` : `.opencode/agent/${agent.name}.md`)}`);
   }
 }
 
@@ -156,7 +156,7 @@ interface SkillFrontmatter {
 
 function writeCommandFiles(config: AtelierConfig, basePath: string): void {
   const opencodeRoot = getOpencodeRoot(basePath);
-  const commandsDir = join(opencodeRoot, 'commands');
+  const commandsDir = join(opencodeRoot, 'command');
 
   try {
     mkdirSync(commandsDir, { recursive: true });
@@ -218,6 +218,6 @@ User request: $ARGUMENTS
 
     const commandPath = join(commandsDir, `${commandName}.md`);
     writeFileSync(commandPath, commandContent);
-    console.log(`Created ${displayPath(basePath, isGlobalOpencode(basePath) ? `commands/${commandName}.md` : `.opencode/commands/${commandName}.md`)}`);
+    console.log(`Created ${displayPath(basePath, isGlobalOpencode(basePath) ? `command/${commandName}.md` : `.opencode/command/${commandName}.md`)}`);
   }
 }

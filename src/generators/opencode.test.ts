@@ -31,7 +31,7 @@ describe('generateOpenCode', () => {
     generateOpenCode(testConfig, tempDir);
 
     expect(statSync(join(tempDir, '.opencode')).isDirectory()).toBe(true);
-    expect(statSync(join(tempDir, '.opencode/agents')).isDirectory()).toBe(true);
+    expect(statSync(join(tempDir, '.opencode/agent')).isDirectory()).toBe(true);
     expect(statSync(join(tempDir, '.opencode/plugins')).isDirectory()).toBe(true);
   });
 
@@ -64,7 +64,7 @@ describe('generateOpenCode', () => {
     const { generateOpenCode } = await import('./opencode.js');
     generateOpenCode(testConfig, tempDir);
 
-    const scoutPath = join(tempDir, '.opencode/agents/scout.md');
+    const scoutPath = join(tempDir, '.opencode/agent/scout.md');
     const content = readFileSync(scoutPath, 'utf-8');
 
     expect(content.startsWith('---\nname: scout\ndescription:')).toBe(true);
@@ -73,7 +73,7 @@ describe('generateOpenCode', () => {
     expect(content).toContain('temperature: 0.2');
     expect(content).toContain('**Scout**');
 
-    const oraclePath = join(tempDir, '.opencode/agents/oracle.md');
+    const oraclePath = join(tempDir, '.opencode/agent/oracle.md');
     const oracleContent = readFileSync(oraclePath, 'utf-8');
     expect(oracleContent.startsWith('---\nname: oracle\ndescription:')).toBe(true);
     expect(oracleContent).toContain('model: opencode/kimi-k2.6');
@@ -81,7 +81,7 @@ describe('generateOpenCode', () => {
     expect(oracleContent).toContain('temperature: 0.2');
     expect(oracleContent).toContain('**Oracle**');
 
-    const architectPath = join(tempDir, '.opencode/agents/architect.md');
+    const architectPath = join(tempDir, '.opencode/agent/architect.md');
     const architectContent = readFileSync(architectPath, 'utf-8');
     expect(architectContent.startsWith('---\nname: architect\ndescription:')).toBe(true);
     expect(architectContent).toContain('model: opencode/deepseek-v4-pro');
@@ -132,23 +132,23 @@ describe('generateOpenCode', () => {
     };
     generateOpenCode(configWithSkills, tempDir);
 
-    expect(statSync(join(tempDir, '.opencode', 'commands')).isDirectory()).toBe(true);
+    expect(statSync(join(tempDir, '.opencode', 'command')).isDirectory()).toBe(true);
 
-    const specBrainstorm = readFileSync(join(tempDir, '.opencode', 'commands', 'spec-brainstorm.md'), 'utf-8');
+    const specBrainstorm = readFileSync(join(tempDir, '.opencode', 'command', 'spec-brainstorm.md'), 'utf-8');
     expect(specBrainstorm).toContain('description:');
     expect(specBrainstorm).toContain('Activate the spec-brainstorm skill');
     expect(specBrainstorm).toContain('$ARGUMENTS');
 
-    const specPlan = readFileSync(join(tempDir, '.opencode', 'commands', 'spec-plan.md'), 'utf-8');
+    const specPlan = readFileSync(join(tempDir, '.opencode', 'command', 'spec-plan.md'), 'utf-8');
     expect(specPlan).toContain('Write implementation plans');
 
-    const specImplement = readFileSync(join(tempDir, '.opencode', 'commands', 'spec-implement.md'), 'utf-8');
+    const specImplement = readFileSync(join(tempDir, '.opencode', 'command', 'spec-implement.md'), 'utf-8');
     expect(specImplement).toContain('Execute implementation tasks');
 
-    const orchestratorCmd = join(tempDir, '.opencode', 'commands', 'spec-orchestrator.md');
+    const orchestratorCmd = join(tempDir, '.opencode', 'command', 'spec-orchestrator.md');
     expect(() => statSync(orchestratorCmd)).toThrow();
 
-    const architectCmd = join(tempDir, '.opencode', 'commands', 'oracle-architect.md');
+    const architectCmd = join(tempDir, '.opencode', 'command', 'oracle-architect.md');
     expect(() => statSync(architectCmd)).toThrow();
   });
 
@@ -161,7 +161,7 @@ describe('generateOpenCode', () => {
     };
     generateOpenCode(configWithMissingSkills, tempDir);
 
-    const commandsDir = join(tempDir, '.opencode', 'commands');
+    const commandsDir = join(tempDir, '.opencode', 'command');
     expect(statSync(commandsDir).isDirectory()).toBe(true);
   });
 });
