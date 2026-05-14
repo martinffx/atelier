@@ -77,9 +77,12 @@ describe('init', () => {
     mockDetectHarnessResult = 'opencode';
     inquirerAnswers = {
       provider: 'opencode-go',
+      build_model: 'opencode-go/deepseek-v4-flash',
+      plan_model: 'opencode-go/deepseek-v4-pro',
       recon: 'opencode-go/deepseek-v4-flash',
       oracle: 'opencode-go/kimi-k2.6',
       architect: 'opencode-go/deepseek-v4-pro',
+      confirm: true,
     };
 
     await init({ harness: 'opencode', cwd: tempDir });
@@ -117,6 +120,7 @@ describe('update', () => {
     rmSync(join(tempDir, '.claude/settings.json'));
     expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(false);
 
+    inquirerAnswers = { confirm: true };
     await update(tempDir);
     expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(true);
   });
@@ -129,6 +133,7 @@ describe('update', () => {
     rmSync(join(tempDir, 'opencode.json'));
     expect(existsSync(join(tempDir, 'opencode.json'))).toBe(false);
 
+    inquirerAnswers = { confirm: true };
     await update(tempDir);
     expect(existsSync(join(tempDir, 'opencode.json'))).toBe(true);
   });

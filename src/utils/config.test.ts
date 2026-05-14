@@ -92,7 +92,7 @@ describe('config', () => {
     expect(config.provider).toBe('opencode-zen');
 
     const recon = config.agents.find(a => a.name === 'recon');
-    expect(recon?.model).toBe('opencode/deepseek-v4-flash');
+    expect(recon?.model).toBe('opencode/minimax-m2.7');
 
     const oracle = config.agents.find(a => a.name === 'oracle');
     expect(oracle?.model).toBe('opencode/kimi-k2.6');
@@ -110,7 +110,7 @@ describe('config', () => {
     expect(config.provider).toBe('opencode-go');
 
     const recon = config.agents.find(a => a.name === 'recon');
-    expect(recon?.model).toBe('opencode-go/deepseek-v4-flash');
+    expect(recon?.model).toBe('opencode-go/minimax-m2.7');
 
     const oracle = config.agents.find(a => a.name === 'oracle');
     expect(oracle?.model).toBe('opencode-go/kimi-k2.6');
@@ -129,7 +129,32 @@ describe('config', () => {
 
     // Should use opencode-zen defaults
     const recon = config.agents.find(a => a.name === 'recon');
-    expect(recon?.model).toBe('opencode/deepseek-v4-flash');
+    expect(recon?.model).toBe('opencode/minimax-m2.7');
+  });
+
+  test('readConfig filters out agents with unknown templates', async () => {
+    const { writeFileSync, mkdirSync } = await import('fs');
+    const { readConfig } = await import('./config.js');
+
+    mkdirSync(join(tempDir, '.atelier'), { recursive: true });
+    writeFileSync(join(tempDir, '.atelier/config.json'), JSON.stringify({
+      version: '1.0.0',
+      harness: 'claude',
+      skills_source: 'martinffx/atelier',
+      skills_path: '~/.agents/skills/atelier',
+      agents: [
+        { template: 'recon', name: 'recon', model: 'haiku' },
+        { template: 'scout', name: 'scout', model: 'fast-model' },
+        { template: 'architect', name: 'architect', model: 'opus' },
+      ],
+    }));
+
+    const read = readConfig(join(tempDir, '.atelier/config.json'));
+    expect(read).not.toBeNull();
+    expect(read?.agents).toHaveLength(3);
+    expect(read?.agents.find(a => a.name === 'recon')).toBeDefined();
+    expect(read?.agents.find(a => a.name === 'oracle')).toBeDefined();
+    expect(read?.agents.find(a => a.name === 'scout')).toBeUndefined();
   });
 
   test('writeConfig creates parent directory if missing', async () => {

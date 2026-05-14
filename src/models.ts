@@ -55,14 +55,14 @@ export const defaultModels: Record<Provider, Record<string, string>> = {
     architect: 'opus',
   },
   'opencode-zen': {
-    recon: 'opencode/deepseek-v4-flash',
+    recon: 'opencode/minimax-m2.7',
     oracle: 'opencode/kimi-k2.6',
     architect: 'opencode/deepseek-v4-pro',
     build: 'opencode/deepseek-v4-flash',
     plan: 'opencode/deepseek-v4-pro',
   },
   'opencode-go': {
-    recon: 'opencode-go/deepseek-v4-flash',
+    recon: 'opencode-go/minimax-m2.7',
     oracle: 'opencode-go/kimi-k2.6',
     architect: 'opencode-go/deepseek-v4-pro',
     build: 'opencode-go/deepseek-v4-flash',

@@ -1,3 +1,4 @@
+import { existsSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 import { readConfig, writeConfig, CONFIG_FILE } from '../utils/config.js';
@@ -36,12 +37,12 @@ export async function update(basePath?: string): Promise<void> {
   const harnessModels = getModelsForProvider(provider);
   const agentNames = ['recon', 'oracle', 'architect'] as const;
 
-  const prompts: { type: 'list'; name: string; message: string; choices: readonly string[]; default: string }[] = [];
+  const promptDefs: { type: 'list'; name: string; message: string; choices: readonly string[]; default: string }[] = [];
 
   if (config.harness === 'opencode') {
     const buildCurrent = config.build_model || harnessModels[0];
     const planCurrent = config.plan_model || harnessModels[0];
-    prompts.push(
+    promptDefs.push(
       {
         type: 'list' as const,
         name: 'build_model',
@@ -59,7 +60,7 @@ export async function update(basePath?: string): Promise<void> {
     );
   } else {
     const currentDefault = config.default_model || 'opusplan';
-    prompts.push({
+    promptDefs.push({
       type: 'list' as const,
       name: 'default_model',
       message: `Select default model (current: ${currentDefault})`,
@@ -74,7 +75,7 @@ export async function update(basePath?: string): Promise<void> {
     const defaultModel = currentModel && harnessModels.includes(currentModel)
       ? currentModel
       : harnessModels[0];
-    prompts.push({
+    promptDefs.push({
       type: 'list' as const,
       name,
       message: `Select model for ${name} (current: ${defaultModel})`,
@@ -83,7 +84,19 @@ export async function update(basePath?: string): Promise<void> {
     });
   }
 
-  const answers = await inquirer.prompt(prompts);
+  const answers: Record<string, string> = {};
+  let i = 0;
+  while (i < promptDefs.length) {
+    const p = promptDefs[i];
+    const choices = i > 0 ? [...p.choices, '← Go back'] : p.choices;
+    const result = await inquirer.prompt([{ type: p.type, name: p.name, message: p.message, choices, default: p.default }]);
+    if (result[p.name] === '← Go back') {
+      i--;
+      continue;
+    }
+    answers[p.name] = result[p.name] as string;
+    i++;
+  }
 
   for (const name of agentNames) {
     const agent = config.agents.find(a => a.name === name);
@@ -93,14 +106,31 @@ export async function update(basePath?: string): Promise<void> {
   }
 
   if (config.harness === 'opencode') {
-    if (answers.build_model) config.build_model = answers.build_model as string;
-    if (answers.plan_model) config.plan_model = answers.plan_model as string;
+    if (answers.build_model) config.build_model = answers.build_model;
+    if (answers.plan_model) config.plan_model = answers.plan_model;
   } else {
-    if (answers.default_model) config.default_model = answers.default_model as string;
+    if (answers.default_model) config.default_model = answers.default_model;
   }
 
   // Save updated config
   writeConfig(config, join(configBasePath, CONFIG_FILE));
+
+  const files = buildFileList(config, harnessBasePath);
+  console.log('\nFiles to write:');
+  for (const f of files) {
+    const label = f.exists ? '~' : '+';
+    console.log(`  ${label} ${shortPath(f.path)}`);
+  }
+  const { confirm } = await inquirer.prompt([{
+    type: 'confirm',
+    name: 'confirm',
+    message: 'Write these files?',
+    default: true,
+  }]);
+  if (!confirm) {
+    console.log('Cancelled.');
+    return;
+  }
 
   if (config.harness === 'claude') {
     generateClaude(config, harnessBasePath);
@@ -110,4 +140,35 @@ export async function update(basePath?: string): Promise<void> {
 
   console.log('Atelier updated.');
   console.log('Skills not updated. Run `npx skills update martinffx/atelier` if needed.');
+}
+
+function buildFileList(config: AtelierConfig, basePath: string): { path: string; exists: boolean }[] {
+  const files: { path: string; exists: boolean }[] = [];
+
+  if (config.harness === 'claude') {
+    files.push(
+      { path: join(basePath, '.claude/settings.json'), exists: existsSync(join(basePath, '.claude/settings.json')) },
+      { path: join(basePath, 'hooks/atelier-session-start'), exists: existsSync(join(basePath, 'hooks/atelier-session-start')) },
+    );
+    for (const agent of config.agents) {
+      files.push({ path: join(basePath, '.claude/agents', `${agent.name}.md`), exists: existsSync(join(basePath, '.claude/agents', `${agent.name}.md`)) });
+    }
+  } else {
+    const root = basePath === GLOBAL_OPENCODE_DIR ? basePath : join(basePath, '.opencode');
+    files.push(
+      { path: join(basePath, 'opencode.json'), exists: existsSync(join(basePath, 'opencode.json')) },
+      { path: join(root, 'plugins/atelier.js'), exists: existsSync(join(root, 'plugins/atelier.js')) },
+    );
+    for (const agent of config.agents) {
+      files.push({ path: join(root, 'agent', `${agent.name}.md`), exists: existsSync(join(root, 'agent', `${agent.name}.md`)) });
+    }
+  }
+
+  return files;
+}
+
+function shortPath(p: string): string {
+  const home = homedir();
+  if (p.startsWith(home)) return '~' + p.slice(home.length);
+  return p;
 }

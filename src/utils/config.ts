@@ -55,6 +55,14 @@ export function readConfig(path: string = CONFIG_PATH): AtelierConfig | null {
 
   const config = validateConfig(parsed);
 
+  const known = new Set(['recon', 'oracle', 'architect']);
+  config.agents = config.agents.filter(a => known.has(a.template));
+  for (const name of known) {
+    if (!config.agents.find(a => a.template === name)) {
+      config.agents.push({ template: name, name, model: '' });
+    }
+  }
+
   // Validate provider/harness consistency
   if (config.harness === 'opencode' && !config.provider) {
     console.warn('Warning: OpenCode harness requires a provider. Defaulting to opencode-zen.');
