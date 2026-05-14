@@ -6,7 +6,7 @@ export const providers: Record<string, readonly Provider[]> = {
 } as const;
 
 export const providerModels: Record<Provider, readonly string[]> = {
-  anthropic: ['haiku', 'sonnet', 'opus'],
+  anthropic: ['haiku', 'sonnet', 'opus', 'opusplan'],
   'opencode-zen': [
     'opencode/gpt-5.5',
     'opencode/gpt-5.4',
@@ -50,24 +50,30 @@ export const providerModels: Record<Provider, readonly string[]> = {
 
 export const defaultModels: Record<Provider, Record<string, string>> = {
   anthropic: {
-    scout: 'haiku',
+    recon: 'haiku',
     oracle: 'opus',
     architect: 'opus',
   },
   'opencode-zen': {
-    scout: 'opencode/deepseek-v4-flash',
+    recon: 'opencode/deepseek-v4-flash',
     oracle: 'opencode/kimi-k2.6',
     architect: 'opencode/deepseek-v4-pro',
+    build: 'opencode/deepseek-v4-flash',
+    plan: 'opencode/deepseek-v4-pro',
   },
   'opencode-go': {
-    scout: 'opencode-go/deepseek-v4-flash',
+    recon: 'opencode-go/deepseek-v4-flash',
     oracle: 'opencode-go/kimi-k2.6',
     architect: 'opencode-go/deepseek-v4-pro',
+    build: 'opencode-go/deepseek-v4-flash',
+    plan: 'opencode-go/deepseek-v4-pro',
   },
   'amazon-bedrock': {
-    scout: 'amazon-bedrock/anthropic-claude-haiku-4-5',
+    recon: 'amazon-bedrock/anthropic-claude-haiku-4-5',
     oracle: 'amazon-bedrock/anthropic-claude-opus-4-7',
     architect: 'amazon-bedrock/anthropic-claude-opus-4-7',
+    build: 'amazon-bedrock/anthropic-claude-sonnet-4-5',
+    plan: 'amazon-bedrock/anthropic-claude-haiku-4-5',
   },
 } as const;
 

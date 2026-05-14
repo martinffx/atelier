@@ -62,7 +62,7 @@ function writeSettingsJson(config: AtelierConfig, basePath: string): void {
   const settings: ExistingSettings = {
     ...existing,
     $schema: 'https://json.schemastore.org/claude-code-settings.json',
-    model: 'opusplan',
+    model: config.default_model || 'opusplan',
     hooks: {
       ...(existing.hooks || {}),
       SessionStart: newSessionStart,

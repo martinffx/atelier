@@ -41,7 +41,7 @@ export function remove(basePath?: string): void {
 function removeClaudeFiles(basePath: string): void {
   const files = [
     join(basePath, '.claude/settings.json'),
-    join(basePath, '.claude/agents/scout.md'),
+    join(basePath, '.claude/agents/recon.md'),
     join(basePath, '.claude/agents/oracle.md'),
     join(basePath, '.claude/agents/architect.md'),
     join(basePath, 'hooks/atelier-session-start'),
@@ -70,7 +70,7 @@ function removeOpenCodeFiles(basePath: string): void {
 
   const files = [
     join(opencodeDir, 'plugins/atelier.js'),
-    join(opencodeDir, 'agent/scout.md'),
+    join(opencodeDir, 'agent/recon.md'),
     join(opencodeDir, 'agent/oracle.md'),
     join(opencodeDir, 'agent/architect.md'),
   ];

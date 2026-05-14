@@ -28,7 +28,7 @@ export function readTemplate(name: string): AgentTemplate {
 }
 
 export function readAllTemplates(): AgentTemplate[] {
-  return ['scout', 'oracle', 'architect'].map(name => readTemplate(name));
+  return ['recon', 'oracle', 'architect'].map(name => readTemplate(name));
 }
 
 export function getModelsForProvider(provider: Provider): readonly string[] {

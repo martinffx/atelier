@@ -14,6 +14,9 @@ export interface AtelierConfig {
   skills_source: string;
   skills_path: string;
   agents: AgentConfig[];
+  build_model?: string;
+  plan_model?: string;
+  default_model?: string;
 }
 
 export interface ModelRegistry {

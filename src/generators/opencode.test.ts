@@ -11,7 +11,7 @@ const testConfig = {
   skills_source: 'martinffx/atelier',
   skills_path: '~/.agents/skills/atelier',
   agents: [
-    { template: 'scout', name: 'scout', model: 'opencode/deepseek-v4-flash' },
+    { template: 'recon', name: 'recon', model: 'opencode/deepseek-v4-flash' },
     { template: 'oracle', name: 'oracle', model: 'opencode/kimi-k2.6' },
     { template: 'architect', name: 'architect', model: 'opencode/deepseek-v4-pro' },
   ],
@@ -64,14 +64,14 @@ describe('generateOpenCode', () => {
     const { generateOpenCode } = await import('./opencode.js');
     generateOpenCode(testConfig, tempDir);
 
-    const scoutPath = join(tempDir, '.opencode/agent/scout.md');
-    const content = readFileSync(scoutPath, 'utf-8');
+    const reconPath = join(tempDir, '.opencode/agent/recon.md');
+    const content = readFileSync(reconPath, 'utf-8');
 
-    expect(content.startsWith('---\nname: scout\ndescription:')).toBe(true);
+    expect(content.startsWith('---\nname: recon\ndescription:')).toBe(true);
     expect(content).toContain('model: opencode/deepseek-v4-flash');
     expect(content).toContain('mode: subagent');
     expect(content).toContain('temperature: 0.2');
-    expect(content).toContain('**Scout**');
+    expect(content).toContain('**Recon**');
 
     const oraclePath = join(tempDir, '.opencode/agent/oracle.md');
     const oracleContent = readFileSync(oraclePath, 'utf-8');

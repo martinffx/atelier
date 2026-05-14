@@ -41,7 +41,7 @@ describe('init', () => {
     expect(existsSync(join(tempDir, '.atelier/config.json'))).toBe(true);
     expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(true);
     expect(existsSync(join(tempDir, 'hooks/atelier-session-start'))).toBe(true);
-    expect(existsSync(join(tempDir, '.claude/agents/scout.md'))).toBe(true);
+    expect(existsSync(join(tempDir, '.claude/agents/recon.md'))).toBe(true);
     expect(existsSync(join(tempDir, '.claude/agents/oracle.md'))).toBe(true);
     expect(existsSync(join(tempDir, '.claude/agents/architect.md'))).toBe(true);
 
@@ -58,9 +58,7 @@ describe('init', () => {
     expect(existsSync(join(tempDir, '.atelier/config.json'))).toBe(true);
     expect(existsSync(join(tempDir, 'opencode.json'))).toBe(true);
     expect(existsSync(join(tempDir, '.opencode/plugins/atelier.js'))).toBe(true);
-    expect(existsSync(join(tempDir, '.opencode/agent/scout.md'))).toBe(true);
-    expect(existsSync(join(tempDir, '.opencode/agent/oracle.md'))).toBe(true);
-    expect(existsSync(join(tempDir, '.opencode/agent/architect.md'))).toBe(true);
+    expect(existsSync(join(tempDir, '.opencode/agent/recon.md'))).toBe(true);
 
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
     expect(config.harness).toBe('opencode');
@@ -79,7 +77,7 @@ describe('init', () => {
     mockDetectHarnessResult = 'opencode';
     inquirerAnswers = {
       provider: 'opencode-go',
-      scout: 'opencode-go/deepseek-v4-flash',
+      recon: 'opencode-go/deepseek-v4-flash',
       oracle: 'opencode-go/kimi-k2.6',
       architect: 'opencode-go/deepseek-v4-pro',
     };
@@ -89,7 +87,7 @@ describe('init', () => {
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
     expect(config.harness).toBe('opencode');
     expect(config.provider).toBe('opencode-go');
-    expect(existsSync(join(tempDir, '.opencode/agent/scout.md'))).toBe(true);
+    expect(existsSync(join(tempDir, '.opencode/agent/recon.md'))).toBe(true);
   });
 
   test('throws when harness not detected and --yes', async () => {

@@ -11,7 +11,7 @@ const testConfig = {
   skills_source: 'martinffx/atelier',
   skills_path: '~/.agents/skills/atelier',
   agents: [
-    { template: 'scout', name: 'scout', model: 'haiku' },
+    { template: 'recon', name: 'recon', model: 'haiku' },
     { template: 'oracle', name: 'oracle', model: 'opus' },
     { template: 'architect', name: 'architect', model: 'sonnet' },
   ],
@@ -72,12 +72,12 @@ describe('generateClaude', () => {
     const { generateClaude } = await import('./claude.js');
     generateClaude(testConfig, tempDir);
 
-    const scoutPath = join(tempDir, '.claude/agents/scout.md');
-    const content = readFileSync(scoutPath, 'utf-8');
+    const reconPath = join(tempDir, '.claude/agents/recon.md');
+    const content = readFileSync(reconPath, 'utf-8');
 
-    expect(content.startsWith('---\nname: scout\ndescription:')).toBe(true);
+    expect(content.startsWith('---\nname: recon\ndescription:')).toBe(true);
     expect(content).toContain('model: haiku');
-    expect(content).toContain('**Scout**');
+    expect(content).toContain('**Recon**');
 
     const oraclePath = join(tempDir, '.claude/agents/oracle.md');
     const oracleContent = readFileSync(oraclePath, 'utf-8');

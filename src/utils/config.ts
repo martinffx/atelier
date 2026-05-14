@@ -21,6 +21,9 @@ const ConfigSchema = z.object({
   skills_source: z.string(),
   skills_path: z.string().min(1),
   agents: z.array(AgentSchema).min(1),
+  build_model: z.string().optional(),
+  plan_model: z.string().optional(),
+  default_model: z.string().optional(),
 });
 
 export function validateConfig(config: unknown): AtelierConfig {
@@ -80,7 +83,7 @@ export function getDefaultConfig(harness: Harness, provider?: Provider): Atelier
   const providerKey: Provider = harness === 'claude' ? 'anthropic' : (provider || 'opencode-zen');
   const defaults = defaultModels[providerKey];
 
-  const agents = (['scout', 'oracle', 'architect'] as const).map(name => ({
+  const agents = (['recon', 'oracle', 'architect'] as const).map(name => ({
     template: name,
     name,
     model: defaults[name],
@@ -94,8 +97,14 @@ export function getDefaultConfig(harness: Harness, provider?: Provider): Atelier
     agents,
   };
 
-  if (harness === 'opencode' && provider) {
-    config.provider = provider;
+  if (harness === 'opencode') {
+    config.build_model = defaults.build;
+    config.plan_model = defaults.plan;
+    if (provider) {
+      config.provider = provider;
+    }
+  } else {
+    config.default_model = 'opusplan';
   }
 
   return config;

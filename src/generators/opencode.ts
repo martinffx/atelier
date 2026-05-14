@@ -52,18 +52,18 @@ function writeOpenCodeJson(config: AtelierConfig, basePath: string): void {
   const existing = readExistingOpenCodeJson(opencodeJsonPath);
   const isNew = Object.keys(existing).length === 0;
 
-  const scout = config.agents.find(a => a.name === 'scout');
+  const recon = config.agents.find(a => a.name === 'recon');
   const architect = config.agents.find(a => a.name === 'architect');
 
   const atelierFields: Record<string, unknown> = {
     agent: {
       build: {
         mode: 'primary',
-        model: scout?.model || 'opencode/deepseek-v4-flash',
+        model: config.build_model || recon?.model || 'opencode/deepseek-v4-flash',
       },
       plan: {
         mode: 'primary',
-        model: architect?.model || 'opencode/deepseek-v4-pro',
+        model: config.plan_model || architect?.model || 'opencode/deepseek-v4-pro',
       },
     },
   };

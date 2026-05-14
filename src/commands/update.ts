@@ -34,22 +34,54 @@ export async function update(basePath?: string): Promise<void> {
     ? (config.provider || 'opencode-zen')
     : 'anthropic';
   const harnessModels = getModelsForProvider(provider);
-  const agentNames = ['scout', 'oracle', 'architect'] as const;
+  const agentNames = ['recon', 'oracle', 'architect'] as const;
 
-  const prompts = agentNames.map((name) => {
+  const prompts: { type: 'list'; name: string; message: string; choices: readonly string[]; default: string }[] = [];
+
+  if (config.harness === 'opencode') {
+    const buildCurrent = config.build_model || harnessModels[0];
+    const planCurrent = config.plan_model || harnessModels[0];
+    prompts.push(
+      {
+        type: 'list' as const,
+        name: 'build_model',
+        message: `Select model for build (current: ${buildCurrent})`,
+        choices: harnessModels,
+        default: buildCurrent && harnessModels.includes(buildCurrent) ? buildCurrent : harnessModels[0],
+      },
+      {
+        type: 'list' as const,
+        name: 'plan_model',
+        message: `Select model for plan (current: ${planCurrent})`,
+        choices: harnessModels,
+        default: planCurrent && harnessModels.includes(planCurrent) ? planCurrent : harnessModels[0],
+      }
+    );
+  } else {
+    const currentDefault = config.default_model || 'opusplan';
+    prompts.push({
+      type: 'list' as const,
+      name: 'default_model',
+      message: `Select default model (current: ${currentDefault})`,
+      choices: harnessModels,
+      default: currentDefault,
+    });
+  }
+
+  for (const name of agentNames) {
     const agent = config!.agents.find(a => a.name === name);
     const currentModel = agent?.model;
     const defaultModel = currentModel && harnessModels.includes(currentModel)
       ? currentModel
       : harnessModels[0];
-    return {
+    prompts.push({
       type: 'list' as const,
       name,
       message: `Select model for ${name} (current: ${defaultModel})`,
       choices: harnessModels,
       default: defaultModel,
-    };
-  });
+    });
+  }
 
   const answers = await inquirer.prompt(prompts);
 
@@ -58,6 +90,13 @@ export async function update(basePath?: string): Promise<void> {
     if (agent) {
       agent.model = answers[name];
     }
+  }
+
+  if (config.harness === 'opencode') {
+    if (answers.build_model) config.build_model = answers.build_model as string;
+    if (answers.plan_model) config.plan_model = answers.plan_model as string;
+  } else {
+    if (answers.default_model) config.default_model = answers.default_model as string;
   }
 
   // Save updated config

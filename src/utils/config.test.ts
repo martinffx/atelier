@@ -23,7 +23,7 @@ describe('config', () => {
       skills_source: 'martinffx/atelier',
       skills_path: '~/.agents/skills/atelier',
       agents: [
-        { template: 'scout', name: 'scout', model: 'haiku' },
+        { template: 'recon', name: 'recon', model: 'haiku' },
         { template: 'oracle', name: 'oracle', model: 'opus' },
         { template: 'architect', name: 'architect', model: 'sonnet' },
       ],
@@ -73,8 +73,8 @@ describe('config', () => {
     expect(config.skills_source).toBe('martinffx/atelier');
     expect(config.agents).toHaveLength(3);
 
-    const scout = config.agents.find(a => a.name === 'scout');
-    expect(scout?.model).toBe('haiku');
+    const recon = config.agents.find(a => a.name === 'recon');
+    expect(recon?.model).toBe('haiku');
 
     const oracle = config.agents.find(a => a.name === 'oracle');
     expect(oracle?.model).toBe('opus');
@@ -91,8 +91,8 @@ describe('config', () => {
     expect(config.harness).toBe('opencode');
     expect(config.provider).toBe('opencode-zen');
 
-    const scout = config.agents.find(a => a.name === 'scout');
-    expect(scout?.model).toBe('opencode/deepseek-v4-flash');
+    const recon = config.agents.find(a => a.name === 'recon');
+    expect(recon?.model).toBe('opencode/deepseek-v4-flash');
 
     const oracle = config.agents.find(a => a.name === 'oracle');
     expect(oracle?.model).toBe('opencode/kimi-k2.6');
@@ -109,8 +109,8 @@ describe('config', () => {
     expect(config.harness).toBe('opencode');
     expect(config.provider).toBe('opencode-go');
 
-    const scout = config.agents.find(a => a.name === 'scout');
-    expect(scout?.model).toBe('opencode-go/deepseek-v4-flash');
+    const recon = config.agents.find(a => a.name === 'recon');
+    expect(recon?.model).toBe('opencode-go/deepseek-v4-flash');
 
     const oracle = config.agents.find(a => a.name === 'oracle');
     expect(oracle?.model).toBe('opencode-go/kimi-k2.6');
@@ -128,8 +128,8 @@ describe('config', () => {
     expect(config.provider).toBeUndefined();
 
     // Should use opencode-zen defaults
-    const scout = config.agents.find(a => a.name === 'scout');
-    expect(scout?.model).toBe('opencode/deepseek-v4-flash');
+    const recon = config.agents.find(a => a.name === 'recon');
+    expect(recon?.model).toBe('opencode/deepseek-v4-flash');
   });
 
   test('writeConfig creates parent directory if missing', async () => {
@@ -141,7 +141,7 @@ describe('config', () => {
       skills_source: 'martinffx/atelier',
       skills_path: '~/.agents/skills/atelier',
       agents: [
-        { template: 'scout', name: 'scout', model: 'haiku' },
+        { template: 'recon', name: 'recon', model: 'haiku' },
       ],
     };
 
