@@ -19,9 +19,9 @@
   ],
   "scripts": {
     "build": "bun build ./src/atelier.ts --outdir ./dist --target bun",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsgo --noEmit",
     "test": "bun test",
-    "changelog": "conventional-changelog -p conventionalcommits -i CHANGELOG.md -s",
+    "publish": "bun run build && npm publish",
     "prepare": "simple-git-hooks"
   },
   "simple-git-hooks": {
@@ -38,9 +38,7 @@
     "@commitlint/config-conventional": "^19.8.0",
     "@types/bun": "^1.3.13",
     "@types/node": "^22.14.1",
-    "conventional-changelog-cli": "^5.0.0",
-    "conventional-changelog-conventionalcommits": "^8.0.0",
     "simple-git-hooks": "^2.12.1",
-    "typescript": "^5.8.3"
+    "@typescript/native-preview": "^7.0.0-dev.20260514.1"
   }
 }

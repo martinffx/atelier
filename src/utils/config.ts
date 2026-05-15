@@ -1,11 +1,13 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
+import { homedir } from 'os';
 import { z } from 'zod';
 import type { AtelierConfig, Harness, Provider } from '../types.js';
 import { defaultModels, providers } from '../models.js';
 import { InvalidConfigError } from './errors.js';
 
 export const CONFIG_FILE = '.atelier/config.json';
+export const CONFIG_PATH = join(homedir(), CONFIG_FILE);
 const CURRENT_VERSION = '0.1.0';
 
 const AgentSchema = z.object({
