@@ -105,7 +105,7 @@ Check:
 1. Are all requirements from the task spec implemented?
 2. Is anything implemented that wasn't specified? (over-building)
 3. Do tests cover the specified acceptance criteria?
-4. Does the implementation match the design in spec.md?
+4. Does the implementation match the design in design.md?
 
 Report: List any gaps or extras. Mark ✅ if compliant, ❌ if not.
 ```
@@ -163,7 +163,7 @@ After subagents complete (especially parallel dispatch):
 1. **Read each summary** — understand what changed
 2. **Check for conflicts** — did any agents edit the same code?
 3. **Run full test suite** — verify all changes work together
-4. **Update beads** — mark tasks complete: `bd close <id>`
+4. **Update task tracking** — mark tasks complete: beads `bd close <id>`, or harness todo list
 
 If there are conflicts between parallel results, resolve them manually. Don't dispatch
 another subagent to merge — that requires too much context.
@@ -180,5 +180,5 @@ If a subagent fails a task:
 
 If failure reveals a design problem:
 
-> "This task is failing because [reason]. The design in spec.md may need to change.
-> Want me to go back to spec-research?"
+> "This task is failing because [reason]. The design in design.md may need to change.
+> Want me to go back to spec-brainstorm?"

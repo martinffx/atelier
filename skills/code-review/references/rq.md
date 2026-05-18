@@ -34,12 +34,12 @@ Capture the list of changed files and the full diff.
 
 **Purpose:** Analyze diff to determine context, select reviewers, identify skills to load.
 
-**Uses:** `clerk` agent (minimax-m2.5) - See [agents/clerk.md](../../agents/clerk.md)
+**Uses:** `scout` agent - See [agents/scout.md](../../agents/scout.md)
 
 ### Subagent Invocation
 
 ```yaml
-subagent_type: clerk
+subagent_type: scout
 description: "Triage diff for code review"
 prompt: |
   Analyze this code diff to determine review needs.
@@ -232,7 +232,7 @@ prompt: |
 
 **Purpose:** Review architecture-specific concerns.
 
-**Uses:** `architect` agent (kimi-k2.5) - See [agents/architect.md](../../agents/architect.md)
+**Uses:** `architect` agent - See [agents/architect.md](../../agents/architect.md)
 
 ### Subagent Invocation
 
@@ -285,7 +285,7 @@ prompt: |
 
 **Purpose:** Validate findings by challenging assumptions.
 
-**Uses:** `oracle` agent (glm-5) - See [agents/oracle.md](../../agents/oracle.md)
+**Uses:** `oracle` agent - See [agents/oracle.md](../../agents/oracle.md)
 
 ### Subagent Invocation
 
@@ -349,7 +349,7 @@ Display findings in terminal per [output.md](./output.md).
 | Step | Subagent | Uses | Parallel? | Purpose |
 |------|----------|------|----------|---------|
 | 1 | Get Diff | inline | — | `git diff <branch>` |
-| 2 | Triage | `clerk` agent | No | Detect context, select reviewers, identify skills |
+| 2 | Triage | `scout` agent | No | Detect context, select reviewers, identify skills |
 | 3 | Reviewers | `general` subagent | Yes (per reviewer) | Specialty analysis |
 | 4 | Synthesis | `general` subagent | No | Deduplicate and group |
 | 5 | Architect | `architect` agent | No | Architecture review |
