@@ -17,6 +17,9 @@
     "LICENSE",
     "CHANGELOG.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "bun build ./src/atelier.ts --outdir ./dist --target bun",
     "typecheck": "tsgo --noEmit",
