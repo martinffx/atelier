@@ -1,13 +1,19 @@
 {
   "name": "@martinffx/atelier",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Personal development toolkit - spec-driven development, code quality, deep thinking, and ecosystem patterns",
   "type": "module",
   "bin": {
     "atelier": "dist/atelier.js"
   },
   "repository": "github:martinffx/atelier",
-  "keywords": ["cli", "claude-code", "opencode", "ai-agents", "spec-driven-development"],
+  "keywords": [
+    "cli",
+    "claude-code",
+    "opencode",
+    "ai-agents",
+    "spec-driven-development"
+  ],
   "license": "MIT",
   "files": [
     "dist/",
