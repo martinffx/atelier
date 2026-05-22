@@ -5,7 +5,7 @@ description: >
   when there's an approved spec (design.md) and the next step is breaking it into implementable
   work. Trigger when the user says "write a plan", "plan this out", "break this down",
   "I added notes" (annotation cycle), or after spec-brainstorm completes. Also trigger for
-  "create tasks". Do NOT use for research (use spec-brainstorm) or
+  "create tasks" or "add to beads". Do NOT use for research (use spec-brainstorm) or
   execution (use spec-implement).
 user-invocable: true
 ---

@@ -105,7 +105,6 @@ bd update <task-id> --status in_progress
 Update the todo status to in_progress.
 
 ### For each task
-
 Read the task's **inputs** first — understand what context you need.
 Then read the **description** — know what to build and the constraints.
 
