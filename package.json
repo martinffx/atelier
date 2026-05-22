@@ -1,6 +1,44 @@
 {
-  "name": "atelier",
-  "version": "1.0.0",
+  "name": "@martinffx/atelier",
+  "version": "0.1.0",
   "description": "Personal development toolkit - spec-driven development, code quality, deep thinking, and ecosystem patterns",
-  "private": true
+  "type": "module",
+  "bin": {
+    "atelier": "dist/atelier.js"
+  },
+  "repository": "github:martinffx/atelier",
+  "keywords": ["cli", "claude-code", "opencode", "ai-agents", "spec-driven-development"],
+  "license": "MIT",
+  "files": [
+    "dist/",
+    "skills/",
+    "agents/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "bun build ./src/atelier.ts --outdir ./dist --target bun",
+    "typecheck": "tsgo --noEmit",
+    "test": "bun test",
+    "publish": "bun run build && npm publish",
+    "prepare": "simple-git-hooks"
+  },
+  "simple-git-hooks": {
+    "commit-msg": "npx --no -- commitlint --edit $1"
+  },
+  "dependencies": {
+    "commander": "^13.1.0",
+    "gray-matter": "^4.0.3",
+    "inquirer": "^12.5.2",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.0",
+    "@commitlint/config-conventional": "^19.8.0",
+    "@types/bun": "^1.3.13",
+    "@types/node": "^22.14.1",
+    "simple-git-hooks": "^2.12.1",
+    "@typescript/native-preview": "^7.0.0-dev.20260514.1"
+  }
 }

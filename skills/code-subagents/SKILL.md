@@ -163,7 +163,7 @@ After subagents complete (especially parallel dispatch):
 1. **Read each summary** — understand what changed
 2. **Check for conflicts** — did any agents edit the same code?
 3. **Run full test suite** — verify all changes work together
-4. **Update beads** — mark tasks complete: `bd close <id>`
+4. **Update task tracking** — mark tasks complete: beads `bd close <id>`, or harness todo list
 
 If there are conflicts between parallel results, resolve them manually. Don't dispatch
 another subagent to merge — that requires too much context.
