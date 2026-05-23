@@ -30,7 +30,6 @@
     "build": "bun build ./src/atelier.ts --outdir ./dist --target bun",
     "typecheck": "tsgo --noEmit",
     "test": "bun test",
-    "publish": "bun run build && npm publish",
     "prepare": "simple-git-hooks"
   },
   "simple-git-hooks": {
