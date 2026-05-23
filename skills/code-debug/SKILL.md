@@ -1,258 +1,190 @@
 ---
 name: code-debug
 description: >
-  Systematic debugging workflow and techniques. Use when something is broken, not working as
-  expected, or throwing errors. Covers reproduction, isolation, hypothesis formation, fix
-  implementation, and verification. Also triggers on "why does X fail", "debug this", "this
-  is broken", or when encountering errors or unexpected behavior.
+  Disciplined diagnosis loop for hard bugs and performance regressions.
+  Reproduce → minimise → hypothesise → instrument → fix → regression-test.
+  Use when user says "diagnose this" / "debug this", reports a bug, says
+  something is broken/throwing/failing, or describes a performance regression.
 user-invocable: true
 ---
 
 # Code Debug
 
-Systematic debugging workflow to find and fix bugs efficiently. Never guess — always
-narrow down the problem through systematic elimination.
+A discipline for hard bugs. Skip phases only when explicitly justified.
 
-## The Debugging Mindset
-
-| Bad | Good |
-|-----|------|
-| "I think it's..." | "Let me verify..." |
-| Changing random things | Binary search narrowing |
-| Hoping it'll work | Verifying each hypothesis |
-| Moving on after it works | Adding regression test |
-
-## The Five-Step Workflow
-
-### Step 1: Reproduce
-
-Create the smallest possible reproduction case.
-
-**Questions to answer:**
-- What exactly triggers the bug?
-- Can I make it happen on demand?
-- What's the minimal input that causes it?
-
-**Techniques:**
-- Extract exact steps from bug report
-- Remove unrelated factors
-- Create a minimal test case
-
-**Output:** "I can reproduce the bug by [exact steps]."
+When exploring the codebase, use the project's domain glossary to get a clear
+mental model of the relevant modules, and check ADRs in the area you're touching.
 
 ---
 
-### Step 2: Isolate
+## Phase 1 — Build a feedback loop
 
-Narrow down where the bug lives using binary search.
+**This is the skill.** Everything else is mechanical. If you have a fast,
+deterministic, agent-runnable pass/fail signal for the bug, you will find the
+cause — bisection, hypothesis-testing, and instrumentation all just consume
+that signal. If you don't have one, no amount of staring at code will save you.
 
-**Binary search strategies:**
-- Comment out half the code → does it still fail?
-- Isolate by layer: is it the UI, service, or data layer?
-- Isolate by file: which file contains the bug?
-- Isolate by function: which function causes the issue?
+Spend disproportionate effort here. **Be aggressive. Be creative. Refuse to
+give up.**
 
-**Git bisect** (for regression bugs):
-```bash
-git bisect start
-git bisect bad  # current commit is broken
-git bisect good <last-working-commit>
-# Run tests, mark good/bad
-git bisect reset  # done
-```
+### Ways to construct one — try them in roughly this order
 
-**Output:** "The bug is in [specific file/function/component]."
+1. **Failing test** at whatever seam reaches the bug — unit, integration, e2e.
+2. **Curl / HTTP script** against a running dev server.
+3. **CLI invocation** with a fixture input, diffing stdout against a known-good
+   snapshot.
+4. **Headless browser script** (Playwright / Puppeteer) — drives the UI,
+   asserts on DOM/console/network.
+5. **Replay a captured trace.** Save a real network request / payload / event
+   log to disk; replay it through the code path in isolation.
+6. **Throwaway harness.** Spin up a minimal subset of the system (one service,
+   mocked deps) that exercises the bug code path with a single function call.
+7. **Property / fuzz loop.** If the bug is "sometimes wrong output", run 1000
+   random inputs and look for the failure mode.
+8. **Bisection harness.** If the bug appeared between two known states (commit,
+   dataset, version), automate "boot at state X, check, repeat" so you can
+   `git bisect run` it.
+9. **Differential loop.** Run the same input through old-version vs new-version
+   (or two configs) and diff outputs.
+10. **HITL bash script.** Last resort. If a human must click, drive _them_ with
+    a structured script so the loop is still structured. Captured output feeds
+    back to you.
 
----
+Build the right feedback loop, and the bug is 90% fixed.
 
-### Step 3: Form Hypothesis
+### Iterate on the loop itself
 
-Make a testable guess about the root cause.
+Treat the loop as a product. Once you have _a_ loop, ask:
 
-**Good hypothesis:**
-- Specific: "The user ID is undefined because..."
-- Testable: Can verify with a test or log
-- Grounded: Based on evidence, not guess
+- Can I make it faster? (Cache setup, skip unrelated init, narrow the test scope.)
+- Can I make the signal sharper? (Assert on the specific symptom, not "didn't crash".)
+- Can I make it more deterministic? (Pin time, seed RNG, isolate filesystem, freeze network.)
 
-**Questions to ask:**
-- Why does this happen?
-- What are the preconditions?
-- What's the actual vs expected behavior?
-- What changed recently?
+A 30-second flaky loop is barely better than no loop. A 2-second deterministic
+loop is a debugging superpower.
 
-**Output:** "I hypothesize that [root cause] because [evidence]."
+### Non-deterministic bugs
 
----
+The goal is not a clean repro but a **higher reproduction rate**. Loop the
+trigger 100×, parallelise, add stress, narrow timing windows, inject sleeps.
+A 50%-flake bug is debuggable; 1% is not — keep raising the rate until it's
+debuggable.
 
-### Step 4: Fix
+### When you genuinely cannot build a loop
 
-Implement the fix based on your hypothesis.
+Stop and say so explicitly. List what you tried. Ask the user for:
+(a) access to whatever environment reproduces it,
+(b) a captured artifact (HAR file, log dump, core dump, screen recording with timestamps), or
+(c) permission to add temporary production instrumentation.
 
-**Rules:**
-- Make minimal changes
-- Don't refactor while fixing (separate concerns)
-- Write failing test first if possible
-- Consider edge cases
+Do **not** proceed to hypothesise without a loop.
 
-**Fix patterns:**
-- **Missing value** → Add null check or default
-- **Wrong value** → Correct the logic
-- **Exception** → Handle the error case
-- **Logic error** → Fix the condition
-
-**Output:** "Fix applied: [brief description]."
-
----
-
-### Step 5: Verify
-
-Confirm the fix works and doesn't break anything.
-
-**Verification steps:**
-1. Run the reproduction case → should pass now
-2. Run related tests → should pass
-3. Run full test suite → should pass
-4. Add regression test → prevents future breakage
-
-**Output:** "Fix verified. Tests passing. Regression test added."
+**Do not proceed to Phase 2 until you have a loop you believe in.**
 
 ---
 
-## Debugging Techniques
+## Phase 2 — Reproduce
 
-### Print Debugging
+Run the loop. Watch the bug appear.
 
-Quick and dirty, but sometimes the fastest way.
+Confirm:
 
-**When to use:**
-- Quick checks in development
-- When debugger isn't available
-- Understanding flow in unfamiliar code
+- [ ] The loop produces the failure mode the **user** described — not a different failure that happens to be nearby. Wrong bug = wrong fix.
+- [ ] The failure is reproducible across multiple runs (or, for non-deterministic bugs, reproducible at a high enough rate to debug against).
+- [ ] You have captured the exact symptom (error message, wrong output, slow timing) so later phases can verify the fix actually addresses it.
 
-**Best practices:**
-- Print at entry/exit of functions
-- Print variable values at key points
-- Remove print statements before committing
-- Consider structured logging instead
-
-### Debugger
-
-More powerful than print debugging.
-
-**When to use:**
-- Complex state to inspect
-- Stepping through logic
-- Evaluating expressions in context
-
-**See references/language-tools.md for language-specific debugger commands.**
-
-### Logging
-
-Better than print for production issues.
-
-**Strategies:**
-- Add context: request ID, user ID, correlation IDs
-- Log at appropriate levels: DEBUG, INFO, WARN, ERROR
-- Don't log sensitive data
-- Structured logging (JSON) for easier parsing
-
-**See references/techniques.md for logging patterns.**
-
-### Binary Search
-
-Halving the search space.
-
-**Strategies:**
-- Comment out code blocks
-- Test with half the data
-- Compare working vs broken configurations
-- Git bisect for regressions
-
-### Rubber Ducking
-
-Explain the problem out loud (or to a rubber duck).
-
-**Process:**
-1. Describe the problem in detail
-2. Explain what you expect to happen
-3. Explain what's actually happening
-4. Often the solution becomes clear mid-explanation
+**Do not proceed until you reproduce the bug.**
 
 ---
 
-## Common Bug Patterns
+## Phase 3 — Hypothesise
 
-### Null/Undefined Errors
+Generate **3–5 ranked hypotheses** before testing any of them. Single-hypothesis
+generation anchors on the first plausible idea.
 
-**Symptoms:** Cannot read property X of undefined
+Each hypothesis must be **falsifiable**: state the prediction it makes.
 
-**Debug approach:**
-1. Find where the value becomes undefined
-2. Trace back where it should come from
-3. Add guard or fix source
+> Format: "If `<X>` is the cause, then `<changing Y>` will make the bug disappear / `<changing Z>` will make it worse."
 
-**Fix patterns:**
-```javascript
-// Before
-const name = user.profile.name;
+If you cannot state the prediction, the hypothesis is a vibe — discard or sharpen it.
 
-// After
-const name = user?.profile?.name ?? 'Unknown';
-// or
-if (!user?.profile) return;
-const name = user.profile.name;
-```
-
-### Race Conditions
-
-**Symptoms:** Intermittent failures, flaky tests
-
-**Debug approach:**
-1. Identify async operations
-2. Find timing dependencies
-3. Add delays or force ordering
-
-**Fix patterns:**
-- Use async/await properly
-- Add proper synchronization
-- Consider immutable state
-
-### Logic Errors
-
-**Symptoms:** Wrong output, wrong behavior
-
-**Debug approach:**
-1. Trace through the logic manually
-2. Compare expected vs actual at each step
-3. Find the first step that diverges
-
-**Fix patterns:**
-- Fix the condition
-- Correct the calculation
-- Update the state correctly
-
-### Performance Issues
-
-**Symptoms:** Slow, memory leaks, timeouts
-
-**Debug approach:**
-1. Measure first (don't guess)
-2. Identify hot paths
-3. Optimize the bottleneck
+**Show the ranked list to the user before testing.** They often have domain
+knowledge that re-ranks instantly ("we just deployed a change to #3"), or know
+hypotheses they've already ruled out. Cheap checkpoint, big time saver. Don't
+block on it — proceed with your ranking if the user is AFK.
 
 ---
 
-## Skill Loading
+## Phase 4 — Instrument
 
-Check available skills for additional debugging support:
+Each probe must map to a specific prediction from Phase 3. **Change one variable
+at a time.**
 
-- If debugging tests → load oracle-testing
+Tool preference:
+
+1. **Debugger / REPL inspection** if the env supports it. One breakpoint beats ten logs.
+2. **Targeted logs** at the boundaries that distinguish hypotheses.
+3. Never "log everything and grep".
+
+**Tag every debug log** with a unique prefix, e.g. `[DEBUG-a4f2]`. Cleanup at
+the end becomes a single grep. Untagged logs survive; tagged logs die.
+
+**Perf branch.** For performance regressions, logs are usually wrong. Instead:
+establish a baseline measurement (timing harness, `performance.now()`, profiler,
+query plan), then bisect. Measure first, fix second.
 
 ---
+
+## Phase 5 — Fix + regression test
+
+Write the regression test **before the fix** — but only if there is a
+**correct seam** for it.
+
+A correct seam is one where the test exercises the **real bug pattern** as it
+occurs at the call site. If the only available seam is too shallow (single-caller
+test when the bug needs multiple callers, unit test that can't replicate the
+chain that triggered the bug), a regression test there gives false confidence.
+
+**If no correct seam exists, that itself is the finding.** Note it. The codebase
+architecture is preventing the bug from being locked down. Flag this for the
+next phase.
+
+If a correct seam exists:
+
+1. Turn the minimised repro into a failing test at that seam.
+2. Watch it fail.
+3. Apply the fix.
+4. Watch it pass.
+5. Re-run the Phase 1 feedback loop against the original (un-minimised) scenario.
+
+---
+
+## Phase 6 — Cleanup + post-mortem
+
+Required before declaring done:
+
+- [ ] Original repro no longer reproduces (re-run the Phase 1 loop)
+- [ ] Regression test passes (or absence of seam is documented)
+- [ ] All `[DEBUG-...]` instrumentation removed (`grep` the prefix)
+- [ ] Throwaway prototypes deleted (or moved to a clearly-marked debug location)
+- [ ] The hypothesis that turned out correct is stated in the commit / PR message — so the next debugger learns
+
+**Then ask: what would have prevented this bug?**
+
+If the answer involves architectural change (no good test seam, tangled callers,
+hidden coupling) flag this as a codebase health finding for the team.
+
+---
+
+## References
+
+- **Language-specific tools** → `references/language-tools.md`
+- **Common bug patterns** → `references/bug-patterns.md`
+- **Logging & techniques** → `references/techniques.md`
 
 ## Output Format
 
-After each debugging session, summarize:
+After each debugging session, summarise:
 
 ```
 ## Debug Summary
@@ -261,7 +193,7 @@ After each debugging session, summarize:
 **Root Cause:** [What actually was wrong]
 **Fix:** [How you fixed it]
 **Verification:** [Test results]
-**Prevention:** [Regression test added?]
+**Prevention:** [Regression test added? Architectural finding?]
 ```
 
 This helps future-you understand what happened.

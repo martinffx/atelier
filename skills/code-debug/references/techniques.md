@@ -13,8 +13,8 @@
 **Do:**
 - Print at function entry/exit to trace execution
 - Print variable values at key decision points
-- Use descriptive labels: console.log('userId:', userId)
-- Print full objects for inspection: console.log(JSON.stringify(data, null, 2))
+- Use descriptive labels: `console.log('userId:', userId)`
+- Print full objects for inspection: `console.log(JSON.stringify(data, null, 2))`
 
 **Don't:**
 - Leave print statements in production code
@@ -22,9 +22,25 @@
 - Over-print (noise obscures signal)
 - Print in tight loops (use breakpoints instead)
 
-### Structured Logging
+### Tagged Debug Logs
 
-Better than console.log for production:
+When instrumenting during a debugging session, tag every temporary log with a
+unique prefix so cleanup is trivial:
+
+```javascript
+console.log('[DEBUG-a4f2] userId:', userId);
+console.log('[DEBUG-a4f2] payload:', payload);
+```
+
+Cleanup: `grep -r '\[DEBUG-' .` → delete all matches.
+
+Untagged logs survive; tagged logs die.
+
+---
+
+## Structured Logging
+
+Better than `console.log` for production:
 
 ```javascript
 const logger = {
@@ -115,3 +131,27 @@ logger.error('Request failed', {
 | INFO | Normal operation events |
 | WARN | Something unexpected, but handled |
 | ERROR | Operation failed |
+
+---
+
+## Performance Regression Techniques
+
+### The Perf Branch
+
+For performance regressions, logs are usually wrong. Instead:
+
+1. **Establish a baseline measurement** using one of:
+   - Timing harness around the suspect code path
+   - `performance.now()` in browser / `process.hrtime()` in Node
+   - CPU profiler (Chrome DevTools, `node --prof`, py-spy, etc.)
+   - Database query planner (`EXPLAIN ANALYZE`)
+
+2. **Bisect** — narrow down which commit / change introduced the regression.
+
+3. **Measure first, fix second.** Do not optimise without data.
+
+### Hot Path Identification
+
+- Profile before guessing
+- Look for O(n²) algorithms, unnecessary renders, blocking operations
+- Check for N+1 queries, unbounded caches, recursive without memoisation
