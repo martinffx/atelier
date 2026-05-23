@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.0](https://github.com/martinffx/atelier/compare/v1.0.2...v1.1.0) (2026-05-23)
+
+
+### Features
+
+* **skills:** add oracle-grillme socratic interrogation skill ([6ad5ce5](https://github.com/martinffx/atelier/commit/6ad5ce52428863b51fec83880ce8083bb80aa3a0))
+* **skills:** add oracle-grillme socratic interrogation skill ([fd21606](https://github.com/martinffx/atelier/commit/fd2160639b82ba335963bec3128d9c6a5b5801b6))
+* **skills:** add PR creation workflow to code-commit ([25bb826](https://github.com/martinffx/atelier/commit/25bb8264364cb1c5ee843baea0127eaba3935c78))
+
 ## [1.0.2](https://github.com/martinffx/atelier/compare/v1.0.1...v1.0.2) (2026-05-23)
 
 
