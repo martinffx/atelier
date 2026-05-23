@@ -76,6 +76,21 @@ When user asks to validate or check a commit message:
 4. Check subject follows rules (lowercase, imperative, no period)
 5. Flag any issues found
 
+### 3. Create Pull Request
+
+When user wants to open a PR or after finishing commits on a feature branch:
+
+1. Verify on a feature branch (not main): `git branch --show-current`
+2. Check for project PR template: `ls .github/PULL_REQUEST_TEMPLATE.md`
+3. Push branch if needed: `git push -u origin <branch>`
+4. Create PR via `gh pr create`:
+   - Use `--fill` if commits are clean (auto-populates title/body)
+   - Use `--draft` for work-in-progress
+   - Use interactive mode if body needs custom content
+5. Show the PR URL to the user
+
+See [references/pr-workflow.md](references/pr-workflow.md) for full workflow details.
+
 ## Input Methods
 
 | Input | Action |
