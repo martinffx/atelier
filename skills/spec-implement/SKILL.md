@@ -117,7 +117,7 @@ criteria before writing implementation.
 3. Run them — verify they fail for the RIGHT reason
 4. Implement minimal code to make tests pass
 5. Refactor if needed (tests stay green)
-6. Commit (use code-conventional-commit for commit message)
+6. Commit (use code-commit for commit message)
 ```
 
 Do NOT write implementation before tests. Do NOT skip "verify it fails." Do NOT write

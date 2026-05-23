@@ -84,12 +84,10 @@ Use the Skill tool to invoke code-review skill for comprehensive code review.
 
 ## Step 3: Stack Commits
 
-Use the Skill tool to invoke code-stacked-commit skill.
-
 ### Workflow
-1. Review current stack: `gt stack`
+1. Review current commits: `git log --oneline`
 2. Ensure commits are organized logically
-3. Restack if needed: `gt branch restack`
+3. Rebase if needed: `git rebase -i <base-branch>`
 4. Ensure each commit is clean and functional
 
 ### Commit Guidelines
@@ -147,7 +145,6 @@ Optional - use code-docs skill if needed.
 This skill orchestrates other skills:
 
 - Invokes code-review for quality check
-- Invokes code-stacked-commit for commit management
 - Invokes code-docs if documentation needs updates
 
 ---

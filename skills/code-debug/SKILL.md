@@ -240,16 +240,12 @@ const name = user.profile.name;
 2. Identify hot paths
 3. Optimize the bottleneck
 
-**See code-perf skill for detailed performance debugging.**
-
 ---
 
 ## Skill Loading
 
 Check available skills for additional debugging support:
 
-- If dealing with performance issues → load code-perf
-- If security vulnerability suspected → load code-security
 - If debugging tests → load oracle-testing
 
 ---
