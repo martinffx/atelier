@@ -62,8 +62,7 @@ prompt: |
   4. **Identify skills to load** based on detected language/framework:
      - TypeScript → typescript-testing, typescript-fastify (if fastify framework)
      - Python → python-testing, python-fastapi (if fastapi framework)
-     - Security concerns → code-security
-     - Performance concerns → code-perf
+     
 
   Return ONLY valid JSON (no markdown, no code blocks):
   {
@@ -73,7 +72,7 @@ prompt: |
       "domain": "web-api|frontend|database|..."
     },
     "reviewers": ["Security", "Correctness"],
-    "skills_to_load": ["typescript-testing", "code-security"]
+    "skills_to_load": ["typescript-testing"]
   }
 ```
 
@@ -83,7 +82,7 @@ prompt: |
 {
   "context": { "language": "typescript", "framework": "fastify", "domain": "web-api" },
   "reviewers": ["Security", "Correctness", "PerformanceOperator"],
-  "skills_to_load": ["typescript-testing", "code-security"]
+  "skills_to_load": ["typescript-testing"]
 }
 ```
 
@@ -102,7 +101,7 @@ prompt: |
 Before dispatching reviewers, the detected skills are passed to each reviewer:
 ```json
 {
-  "skills_to_load": ["typescript-testing", "code-security"]
+  "skills_to_load": ["typescript-testing"]
 }
 ```
 

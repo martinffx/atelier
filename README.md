@@ -29,7 +29,7 @@ That's it. Your project is now configured for spec-driven development.
 
 Atelier sets up three things in your project:
 
-### 1. Skills (34 available)
+### 1. Skills (30 available)
 
 Specialized knowledge modules that auto-invoke based on context. Install them via the CLI (`--all` flag) or separately:
 
@@ -194,10 +194,6 @@ Task-specific tools you invoke when you need them.
 - `code-review` — Multi-agent code review with specialized reviewers
 - `code-debug` — Systematic debugging workflow
 - `code-docs` — README, API docs, changelog generation
-- `code-security` — Security audit and vulnerability detection
-- `code-perf` — Performance profiling and optimization
-- `code-git-worktrees` — Isolated git worktrees for feature work
-- `code-stacked-commit` — Manage stacked commits with Graphite
 - `code-subagents` — Dispatch patterns for parallel implementation
 
 Skills are auto-invoked based on their description when you work with relevant technologies. No commands needed—just install and AI agents will use them when appropriate.

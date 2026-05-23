@@ -97,8 +97,6 @@ Output findings in this format:
 - **Pre-existing**: Yes/No (check if existed before this PR)
 ```
 
-Loads: `code-security` (if exists)
-
 ---
 
 ### Performance Reviewer
@@ -127,8 +125,6 @@ Output findings in this format:
 - **Suggestion**: How to fix
 - **Pre-existing**: Yes/No
 ```
-
-Loads: `code-perf` (if exists)
 
 ---
 
@@ -532,8 +528,6 @@ Each reviewer should load relevant skills before reviewing:
 
 | Reviewer Type | Skills to Load |
 |---------------|----------------|
-| Security | `code-security` |
-| Performance | `code-perf` |
 | Correctness | Language-specific (`typescript-testing`, `python-testing`, etc.) |
 | Maintainability | Testing skills |
 | Architecture | `oracle-architect` |
@@ -580,10 +574,9 @@ prompt: |
 
   YOUR FIRST TASK - LOAD SKILLS:
   As a Security Reviewer, you should load relevant skills before reviewing:
-  1. Load `skill: code-security` - Use the `skill` tool
-  2. Load `skill: typescript-testing` (if available) - Use the `skill` tool
+  1. Load `skill: typescript-testing` (if available) - Use the `skill` tool
 
-  These skills contain security patterns and TypeScript testing guidance that will help you identify issues.
+  This skill contains TypeScript testing guidance that will help you identify issues.
 
   Focus areas after loading skills:
   - Authentication and authorization flaws
@@ -663,8 +656,7 @@ prompt: |
 
   YOUR FIRST TASK - LOAD SKILLS:
   As a PerformanceOperator Reviewer, you should load relevant skills before reviewing:
-  1. Load `skill: code-perf` (if available) - Use the `skill` tool
-  2. Load `skill: typescript-testing` (if available) - Use the `skill` tool
+  1. Load `skill: typescript-testing` (if available) - Use the `skill` tool
 
   Focus areas after loading skills:
   - Performance issues that matter in prod

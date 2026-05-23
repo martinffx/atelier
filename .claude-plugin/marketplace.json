@@ -92,11 +92,7 @@
         "./skills/code-debug",
         "./skills/code-subagents",
         "./skills/code-docs",
-        "./skills/code-git-worktrees",
-        "./skills/code-perf",
-        "./skills/code-review",
-        "./skills/code-security",
-        "./skills/code-stacked-commit"
+        "./skills/code-review"
       ]
     }
   ]
