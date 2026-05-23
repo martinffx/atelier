@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.2](https://github.com/martinffx/atelier/compare/v1.2.1...v1.2.2) (2026-05-23)
+
+
+### Bug Fixes
+
+* **skills:** remove user-invocable from code-docs ([beaaaee](https://github.com/martinffx/atelier/commit/beaaaee03d64955a3e8092d250cd4ab318c5d55d))
+* **skills:** remove user-invocable from code-docs ([00a2a82](https://github.com/martinffx/atelier/commit/00a2a82ce064bf0a88d2d13de796c4c7e120e472))
+
 ## [1.2.1](https://github.com/martinffx/atelier/compare/v1.2.0...v1.2.1) (2026-05-23)
 
 
