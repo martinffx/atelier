@@ -6,6 +6,24 @@ user-invocable: false
 
 # Architect Skill
 
+## Glossary
+
+Precise vocabulary for every architectural decision. Use these terms exactly — consistency is the point.
+
+- **Module** — anything with an interface and an implementation (function, class, package, layer). Router, Service, Entity, and Repository are all modules.
+- **Interface** — everything a caller must know to use the module: types, invariants, error modes, ordering, config. Not just the type signature.
+- **Seam** — where a module's interface lives; a place behaviour can be altered without editing in place. The functional core / effectful edge boundary is the primary seam.
+- **Depth** — leverage at the interface. A module is **deep** when a lot of behaviour sits behind a small interface. A module is **shallow** when the interface is nearly as complex as the implementation.
+- **Adapter** — a concrete thing satisfying an interface at a seam. A Postgres repository is an adapter; an in-memory fake for testing is another adapter at the same seam.
+- **Leverage** — what callers get from depth: more capability per unit of interface they learn.
+- **Locality** — what maintainers get from depth: change, bugs, and knowledge concentrate in one place.
+
+Key principles (apply to every decision):
+
+- **The deletion test.** Imagine deleting the module. If complexity vanishes, it was a pass-through. If complexity reappears across N callers, it was earning its keep.
+- **The interface is the test surface.** Callers and tests cross the same seam. If you want to test past the interface, the module is probably the wrong shape.
+- **One adapter = hypothetical seam. Two adapters = real seam.** Don't introduce a seam unless something actually varies across it.
+
 Domain-Driven Design and hexagonal architecture with functional core pattern for feature design.
 
 ## Architecture Model
@@ -24,6 +42,68 @@ Unified view of functional core and effectful edge:
 ```
 
 **Key Principle:** Business logic lives in the functional core (Service + Entity). IO operations live in the effectful edge. Core defines interfaces; edge implements them (dependency inversion).
+
+## Evaluating Architecture Decisions
+
+Before creating a new module, run these checks:
+
+### Deletion Test
+
+> *Imagine deleting the module. If complexity vanishes, it was a pass-through. If complexity reappears across N callers, it was earning its keep.*
+
+**When to apply:** Before extracting a new Service, Repository, or utility class.
+
+**Example:**
+```
+❌ Shallow: OrderFormatterService with 1 method per field
+   → Deleting it just moves 6 lines into the Router
+   → Interface is as complex as implementation
+
+✅ Deep: OrderService with validate → reserve → save → publish
+   → Deleting it replicates orchestration across N handlers
+   → Small interface (createOrder), large implementation
+```
+
+### Interface as Test Surface
+
+> *Callers and tests cross the same seam. If you want to test past the interface, the module is probably the wrong shape.*
+
+**Implication:**
+- Unit tests for Entities test the public interface (validate, transform)
+- Unit tests for Services test through the seam with stub repositories
+- Integration tests for Repositories test the actual adapter
+- If you find yourself testing "internal" methods, the module needs redrawing
+
+### Adapter Rule
+
+> *One adapter = hypothetical seam. Two adapters = real seam.*
+
+**When to apply:** Deciding whether to extract an interface.
+
+**Examples:**
+```typescript
+// ❌ Hypothetical seam — only one adapter exists
+interface IEmailClient { send(email: Email): Promise<void>; }
+class SendgridClient implements IEmailClient { ... }
+// No second adapter. The interface adds indirection without value.
+
+// ✅ Real seam — two adapters exist
+interface IOrderRepository { save(order: Order): Promise<Order>; }
+class PostgresOrderRepository implements IOrderRepository { ... }
+class InMemoryOrderRepository implements IOrderRepository { ... } // for tests
+// The seam earns its keep because callers vary (production vs test).
+```
+
+### Depth Check
+
+Prefer deep modules over shallow ones:
+
+| Module | Interface Size | Implementation | Depth |
+|--------|--------------|----------------|-------|
+| `OrderValidator` | 3 methods (validate, validateItems, validateAddress) | 30 lines each | Shallow |
+| `Order` (entity) | 4 methods (fromRequest, toRecord, toResponse, validate) | 200 lines of rules, transforms, invariants | **Deep** |
+
+**Rule of thumb:** A module's interface should hide at least 3x the complexity it exposes.
 
 ## Functional Core
 
@@ -241,6 +321,7 @@ The testing skill uses architectural structure to determine:
 
 For detailed patterns and examples:
 
-- **See [references/ddd-patterns.md](references/ddd-patterns.md)** - Aggregates, Value Objects, Domain Events, Bounded Contexts, composition patterns
+- **See [references/ddd-patterns.md](references/ddd-patterns.md)** - Aggregates, Value Objects, Domain Events, Bounded Contexts, composition patterns, seam placement
 - **See [references/data-modeling.md](references/data-modeling.md)** - Entity design principles, schema patterns, access pattern optimization, data transformation
 - **See [references/api-design.md](references/api-design.md)** - REST conventions, request/response contracts, error handling, versioning patterns
+- **See [references/interface-design.md](references/interface-design.md)** - Designing module interfaces, "Design It Twice" pattern, depth heuristics, dependency categories, anti-patterns
