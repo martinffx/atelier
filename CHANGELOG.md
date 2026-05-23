@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.2.0](https://github.com/martinffx/atelier/compare/v1.1.0...v1.2.0) (2026-05-23)
+
+
+### Features
+
+* **code-debug:** upgrade to six-phase diagnose workflow ([62dec10](https://github.com/martinffx/atelier/commit/62dec1045555947462a447f4579e83b0dee63d17))
+* **code-debug:** upgrade to six-phase diagnose workflow ([8df277d](https://github.com/martinffx/atelier/commit/8df277d425ca16dfa63a8bf1949003e3e6aaf87c))
+* **code-handoff:** add code-handoff skill ([5ab6f5f](https://github.com/martinffx/atelier/commit/5ab6f5f5d890b024718e3b69103b23c3eb1205ef))
+* **oracle-architect:** add vocabulary, evaluation heuristics, and interface design reference ([7c528d3](https://github.com/martinffx/atelier/commit/7c528d308ebc98929cfc6be17e8d5c7444b36607))
+* **oracle-architect:** add vocabulary, evaluation heuristics, and interface design reference ([63ee753](https://github.com/martinffx/atelier/commit/63ee75380c4d4be92708539173534566f2033dea))
+* **oracle-security:** add security architecture and threat modeling skill ([8fcbd87](https://github.com/martinffx/atelier/commit/8fcbd87943bcb23d51480ed9e9bd702f19817096))
+* **oracle-security:** add security architecture and threat modeling skill ([69b6fdc](https://github.com/martinffx/atelier/commit/69b6fdcdf1f2b7732fb339cbf1d64c1fb7252eb7))
+* **skills:** add code-handoff skill ([012f467](https://github.com/martinffx/atelier/commit/012f4676d48c7f6799361ca6bdfef12f33a8849e))
+* **skills:** add oracle-doubt skill ([adf118b](https://github.com/martinffx/atelier/commit/adf118be197da43195c9ddd052b53f8c714405b5))
+* **skills:** add oracle-doubt skill for adversarial review ([447673e](https://github.com/martinffx/atelier/commit/447673eb7904e4d28306360f64329f7874db5b2b))
+
 ## [1.1.0](https://github.com/martinffx/atelier/compare/v1.0.2...v1.1.0) (2026-05-23)
 
 
