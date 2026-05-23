@@ -98,7 +98,7 @@ function escapeShellArg(arg: string): string {
 }
 
 function writeHookScript(config: AtelierConfig, basePath: string): void {
-  const skillsPath = config.skills_path || '~/.agents/skills/atelier';
+  const skillsPath = config.skills_path || '~/.agents/skills';
   const safeSkillsPath = escapeShellArg(skillsPath);
 
   const script = `#!/bin/bash
@@ -107,8 +107,8 @@ function writeHookScript(config: AtelierConfig, basePath: string): void {
 
 SKILLS_DIR=${safeSkillsPath}
 
-if [ -d "$SKILLS_DIR/atelier" ]; then
-  echo '{"additionalContext": {"skillsDir": "'"$SKILLS_DIR"'/atelier"}}'
+if [ -d "$SKILLS_DIR" ]; then
+  echo '{"additionalContext": {"skillsDir": "'"$SKILLS_DIR"'}}'
 else
   echo '{"additionalContext": {}}'
 fi

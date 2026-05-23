@@ -31,7 +31,7 @@ function isHarness(value: string): value is Harness {
 }
 
 function getSkillsPath(project?: boolean): string {
-  return project ? './.agents/skills/atelier' : '~/.agents/skills/atelier';
+  return project ? './.agents/skills' : '~/.agents/skills';
 }
 
 function getConfigBasePath(options: InitOptions): string {

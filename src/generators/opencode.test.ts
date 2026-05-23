@@ -9,7 +9,7 @@ const testConfig = {
   version: '1.0.0' as const,
   harness: 'opencode' as const,
   skills_source: 'martinffx/atelier',
-  skills_path: '~/.agents/skills/atelier',
+  skills_path: '~/.agents/skills',
   agents: [
     { template: 'recon', name: 'recon', model: 'opencode/deepseek-v4-flash' },
     { template: 'oracle', name: 'oracle', model: 'opencode/kimi-k2.6' },
@@ -57,7 +57,7 @@ describe('generateOpenCode', () => {
     const plugin = readFileSync(pluginPath, 'utf-8');
 
     expect(plugin).toContain('skillsDir');
-    expect(plugin).toContain('"~/.agents/skills/atelier/atelier"');
+    expect(plugin).toContain('"~/.agents/skills"');
   });
 
   test('writes agent files with mode: subagent', async () => {
@@ -128,7 +128,7 @@ describe('generateOpenCode', () => {
 
     const configWithSkills = {
       ...testConfig,
-      skills_path: join(tempDir, 'skills', 'atelier', '..'),
+      skills_path: join(tempDir, 'skills', 'atelier'),
     };
     generateOpenCode(configWithSkills, tempDir);
 

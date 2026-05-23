@@ -9,7 +9,7 @@ const testConfig = {
   version: '1.0.0' as const,
   harness: 'claude' as const,
   skills_source: 'martinffx/atelier',
-  skills_path: '~/.agents/skills/atelier',
+  skills_path: '~/.agents/skills',
   agents: [
     { template: 'recon', name: 'recon', model: 'haiku' },
     { template: 'oracle', name: 'oracle', model: 'opus' },
@@ -55,8 +55,8 @@ describe('generateClaude', () => {
     const hookPath = join(tempDir, 'hooks/atelier-session-start');
     const script = readFileSync(hookPath, 'utf-8');
 
-    expect(script).toContain("SKILLS_DIR='~/.agents/skills/atelier'");
-    expect(script).toContain('atelier');
+    expect(script).toContain("SKILLS_DIR='~/.agents/skills'");
+    expect(script).toContain('skills');
   });
 
   test('hook script is executable', async () => {

@@ -114,8 +114,7 @@ function deepMerge(target: Record<string, unknown>, source: Record<string, unkno
 }
 
 function writePluginJs(config: AtelierConfig, basePath: string): void {
-  const skillsPath = config.skills_path || '~/.agents/skills/atelier';
-  const skillsDir = `${skillsPath}/atelier`;
+  const skillsDir = config.skills_path || '~/.agents/skills';
 
   const plugin = `export default {
   config: {
@@ -164,14 +163,12 @@ function writeCommandFiles(config: AtelierConfig, basePath: string): void {
     throw new FileWriteError(commandsDir, err instanceof Error ? err.message : String(err));
   }
 
-  let skillsBasePath = config.skills_path || '~/.agents/skills/atelier';
-  if (skillsBasePath.startsWith('~/')) {
-    skillsBasePath = join(homedir(), skillsBasePath.slice(2));
-  } else if (!skillsBasePath.startsWith('/')) {
-    skillsBasePath = join(process.cwd(), skillsBasePath);
+  let skillsDir = config.skills_path || '~/.agents/skills';
+  if (skillsDir.startsWith('~/')) {
+    skillsDir = join(homedir(), skillsDir.slice(2));
+  } else if (!skillsDir.startsWith('/')) {
+    skillsDir = join(process.cwd(), skillsDir);
   }
-
-  const skillsDir = join(skillsBasePath, 'atelier');
 
   if (!existsSync(skillsDir)) {
     return;
