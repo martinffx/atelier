@@ -4,7 +4,7 @@ description: >
   Documentation generation for code projects. Use when updating docs, writing README, generating
   API docs, creating changelog, or when the user mentions documentation, docs, readme, api docs,
   or any documentation task.
-user-invocable: true
+user-invocable: false
 ---
 
 # Code Docs
