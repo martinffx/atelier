@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.2](https://github.com/martinffx/atelier/compare/v1.0.1...v1.0.2) (2026-05-23)
+
+
+### Bug Fixes
+
+* **package:** remove publish script to prevent recursive npm publish ([cbb1420](https://github.com/martinffx/atelier/commit/cbb14200785f0bf73c6e9f60714e3bf774bac5dd))
+* **package:** remove publish script to prevent recursive npm publish in CI ([d2a62dc](https://github.com/martinffx/atelier/commit/d2a62dc3c40301abdf7ddfce86db71c60724b575))
+
 ## [1.0.1](https://github.com/martinffx/atelier/compare/v1.0.0...v1.0.1) (2026-05-23)
 
 
