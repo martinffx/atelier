@@ -160,6 +160,7 @@ Process skills come first. Knowledge skills get invoked by process skills when n
 **Deep Thinking** (6 skills)
 - `oracle-architect` - DDD patterns, component responsibilities
 - `oracle-challenge` - Critical thinking and challenging approaches
+- `oracle-doubt` - Adversarial review of non-trivial decisions with fresh-context scrutiny
 - `oracle-grillme` - Socratic interrogation of plans against domain model and documented decisions
 - `oracle-security` - Security architecture and threat modeling
 - `oracle-testing` - TDD patterns, boundary testing
