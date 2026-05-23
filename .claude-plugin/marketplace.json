@@ -88,7 +88,7 @@
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/code-conventional-commit",
+        "./skills/code-commit",
         "./skills/code-debug",
         "./skills/code-subagents",
         "./skills/code-docs",
