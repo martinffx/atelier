@@ -203,7 +203,7 @@ Updates hooks and agents. Does NOT touch skills (managed by `npx skills`).
 2. Re-fetch agent templates from GitHub
 3. Regenerate hook (in case template changed)
 4. Regenerate agent files from config
-5. Print: "Skills not updated. Run `npx skills update martinffx/atelier` if needed."
+5. Print: "Atelier updated (agents, hooks, and commands). Skills are managed separately. Run `npx skills update martinffx/atelier` to update skills."
 
 ### `remove`
 

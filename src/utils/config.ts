@@ -57,6 +57,11 @@ export function readConfig(path: string = CONFIG_PATH): AtelierConfig | null {
 
   const config = validateConfig(parsed);
 
+  // Migrate legacy skills_path from old default
+  if (config.skills_path === '~/.agents/skills/atelier') {
+    config.skills_path = '~/.agents/skills';
+  }
+
   const known = new Set(['recon', 'oracle', 'architect']);
   config.agents = config.agents.filter(a => known.has(a.template));
   for (const name of known) {
@@ -103,7 +108,7 @@ export function getDefaultConfig(harness: Harness, provider?: Provider): Atelier
     version: CURRENT_VERSION,
     harness,
     skills_source: 'martinffx/atelier',
-    skills_path: '~/.agents/skills/atelier',
+    skills_path: '~/.agents/skills',
     agents,
   };
 

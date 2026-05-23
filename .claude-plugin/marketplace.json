@@ -46,6 +46,9 @@
       "skills": [
         "./skills/oracle-architect",
         "./skills/oracle-challenge",
+        "./skills/oracle-doubt",
+        "./skills/oracle-grillme",
+        "./skills/oracle-security",
         "./skills/oracle-testing",
         "./skills/oracle-thinkdeep"
       ]
@@ -92,7 +95,8 @@
         "./skills/code-debug",
         "./skills/code-subagents",
         "./skills/code-docs",
-        "./skills/code-review"
+        "./skills/code-review",
+        "./skills/code-handoff"
       ]
     }
   ]

@@ -102,7 +102,7 @@ describe('init', () => {
     await init({ yes: true, harness: 'claude', project: true, cwd: tempDir });
 
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
-    expect(config.skills_path).toBe('./.agents/skills/atelier');
+    expect(config.skills_path).toBe('./.agents/skills');
   });
 });
 

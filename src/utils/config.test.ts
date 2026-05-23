@@ -21,7 +21,7 @@ describe('config', () => {
       version: '1.0.0' as const,
       harness: 'claude' as const,
       skills_source: 'martinffx/atelier',
-      skills_path: '~/.agents/skills/atelier',
+      skills_path: '~/.agents/skills',
       agents: [
         { template: 'recon', name: 'recon', model: 'haiku' },
         { template: 'oracle', name: 'oracle', model: 'opus' },
@@ -141,7 +141,7 @@ describe('config', () => {
       version: '1.0.0',
       harness: 'claude',
       skills_source: 'martinffx/atelier',
-      skills_path: '~/.agents/skills/atelier',
+      skills_path: '~/.agents/skills',
       agents: [
         { template: 'recon', name: 'recon', model: 'haiku' },
         { template: 'scout', name: 'scout', model: 'fast-model' },
@@ -157,6 +157,26 @@ describe('config', () => {
     expect(read?.agents.find(a => a.name === 'scout')).toBeUndefined();
   });
 
+  test('readConfig migrates legacy skills_path', async () => {
+    const { writeFileSync, mkdirSync } = await import('fs');
+    const { readConfig } = await import('./config.js');
+
+    mkdirSync(join(tempDir, '.atelier'), { recursive: true });
+    writeFileSync(join(tempDir, '.atelier/config.json'), JSON.stringify({
+      version: '1.0.0',
+      harness: 'claude',
+      skills_source: 'martinffx/atelier',
+      skills_path: '~/.agents/skills/atelier',
+      agents: [
+        { template: 'recon', name: 'recon', model: 'haiku' },
+      ],
+    }));
+
+    const read = readConfig(join(tempDir, '.atelier/config.json'));
+    expect(read).not.toBeNull();
+    expect(read?.skills_path).toBe('~/.agents/skills');
+  });
+
   test('writeConfig creates parent directory if missing', async () => {
     const { writeConfig, readConfig } = await import('./config.js');
 
@@ -164,7 +184,7 @@ describe('config', () => {
       version: '1.0.0' as const,
       harness: 'claude' as const,
       skills_source: 'martinffx/atelier',
-      skills_path: '~/.agents/skills/atelier',
+      skills_path: '~/.agents/skills',
       agents: [
         { template: 'recon', name: 'recon', model: 'haiku' },
       ],

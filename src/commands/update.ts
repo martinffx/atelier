@@ -138,8 +138,8 @@ export async function update(basePath?: string): Promise<void> {
     generateOpenCode(config, harnessBasePath);
   }
 
-  console.log('Atelier updated.');
-  console.log('Skills not updated. Run `npx skills update martinffx/atelier` if needed.');
+  console.log('Atelier updated (agents, hooks, and commands).');
+  console.log('Skills are managed separately. Run `npx skills update martinffx/atelier` to update skills.');
 }
 
 function buildFileList(config: AtelierConfig, basePath: string): { path: string; exists: boolean }[] {
