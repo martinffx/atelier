@@ -14,13 +14,13 @@ Install Atelier with a single command. It auto-detects your AI harness (Claude C
 
 ```bash
 # Initialize atelier in your project
-bunx atelier@latest init
+bunx @martinffx/atelier@latest init
 
 # Or install everything including skills
-bunx atelier@latest init --all
+bunx @martinffx/atelier@latest init --all
 
 # Non-interactive mode (CI/CD)
-bunx atelier@latest init --yes
+bunx @martinffx/atelier@latest init --yes
 ```
 
 That's it. Your project is now configured for spec-driven development.
@@ -93,7 +93,7 @@ Single source of truth in `.atelier/config.json`:
 Initialize atelier in the current project.
 
 ```bash
-bunx atelier@latest init [options]
+bunx @martinffx/atelier@latest init [options]
 ```
 
 **Options:**
@@ -109,7 +109,7 @@ bunx atelier@latest init [options]
 Refresh hooks and agents from the latest templates without touching skills:
 
 ```bash
-bunx atelier@latest update
+bunx @martinffx/atelier@latest update
 ```
 
 ### `remove`
@@ -117,7 +117,7 @@ bunx atelier@latest update
 Remove all atelier-generated files from the project:
 
 ```bash
-bunx atelier@latest remove
+bunx @martinffx/atelier@latest remove
 ```
 
 Skills remain installed. Run `npx skills remove martinffx/atelier` to remove them separately.
