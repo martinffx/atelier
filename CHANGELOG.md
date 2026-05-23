@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.1](https://github.com/martinffx/atelier/compare/v1.0.0...v1.0.1) (2026-05-23)
+
+
+### Bug Fixes
+
+* **ci:** resolve npm publish authentication failure ([7c57b85](https://github.com/martinffx/atelier/commit/7c57b8504e1f8045b9efeb7ccc5aebfb98e80050))
+* **ci:** resolve npm publish authentication failure in release workflow ([5e584bb](https://github.com/martinffx/atelier/commit/5e584bb7bea0f261152cc057dfab444e4c9c1402))
+
 ## 1.0.0 (2026-05-22)
 
 
