@@ -245,3 +245,104 @@ Bounded Context: "Orders"
 3. **Aggregate → Repository**: Service uses repository to persist aggregate
 4. **Service → Producer**: Service publishes domain events after state change
 5. **Consumer → Service**: Events from other contexts trigger service operations
+
+## Seam Placement
+
+Where you put the seam matters as much as what goes behind it.
+
+### Core/Edge Seam
+
+The primary seam runs between the functional core and the effectful edge:
+
+```
+┌─────────────────────────────────┐
+│  Functional Core (pure)         │
+│  ┌──────────────────────────┐   │
+│  │ OrderService             │   │
+│  │   createOrder() ────────┼───┼──▶ (seam)
+│  │   processPayment()       │   │
+│  └──────────────────────────┘   │
+└─────────────────────────────────┘
+              │
+              ▼ seam
+┌─────────────────────────────────┐
+│  Effectful Edge (IO)            │
+│  ┌──────────────────────────┐   │
+│  │ PostgresOrderRepository  │◀──┼── adapter
+│  │ HttpPaymentClient        │   │   adapter
+│  │ InMemoryOrderRepository  │   │   adapter (test)
+│  └──────────────────────────┘   │
+└─────────────────────────────────┘
+```
+
+**Rules:**
+- Core defines the interface; edge implements it (dependency inversion)
+- The seam must have **at least two adapters** to be real (production + test)
+- Core never imports edge code; edge imports core interfaces
+
+### Internal Seams
+
+A deep module can have **internal seams** — private to its implementation, used by its own tests:
+
+```typescript
+class Order {
+  // External seam (public interface)
+  validate(): Result<Order> { ... }
+
+  // Internal seam (private, tested directly)
+  private calculateTax(subtotal: number): Money { ... }
+}
+```
+
+Internal seams let you test complex logic without exposing it in the public interface.
+
+### When to Create a Seam
+
+Use the **adapter rule**: one adapter = hypothetical; two = real.
+
+| Scenario | Action |
+|----------|--------|
+| One database implementation, no test fake | No seam needed. Direct dependency is simpler. |
+| One database implementation, test fake exists | Extract interface. The fake is the second adapter. |
+| Multiple database implementations (Postgres + DynamoDB) | Extract interface. The implementations are the adapters. |
+| External API with one client | Direct dependency. Introduce seam only when you need a mock/stub for testing. |
+
+### Anti-Patterns
+
+**Seam at every dependency:**
+```typescript
+// ❌ Too many seams — every dependency gets an interface
+interface IValidator { ... }
+interface IFormatter { ... }
+interface IConverter { ... }
+// Each has one adapter. Indirection without value.
+```
+
+**No seam at the core/edge boundary:**
+```typescript
+// ❌ Core imports edge directly
+import { db } from '../edge/postgres';
+class OrderService {
+  async createOrder(req) {
+    await db.orders.create(...); // Core knows about Postgres
+  }
+}
+```
+
+**Leaky seam:**
+```typescript
+// ❌ Interface exposes implementation details
+interface OrderRepository {
+  queryRaw(sql: string): Promise<Row[]>; // Caller knows SQL
+  beginTransaction(): Promise<Transaction>; // Caller manages transactions
+}
+// The seam leaks. Callers become coupled to the database.
+```
+
+### Seam Placement Checklist
+
+Before introducing a new seam, verify:
+- [ ] At least two adapters will exist (production + test, or multiple production)
+- [ ] The interface hides implementation details (no SQL, no HTTP, no framework types)
+- [ ] The core doesn't import edge code
+- [ ] Deleting the module would re-appear complexity across N callers
