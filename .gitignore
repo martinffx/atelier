@@ -8,3 +8,6 @@ dist/
 *.db
 .beads-credential-key
 .beads/
+
+# Git worktrees
+.worktrees/
