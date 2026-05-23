@@ -29,7 +29,7 @@ That's it. Your project is now configured for spec-driven development.
 
 Atelier sets up three things in your project:
 
-### 1. Skills (30 available)
+### 1. Skills (34 available)
 
 Specialized knowledge modules that auto-invoke based on context. Install them via the CLI (`--all` flag) or separately:
 
@@ -160,6 +160,9 @@ Analytical skills that provide patterns, principles, and deep reasoning. These a
 
 - `oracle-architect` — DDD, hexagonal architecture, component design
 - `oracle-challenge` — Challenge assumptions, validate decisions
+- `oracle-doubt` — Adversarial review of non-trivial decisions
+- `oracle-grillme` — Socratic interrogation of plans against domain model
+- `oracle-security` — Security architecture and threat modeling
 - `oracle-testing` — Stub-driven TDD, layer boundary testing
 - `oracle-thinkdeep` — Extended sequential reasoning for complex problems
 
@@ -191,9 +194,11 @@ Technology-specific patterns and best practices. These are like having a senior 
 
 Task-specific tools you invoke when you need them.
 
-- `code-review` — Multi-agent code review with specialized reviewers
+- `code-commit` — Generate and validate conventional commits
 - `code-debug` — Systematic debugging workflow
 - `code-docs` — README, API docs, changelog generation
+- `code-handoff` — Compact conversation into handoff document
+- `code-review` — Multi-agent code review with specialized reviewers
 - `code-subagents` — Dispatch patterns for parallel implementation
 
 Skills are auto-invoked based on their description when you work with relevant technologies. No commands needed—just install and AI agents will use them when appropriate.

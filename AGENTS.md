@@ -4,7 +4,7 @@ This file provides guidance to AI agents when working with code in this reposito
 
 ## Repository Overview
 
-This is Atelier - a personal development toolkit with 31 skills for spec-driven development, deep thinking, code quality, and ecosystem patterns.
+This is Atelier - a personal development toolkit with 34 skills for spec-driven development, deep thinking, code quality, and ecosystem patterns.
 
 ## Skills Structure
 
@@ -157,7 +157,7 @@ Process skills come first. Knowledge skills get invoked by process skills when n
 - `spec-research` - Discovery + research + architecture → spec.md
 - `spec-orchestrator` - Skill routing and workflow orchestration
 
-**Deep Thinking** (6 skills)
+**Deep Thinking** (7 skills)
 - `oracle-architect` - DDD patterns, component responsibilities
 - `oracle-challenge` - Critical thinking and challenging approaches
 - `oracle-doubt` - Adversarial review of non-trivial decisions with fresh-context scrutiny
@@ -186,10 +186,11 @@ Process skills come first. Knowledge skills get invoked by process skills when n
 - `python-temporal` - Workflow orchestration, activities
 - `python-testing` - Stub-Driven TDD, layer boundary testing
 
-**Code Utilities** (5 skills)
+**Code Utilities** (6 skills)
 - `code-commit` - Generate and validate conventional commits
 - `code-debug` - Systematic debugging workflow and techniques
 - `code-docs` - Documentation generation for code projects
+- `code-handoff` - Compact conversation into handoff document for next agent
 - `code-review` - Multi-agent code review with parallel reviewers
 - `code-subagents` - Subagent dispatch patterns for implementation tasks
 
