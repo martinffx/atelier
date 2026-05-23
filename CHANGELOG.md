@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.2.1](https://github.com/martinffx/atelier/compare/v1.2.0...v1.2.1) (2026-05-23)
+
+
+### Bug Fixes
+
+* **cli:** correct skills directory path and add legacy config migration ([14f9611](https://github.com/martinffx/atelier/commit/14f9611bf4d8876844ef86ccc3fce55b203f2bed))
+* register missing skills in marketplace.json ([06da766](https://github.com/martinffx/atelier/commit/06da76647ed7c6721a2bc283f9bbd1c212b08456))
+* register missing skills in marketplace.json ([9f48099](https://github.com/martinffx/atelier/commit/9f48099e0be5de184c6200105e9b0b839fbcda1a))
+
 ## [1.2.0](https://github.com/martinffx/atelier/compare/v1.1.0...v1.2.0) (2026-05-23)
 
 
