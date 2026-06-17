@@ -34,12 +34,12 @@ Capture the list of changed files and the full diff.
 
 **Purpose:** Analyze diff to determine context, select reviewers, identify skills to load.
 
-**Uses:** `scout` agent - See [agents/scout.md](../../agents/scout.md)
+**Uses:** `recon` agent.
 
 ### Subagent Invocation
 
 ```yaml
-subagent_type: scout
+subagent_type: recon
 description: "Triage diff for code review"
 prompt: |
   Analyze this code diff to determine review needs.
@@ -92,7 +92,9 @@ prompt: |
 
 **Purpose:** Each selected reviewer analyzes the code from their specialty perspective.
 
-**Uses:** `general` subagent - One per reviewer, dispatched concurrently
+**Uses:** `oracle` agent - One per reviewer, dispatched concurrently.
+
+Reviewer names are prompt personas, not subagent types. Do not use `general`, `Security`, `Correctness`, `PerformanceOperator`, or any other reviewer name as `subagent_type`.
 
 **Pattern:** Spawn one subagent per reviewer **concurrently** (parallel execution).
 
@@ -108,7 +110,7 @@ Before dispatching reviewers, the detected skills are passed to each reviewer:
 ### Subagent Invocation (One per Reviewer)
 
 ```yaml
-subagent_type: general
+subagent_type: oracle
 description: "Security review of code diff"
 prompt: |
   You are a Security Reviewer analyzing code for security vulnerabilities.
@@ -184,18 +186,13 @@ for reviewer in reviewers:
 
 ---
 
-## Step 4: Synthesis Subagent (First Pass)
+## Step 4: Synthesis First Pass
 
 **Purpose:** Group, deduplicate, and assign initial severity.
 
-**Uses:** `general` subagent
+**Uses:** Inline synthesis by the main agent.
 
-### Subagent Invocation
-
-```yaml
-subagent_type: general
-description: "Synthesize code review findings"
-prompt: |
+```markdown
   Synthesize these code review findings from multiple reviewers.
 
   RAW FINDINGS:
@@ -231,7 +228,7 @@ prompt: |
 
 **Purpose:** Review architecture-specific concerns.
 
-**Uses:** `architect` agent - See [agents/architect.md](../../agents/architect.md)
+**Uses:** `architect` agent.
 
 ### Subagent Invocation
 
@@ -284,7 +281,7 @@ prompt: |
 
 **Purpose:** Validate findings by challenging assumptions.
 
-**Uses:** `oracle` agent - See [agents/oracle.md](../../agents/oracle.md)
+**Uses:** `oracle` agent.
 
 ### Subagent Invocation
 
@@ -348,9 +345,9 @@ Display findings in terminal per [output.md](./output.md).
 | Step | Subagent | Uses | Parallel? | Purpose |
 |------|----------|------|----------|---------|
 | 1 | Get Diff | inline | — | `git diff <branch>` |
-| 2 | Triage | `scout` agent | No | Detect context, select reviewers, identify skills |
-| 3 | Reviewers | `general` subagent | Yes (per reviewer) | Specialty analysis |
-| 4 | Synthesis | `general` subagent | No | Deduplicate and group |
+| 2 | Triage | `recon` agent | No | Detect context, select reviewers, identify skills |
+| 3 | Reviewers | `oracle` agent | Yes (per reviewer) | Specialty analysis |
+| 4 | Synthesis | inline | No | Deduplicate and group |
 | 5 | Architect | `architect` agent | No | Architecture review |
 | 6 | Challenge | `oracle` agent | No | Validate findings |
 | 7 | Output | inline | — | Format and display findings |

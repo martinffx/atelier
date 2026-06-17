@@ -4,13 +4,15 @@
 
 All reviewers are dispatched as **parallel subagents** following [code-subagents](../../code-subagents/SKILL.md) patterns.
 
-**Uses:** `general` subagent - One per reviewer, dispatched concurrently
+**Uses:** `oracle` subagent - One per reviewer, dispatched concurrently.
+
+Reviewer names such as `Security`, `Correctness`, `Maintainability`, and `PerformanceOperator` are personas inside the prompt. They are not subagent types. Do not use `general`; it is not a harness agent.
 
 ### Task Tool Invocation Template
 
 ```yaml
 # Dispatch ONE subagent per selected reviewer
-subagent_type: general
+subagent_type: oracle
 description: "{ReviewerName} code review"
 prompt: |
   You are a {ReviewerName} analyzing code for {focus_area}.
@@ -557,7 +559,7 @@ Each subagent loads its own relevant skills before reviewing:
 
 **Security Reviewer:**
 ```yaml
-subagent_type: general
+subagent_type: oracle
 description: "Security review of PR"
 prompt: |
   You are a Security Reviewer analyzing code for security vulnerabilities.
@@ -603,7 +605,7 @@ prompt: |
 
 **Correctness Reviewer:**
 ```yaml
-subagent_type: general
+subagent_type: oracle
 description: "Correctness review of PR"
 prompt: |
   You are a Correctness Reviewer analyzing code for logic errors.
@@ -639,7 +641,7 @@ prompt: |
 
 **PerformanceOperator Reviewer:**
 ```yaml
-subagent_type: general
+subagent_type: oracle
 description: "Performance review of PR"
 prompt: |
   You are a Performance Operator - performance with production reality.
@@ -706,6 +708,6 @@ if not all_findings:
 
 1. **Parallel dispatch** — All reviewers run simultaneously
 2. **Fresh subagent per reviewer** — No context pollution between reviewers
-3. **Self-loading skills** — Each subagent loads its own relevant skills using the `skill` tool
+3. **Concrete harness agent** — Use `oracle` for reviewer personas; do not use reviewer names or `general` as `subagent_type`
 4. **Error isolation** — One reviewer failing doesn't block others
 5. **Structured output** — JSON format for easy aggregation
