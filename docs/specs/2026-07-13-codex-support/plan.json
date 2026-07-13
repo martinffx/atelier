@@ -1,0 +1,511 @@
+{
+  "feature": "codex-harness-multi-config-refactor",
+  "spec": "docs/specs/2026-07-13-codex-support/design.md",
+  "goal": "Add Codex as a third harness, refactor config to support multiple harnesses side-by-side, and remove all auto-detection so harness selection is always explicit.",
+  "phases": [
+    {
+      "id": "P1",
+      "name": "Domain Model & Types",
+      "tasks": [
+        {
+          "id": "T1",
+          "name": "Refactor types.ts for multi-harness config",
+          "depends_on": [],
+          "inputs": [
+            "Design.md TypeScript types section",
+            "Current AtelierConfig shape in src/types.ts"
+          ],
+          "description": "Add 'codex' to Harness. Introduce ClaudeConfig, CodexConfig, and OpenCodeConfig interfaces. Refactor AtelierConfig to contain optional harness-scoped sections and remove all top-level harness-specific fields.",
+          "files": {
+            "create": [],
+            "modify": ["src/types.ts"]
+          },
+          "validation": {
+            "tests": [
+              "Harness type accepts 'codex'",
+              "AtelierConfig has claude?, codex?, opencode? sections"
+            ],
+            "acceptance": [
+              "bun run typecheck passes",
+              "No top-level harness, provider, default_model, build_model, plan_model, or flat agents on AtelierConfig"
+            ]
+          }
+        },
+        {
+          "id": "T2",
+          "name": "Update models.ts with OpenAI provider",
+          "depends_on": ["T1"],
+          "inputs": [
+            "Design.md Model Registry section",
+            "Current provider/model arrays in src/models.ts"
+          ],
+          "description": "Add 'openai' to Provider and to providers, providerModels, and defaultModels. Remove backward-compatibility exports (claudModels, opencodeModels). Import Provider from types.ts to avoid duplication.",
+          "files": {
+            "create": [],
+            "modify": ["src/models.ts"]
+          },
+          "validation": {
+            "tests": [
+              "openai provider has default, recon, oracle, architect models",
+              "No claudModels or opencodeModels exports remain"
+            ],
+            "acceptance": [
+              "bun run typecheck passes",
+              "Provider type is imported from types.ts"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "name": "Utility Layer",
+      "tasks": [
+        {
+          "id": "T3",
+          "name": "Update errors.ts",
+          "depends_on": [],
+          "inputs": [
+            "Design.md constraints: explicit --harness, no auto-detection",
+            "Current error classes in src/utils/errors.ts"
+          ],
+          "description": "Replace HarnessNotDetectedError with HarnessRequiredError that explains --yes requires --harness. Update ConfigNotFoundError and InvalidConfigError messages to mention re-init with --harness.",
+          "files": {
+            "create": [],
+            "modify": ["src/utils/errors.ts"]
+          },
+          "validation": {
+            "tests": [
+              "HarnessRequiredError message lists claude, opencode, codex",
+              "InvalidConfigError message mentions re-init command"
+            ],
+            "acceptance": [
+              "bun run typecheck passes",
+              "No references to auto-detection in error messages"
+            ]
+          }
+        },
+        {
+          "id": "T4",
+          "name": "Delete detect.ts",
+          "depends_on": [],
+          "inputs": [
+            "Design.md: Remove all harness auto-detection"
+          ],
+          "description": "Delete the detection utility module and ensure no imports remain.",
+          "files": {
+            "create": [],
+            "modify": ["src/utils/detect.ts"]
+          },
+          "validation": {
+            "tests": [
+              "src/utils/detect.ts no longer exists"
+            ],
+            "acceptance": [
+              "grep shows no detectHarness or detect.ts imports"
+            ]
+          }
+        },
+        {
+          "id": "T5",
+          "name": "Refactor config.ts for harness-scoped schema",
+          "depends_on": ["T1", "T2"],
+          "inputs": [
+            "Design.md Config Schema and Multi-Harness Config Model",
+            "Current readConfig/writeConfig/getDefaultConfig in src/utils/config.ts"
+          ],
+          "description": "Introduce Zod schemas for ClaudeConfig, CodexConfig, and OpenCodeConfig. Refactor ConfigSchema to require at least one harness section. Detect old flat format by top-level 'harness' field and throw clear re-init error. Update getDefaultConfig to return a full AtelierConfig containing only the selected harness section plus shared fields.",
+          "files": {
+            "create": [],
+            "modify": ["src/utils/config.ts"]
+          },
+          "validation": {
+            "tests": [
+              "Old flat config throws clear re-init error",
+              "getDefaultConfig('codex') returns only codex section",
+              "Multi-harness config passes validation"
+            ],
+            "acceptance": [
+              "bun test src/utils/config.test.ts passes after updates"
+            ]
+          }
+        },
+        {
+          "id": "T6",
+          "name": "Add getDeveloperInstructions() to templates.ts",
+          "depends_on": ["T1"],
+          "inputs": [
+            "Design.md Agent TOML Generation section",
+            "Current readTemplate helper in src/utils/templates.ts"
+          ],
+          "description": "Add a helper that returns the markdown template body without YAML frontmatter for Codex developer_instructions. Remove or update backward-compat helpers.",
+          "files": {
+            "create": [],
+            "modify": ["src/utils/templates.ts"]
+          },
+          "validation": {
+            "tests": [
+              "getDeveloperInstructions('recon') returns body without frontmatter"
+            ],
+            "acceptance": [
+              "bun run typecheck passes",
+              "No references to deleted backward-compat exports"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P3",
+      "name": "Generator Layer",
+      "tasks": [
+        {
+          "id": "T7",
+          "name": "Update claude.ts for harness-scoped config",
+          "depends_on": ["T1", "T6"],
+          "inputs": [
+            "New ClaudeConfig type",
+            "Current generator implementation in src/generators/claude.ts"
+          ],
+          "description": "Change generateClaude to accept ClaudeConfig plus shared fields instead of the full AtelierConfig. No behavior change for generated files.",
+          "files": {
+            "create": [],
+            "modify": ["src/generators/claude.ts"]
+          },
+          "validation": {
+            "tests": [
+              "Generator accepts ClaudeConfig-shaped object"
+            ],
+            "acceptance": [
+              "bun test src/generators/claude.test.ts passes after updates",
+              "Generated .claude files match previous behavior"
+            ]
+          }
+        },
+        {
+          "id": "T8",
+          "name": "Update opencode.ts for harness-scoped config",
+          "depends_on": ["T1", "T6"],
+          "inputs": [
+            "New OpenCodeConfig type",
+            "Current generator implementation in src/generators/opencode.ts"
+          ],
+          "description": "Change generateOpenCode to accept OpenCodeConfig plus shared fields instead of the full AtelierConfig. No behavior change for generated files.",
+          "files": {
+            "create": [],
+            "modify": ["src/generators/opencode.ts"]
+          },
+          "validation": {
+            "tests": [
+              "Generator accepts OpenCodeConfig-shaped object"
+            ],
+            "acceptance": [
+              "bun test src/generators/opencode.test.ts passes after updates",
+              "Generated opencode files match previous behavior"
+            ]
+          }
+        },
+        {
+          "id": "T9",
+          "name": "Create codex.ts generator",
+          "depends_on": ["T1", "T2", "T6", "T19"],
+          "inputs": [
+            "Design.md Codex Agent Format and Config TOML Generation",
+            "smol-toml API",
+            "getDeveloperInstructions() helper"
+          ],
+          "description": "Implement generateCodex(config, basePath) that merges Atelier-managed keys into existing .codex/config.toml using smol-toml, and writes .codex/agents/{recon,oracle,architect}.toml with name, description, model, model_reasoning_effort, sandbox_mode, and developer_instructions.",
+          "files": {
+            "create": ["src/generators/codex.ts"],
+            "modify": []
+          },
+          "validation": {
+            "tests": [
+              ".codex/config.toml contains model, model_reasoning_effort, features.multi_agent, agents.max_threads, agents.max_depth",
+              "Existing .codex/config.toml keys are preserved"
+            ],
+            "acceptance": [
+              "bun run typecheck passes",
+              "Generated agent TOML files parse cleanly and contain required fields"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P4",
+      "name": "Command Layer",
+      "tasks": [
+        {
+          "id": "T10",
+          "name": "Update atelier.ts CLI entry",
+          "depends_on": ["T3"],
+          "inputs": [
+            "Design.md Commands section",
+            "Current commander setup in src/atelier.ts"
+          ],
+          "description": "Add --harness option to init, update, and remove commands. Update descriptions. Ensure --yes on init validates --harness before invoking init.",
+          "files": {
+            "create": [],
+            "modify": ["src/atelier.ts"]
+          },
+          "validation": {
+            "tests": [
+              "--help shows --harness on init, update, remove"
+            ],
+            "acceptance": [
+              "bun run typecheck passes",
+              "atelier init --yes without --harness throws before file IO"
+            ]
+          }
+        },
+        {
+          "id": "T11",
+          "name": "Rewrite init.ts for explicit harness + additive multi-harness",
+          "depends_on": ["T1", "T2", "T3", "T5", "T7", "T8", "T9", "T10"],
+          "inputs": [
+            "Design.md init behavior",
+            "New config/types/generators"
+          ],
+          "description": "Remove detection logic. Validate --harness or show interactive picker with no default. If --yes without --harness, throw HarnessRequiredError. Read existing config; if old flat format, throw re-init error. Add/replace only the selected harness section. Prompt for models per harness. Generate files for selected harness only. Keep --all skills install behavior.",
+          "files": {
+            "create": [],
+            "modify": ["src/commands/init.ts"]
+          },
+          "validation": {
+            "tests": [
+              "atelier init --harness codex --yes generates Codex files",
+              "atelier init --harness claude --yes then init --harness codex --yes produces multi-harness config",
+              "atelier init --yes without --harness exits with clear error"
+            ],
+            "acceptance": [
+              "bun test src/commands/init.test.ts passes after updates"
+            ]
+          }
+        },
+        {
+          "id": "T12",
+          "name": "Rewrite update.ts for single-harness update",
+          "depends_on": ["T1", "T2", "T5", "T7", "T8", "T9", "T10"],
+          "inputs": [
+            "Design.md update behavior",
+            "New config/types/generators"
+          ],
+          "description": "Accept --harness option. Without it, prompt user to pick one configured harness from a single-select list. With --harness, update only that harness. Re-prompt for models and regenerate config and agent files for the selected harness, leaving other harnesses untouched.",
+          "files": {
+            "create": [],
+            "modify": ["src/commands/update.ts"]
+          },
+          "validation": {
+            "tests": [
+              "update --harness codex regenerates only .codex/ files",
+              "Without --harness, prompt lists only configured harnesses"
+            ],
+            "acceptance": [
+              "bun run typecheck passes",
+              "Other harness files remain untouched"
+            ]
+          }
+        },
+        {
+          "id": "T13",
+          "name": "Rewrite remove.ts for single-harness removal",
+          "depends_on": ["T1", "T2", "T5", "T10"],
+          "inputs": [
+            "Design.md remove behavior",
+            "New config shape"
+          ],
+          "description": "Accept --harness option. Without it, prompt user to pick one configured harness from a single-select list. With --harness, remove only that harness. Delete generated files for the selected harness and remove its section from .atelier/config.json. Leave other harness sections and files untouched. Do not delete .atelier/ if other harnesses remain.",
+          "files": {
+            "create": [],
+            "modify": ["src/commands/remove.ts"]
+          },
+          "validation": {
+            "tests": [
+              "remove --harness codex deletes only .codex/agents/*.toml and removes codex section",
+              ".atelier/config.json remains if other harnesses configured"
+            ],
+            "acceptance": [
+              "bun run typecheck passes",
+              "Other harness files remain untouched"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P5",
+      "name": "Tests",
+      "tasks": [
+        {
+          "id": "T14",
+          "name": "Update config.test.ts",
+          "depends_on": ["T5"],
+          "inputs": [
+            "New config schema",
+            "Existing test coverage in src/utils/config.test.ts"
+          ],
+          "description": "Update all test configs to harness-scoped shape. Add tests for old flat config error, getDefaultConfig('codex'), and reading/writing multi-harness config.",
+          "files": {
+            "create": [],
+            "modify": ["src/utils/config.test.ts"]
+          },
+          "validation": {
+            "tests": [
+              "Old flat config throws re-init error",
+              "getDefaultConfig('codex') returns codex defaults"
+            ],
+            "acceptance": [
+              "bun test src/utils/config.test.ts passes"
+            ]
+          }
+        },
+        {
+          "id": "T15",
+          "name": "Update generator tests for harness-scoped configs",
+          "depends_on": ["T7", "T8"],
+          "inputs": [
+            "New generator signatures",
+            "Existing claude.test.ts and opencode.test.ts"
+          ],
+          "description": "Update test fixtures to pass harness-scoped config objects. Keep assertion expectations for generated file content unchanged.",
+          "files": {
+            "create": [],
+            "modify": ["src/generators/claude.test.ts", "src/generators/opencode.test.ts"]
+          },
+          "validation": {
+            "tests": [
+              "claude.test.ts passes",
+              "opencode.test.ts passes"
+            ],
+            "acceptance": [
+              "bun test src/generators/claude.test.ts src/generators/opencode.test.ts passes"
+            ]
+          }
+        },
+        {
+          "id": "T16",
+          "name": "Update init.test.ts",
+          "depends_on": ["T11"],
+          "inputs": [
+            "New init behavior",
+            "Existing tests in src/commands/init.test.ts"
+          ],
+          "description": "Remove detect.js mock. Update tests to pass --harness. Add Codex init test, multi-harness additive init test, and update --yes without harness test for new error message.",
+          "files": {
+            "create": [],
+            "modify": ["src/commands/init.test.ts"]
+          },
+          "validation": {
+            "tests": [
+              "Codex init with --yes works",
+              "Multi-harness additive init works",
+              "--yes without --harness throws new error"
+            ],
+            "acceptance": [
+              "bun test src/commands/init.test.ts passes"
+            ]
+          }
+        },
+        {
+          "id": "T17",
+          "name": "Create codex.test.ts",
+          "depends_on": ["T9"],
+          "inputs": [
+            "Design.md Codex generation expectations",
+            "Layer boundary testing patterns"
+          ],
+          "description": "Test generateCodex creates .codex/config.toml with merged keys, creates agent TOML files with correct fields, and preserves existing .codex/config.toml content.",
+          "files": {
+            "create": ["src/generators/codex.test.ts"],
+            "modify": []
+          },
+          "validation": {
+            "tests": [
+              ".codex/config.toml has expected keys and preserves custom keys",
+              "Agent TOML files have required fields"
+            ],
+            "acceptance": [
+              "bun test src/generators/codex.test.ts passes"
+            ]
+          }
+        },
+        {
+          "id": "T18",
+          "name": "Add update/remove multi-harness tests",
+          "depends_on": ["T12", "T13"],
+          "inputs": [
+            "Design.md US-3 and US-4",
+            "New update/remove behavior"
+          ],
+          "description": "Add tests verifying update --harness codex and remove --harness codex only affect Codex files when Claude is also configured.",
+          "files": {
+            "create": ["src/commands/update-remove.test.ts"],
+            "modify": []
+          },
+          "validation": {
+            "tests": [
+              "update --harness codex leaves claude files untouched",
+              "remove --harness codex leaves claude files and config section untouched"
+            ],
+            "acceptance": [
+              "bun test src/commands/update-remove.test.ts passes"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P6",
+      "name": "Tooling & Quality",
+      "tasks": [
+        {
+          "id": "T19",
+          "name": "Add smol-toml dependency",
+          "depends_on": [],
+          "inputs": [
+            "Design.md new dependency note",
+            "package.json and bun.lock"
+          ],
+          "description": "Install smol-toml and update bun.lock.",
+          "files": {
+            "create": [],
+            "modify": ["package.json", "bun.lock"]
+          },
+          "validation": {
+            "tests": [
+              "smol-toml is listed in dependencies"
+            ],
+            "acceptance": [
+              "smol-toml import resolves in codex.ts",
+              "bun.lock updated"
+            ]
+          }
+        },
+        {
+          "id": "T20",
+          "name": "Final typecheck and test run",
+          "depends_on": ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12", "T13", "T14", "T15", "T16", "T17", "T18", "T19"],
+          "inputs": [
+            "All preceding tasks"
+          ],
+          "description": "Run bun run typecheck and bun test. Fix any remaining errors.",
+          "files": {
+            "create": [],
+            "modify": []
+          },
+          "validation": {
+            "tests": [
+              "typecheck exits 0",
+              "test suite exits 0"
+            ],
+            "acceptance": [
+              "bun run typecheck passes",
+              "bun test passes"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
