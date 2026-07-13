@@ -92,10 +92,10 @@ describe('config', () => {
     expect(config.provider).toBe('opencode-zen');
 
     const recon = config.agents.find(a => a.name === 'recon');
-    expect(recon?.model).toBe('opencode/minimax-m2.7');
+    expect(recon?.model).toBe('opencode/deepseek-v4-flash');
 
     const oracle = config.agents.find(a => a.name === 'oracle');
-    expect(oracle?.model).toBe('opencode/kimi-k2.6');
+    expect(oracle?.model).toBe('opencode/kimi-k2.7-code');
 
     const architect = config.agents.find(a => a.name === 'architect');
     expect(architect?.model).toBe('opencode/deepseek-v4-pro');
@@ -110,10 +110,10 @@ describe('config', () => {
     expect(config.provider).toBe('opencode-go');
 
     const recon = config.agents.find(a => a.name === 'recon');
-    expect(recon?.model).toBe('opencode-go/minimax-m2.7');
+    expect(recon?.model).toBe('opencode-go/deepseek-v4-flash');
 
     const oracle = config.agents.find(a => a.name === 'oracle');
-    expect(oracle?.model).toBe('opencode-go/kimi-k2.6');
+    expect(oracle?.model).toBe('opencode-go/kimi-k2.7-code');
 
     const architect = config.agents.find(a => a.name === 'architect');
     expect(architect?.model).toBe('opencode-go/deepseek-v4-pro');
@@ -129,7 +129,7 @@ describe('config', () => {
 
     // Should use opencode-zen defaults
     const recon = config.agents.find(a => a.name === 'recon');
-    expect(recon?.model).toBe('opencode/minimax-m2.7');
+    expect(recon?.model).toBe('opencode/deepseek-v4-flash');
   });
 
   test('readConfig filters out agents with unknown templates', async () => {
