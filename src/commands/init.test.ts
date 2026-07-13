@@ -80,7 +80,7 @@ describe('init', () => {
       build_model: 'opencode-go/deepseek-v4-flash',
       plan_model: 'opencode-go/deepseek-v4-pro',
       recon: 'opencode-go/deepseek-v4-flash',
-      oracle: 'opencode-go/kimi-k2.6',
+      oracle: 'opencode-go/kimi-k2.7-code',
       architect: 'opencode-go/deepseek-v4-pro',
       confirm: true,
     };
