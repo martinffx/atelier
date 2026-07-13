@@ -44,7 +44,7 @@ Reviewer names such as `Security`, `Correctness`, `Maintainability`, and `Perfor
 
 | Step | Parallel | Purpose |
 |------|----------|---------|
-| 1. Triage | No | Detect context, select reviewers, identify skills to load |
+| 1. Triage | No | Detect context, select reviewers, identify relevant skills to look for |
 | 2. Reviewers | Yes (per reviewer) | Specialty analysis using reviewer personas |
 | 3. Synthesis | No | Deduplicate findings inline |
 | 4. Architect | No | Architecture review |
@@ -60,7 +60,7 @@ Follows [code-subagents](../code-subagents/SKILL.md) patterns:
 - **Parallel dispatch** for independent reviewers
 - **Sequential dispatch** for dependent steps
 - **Fresh subagent per task** — no context pollution
-- **Skill loading pre-step** before each analysis phase
+- **Relevant skill search pre-step** before each analysis phase
 - **Error handling**: Log failures, continue with partial results
 
 ## Agent Dispatch
