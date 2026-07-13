@@ -4,13 +4,15 @@
 
 All reviewers are dispatched as **parallel subagents** following [code-subagents](../../code-subagents/SKILL.md) patterns.
 
-**Uses:** `general` subagent - One per reviewer, dispatched concurrently
+**Uses:** `oracle` subagent - One per reviewer, dispatched concurrently.
+
+Reviewer names such as `Security`, `Correctness`, `Maintainability`, and `PerformanceOperator` are personas inside the prompt. They are not subagent types. Do not use `general`; it is not a harness agent.
 
 ### Task Tool Invocation Template
 
 ```yaml
 # Dispatch ONE subagent per selected reviewer
-subagent_type: general
+subagent_type: oracle
 description: "{ReviewerName} code review"
 prompt: |
   You are a {ReviewerName} analyzing code for {focus_area}.
@@ -20,11 +22,13 @@ prompt: |
   - Framework: {framework}
   - Files changed: {files}
 
-  **PRE-STEP: Load Relevant Skills**
-  Before reviewing, load these skills:
+  **PRE-STEP: Look for Relevant Skills**
+  Before reviewing, look for relevant language, framework, testing, architecture, security, or tooling skills.
+  Load any relevant skills that are available:
   {skills_to_load}
 
-  Use the `skill` tool to load each skill.
+  If no relevant skill is available or a skill cannot be loaded, continue with this reviewer prompt.
+  Failure to find or load a skill is not a review failure.
 
   GIT DIFF:
   ```diff
@@ -155,7 +159,7 @@ Output findings in this format:
 - **Pre-existing**: Yes/No
 ```
 
-Loads: Language-specific skills (`typescript-testing`, `python-testing`, etc.)
+Loads: Look for relevant language-specific skills; load them if available.
 
 ---
 
@@ -186,7 +190,7 @@ Output findings in this format:
 - **Pre-existing**: Yes/No
 ```
 
-Loads: Testing skills, language-specific patterns
+Loads: Look for relevant testing and language-specific pattern skills; load them if available.
 
 ---
 
@@ -217,7 +221,102 @@ Output findings in this format:
 - **Pre-existing**: Yes/No
 ```
 
-Loads: `oracle-architect`, language architecture skills
+Loads: Look for relevant architecture and language architecture skills; load them if available.
+
+---
+
+## Language Reviewers
+
+### PythonLanguage Reviewer
+
+**Prompt Template:**
+```
+You are a Python Language Reviewer analyzing Python code for language-specific issues.
+
+Context:
+- Files: {files}
+- Git diff: {git_diff}
+- Loaded skills: {skills}
+
+Focus areas:
+- Type hints, generics, protocols, and runtime/type-checker mismatch
+- Async/sync boundary mistakes and blocking calls in async paths
+- Exception handling, resource cleanup, and context manager usage
+- Packaging, imports, dependency boundaries, and module layout
+- pytest coverage, fixtures, parametrization, and testability
+
+Output findings in this format:
+- **Location**: file:line
+- **Severity**: Critical/High/Medium/Low
+- **Issue**: What's wrong
+- **Impact**: What breaks or becomes harder to maintain
+- **Suggestion**: How to fix
+- **Pre-existing**: Yes/No
+```
+
+Loads: Look for relevant Python, framework, testing, architecture, security, or tooling skills; load them if available.
+
+---
+
+### RustLanguage Reviewer
+
+**Prompt Template:**
+```
+You are a Rust Language Reviewer analyzing Rust code for language-specific issues.
+
+Context:
+- Files: {files}
+- Git diff: {git_diff}
+- Loaded skills: {skills}
+
+Focus areas:
+- Ownership, borrowing, lifetimes, and unnecessary cloning
+- Result/Option handling, error context, and panic/unwrap/expect risk
+- Async, Send/Sync, cancellation, blocking calls, and concurrency safety
+- Trait design, API ergonomics, visibility, and module boundaries
+- Tests, property cases, feature flags, and crate/package conventions
+
+Output findings in this format:
+- **Location**: file:line
+- **Severity**: Critical/High/Medium/Low
+- **Issue**: What's wrong
+- **Impact**: What breaks or becomes harder to maintain
+- **Suggestion**: How to fix
+- **Pre-existing**: Yes/No
+```
+
+Loads: Look for relevant Rust, framework, testing, architecture, security, or tooling skills; load them if available.
+
+---
+
+### GoLanguage Reviewer
+
+**Prompt Template:**
+```
+You are a Go Language Reviewer analyzing Go code for language-specific issues.
+
+Context:
+- Files: {files}
+- Git diff: {git_diff}
+- Loaded skills: {skills}
+
+Focus areas:
+- Error handling, wrapping, sentinel errors, and ignored errors
+- context.Context propagation, cancellation, deadlines, and request scope
+- Goroutine lifecycle, channel safety, data races, and sync primitives
+- Interfaces, package boundaries, exported API shape, and naming conventions
+- Table tests, test helpers, race-sensitive behavior, and module layout
+
+Output findings in this format:
+- **Location**: file:line
+- **Severity**: Critical/High/Medium/Low
+- **Issue**: What's wrong
+- **Impact**: What breaks or becomes harder to maintain
+- **Suggestion**: How to fix
+- **Pre-existing**: Yes/No
+```
+
+Loads: Look for relevant Go, framework, testing, architecture, security, or tooling skills; load them if available.
 
 ---
 
@@ -251,7 +350,7 @@ Output findings in this format:
 - **Pre-existing**: Yes/No
 ```
 
-Loads: Language-specific lint/style skills
+Loads: Look for relevant language-specific lint/style skills; load them if available.
 
 ---
 
@@ -524,19 +623,19 @@ Output findings in this format:
 
 ## Skill Loading Guidelines
 
-Each reviewer should load relevant skills before reviewing:
+Each reviewer must look for relevant skills before reviewing. Load relevant skills if available; otherwise continue with the reviewer prompt. Failure to find or load a skill is not a review failure.
 
-| Reviewer Type | Skills to Load |
-|---------------|----------------|
-| Correctness | Language-specific (`typescript-testing`, `python-testing`, etc.) |
-| Maintainability | Testing skills |
-| Architecture | `oracle-architect` |
+| Reviewer Type | Skills to Look For |
+|---------------|--------------------|
+| Correctness | Language-specific and testing skills |
+| Maintainability | Testing, tooling, and language-specific pattern skills |
+| Architecture | Architecture and language architecture skills |
+| Language | Language, framework, testing, architecture, security, and tooling skills |
 | Pedant | Language-specific lint/style skills |
-| Skeptic | None (mindset-based) |
-| Archaeologist | None (context-based) |
-| Operator | None (experience-based) |
-| New Hire | None (fresh-eyes-based) |
-| Hybrid | Combine constituent reviewers' skills |
+| Security | Security, framework, and language-specific skills |
+| Performance | Performance, framework, and language-specific skills |
+| Mindset-based personas | Relevant skills if available; otherwise use reviewer prompt |
+| Hybrid | Skills relevant to each constituent reviewer |
 
 ---
 
@@ -553,11 +652,11 @@ Given triage output:
 
 ### Dispatch Reviewer Subagents (Parallel)
 
-Each subagent loads its own relevant skills before reviewing:
+Each subagent looks for its own relevant skills before reviewing and loads the available ones:
 
 **Security Reviewer:**
 ```yaml
-subagent_type: general
+subagent_type: oracle
 description: "Security review of PR"
 prompt: |
   You are a Security Reviewer analyzing code for security vulnerabilities.
@@ -572,13 +671,13 @@ prompt: |
   {paste diff here}
   ```
 
-  YOUR FIRST TASK - LOAD SKILLS:
-  As a Security Reviewer, you should load relevant skills before reviewing:
-  1. Load `skill: typescript-testing` (if available) - Use the `skill` tool
+  YOUR FIRST TASK - LOOK FOR RELEVANT SKILLS:
+  As a Security Reviewer, look for relevant language, framework, testing, architecture, security, or tooling skills before reviewing.
+  Load relevant skills if available, such as `typescript-testing`.
+  If no relevant skill is available or a skill cannot be loaded, continue with this reviewer prompt.
+  Failure to find or load a skill is not a review failure.
 
-  This skill contains TypeScript testing guidance that will help you identify issues.
-
-  Focus areas after loading skills:
+  Focus areas:
   - Authentication and authorization flaws
   - Injection vulnerabilities (SQL, command, XSS)
   - Secrets in code (API keys, passwords, tokens)
@@ -603,7 +702,7 @@ prompt: |
 
 **Correctness Reviewer:**
 ```yaml
-subagent_type: general
+subagent_type: oracle
 description: "Correctness review of PR"
 prompt: |
   You are a Correctness Reviewer analyzing code for logic errors.
@@ -618,13 +717,13 @@ prompt: |
   {paste diff here}
   ```
 
-  YOUR FIRST TASK - LOAD SKILLS:
-  As a Correctness Reviewer, you should load relevant skills before reviewing:
-  1. Load `skill: typescript-testing` - Use the `skill` tool
+  YOUR FIRST TASK - LOOK FOR RELEVANT SKILLS:
+  As a Correctness Reviewer, look for relevant language, framework, testing, architecture, security, or tooling skills before reviewing.
+  Load relevant skills if available, such as `typescript-testing`.
+  If no relevant skill is available or a skill cannot be loaded, continue with this reviewer prompt.
+  Failure to find or load a skill is not a review failure.
 
-  This skill contains TypeScript testing patterns and correctness guidance.
-
-  Focus areas after loading skills:
+  Focus areas:
   - Logic errors and edge cases
   - Error handling completeness
   - Type soundness
@@ -639,7 +738,7 @@ prompt: |
 
 **PerformanceOperator Reviewer:**
 ```yaml
-subagent_type: general
+subagent_type: oracle
 description: "Performance review of PR"
 prompt: |
   You are a Performance Operator - performance with production reality.
@@ -654,11 +753,13 @@ prompt: |
   {paste diff here}
   ```
 
-  YOUR FIRST TASK - LOAD SKILLS:
-  As a PerformanceOperator Reviewer, you should load relevant skills before reviewing:
-  1. Load `skill: typescript-testing` (if available) - Use the `skill` tool
+  YOUR FIRST TASK - LOOK FOR RELEVANT SKILLS:
+  As a PerformanceOperator Reviewer, look for relevant language, framework, testing, architecture, security, or tooling skills before reviewing.
+  Load relevant skills if available, such as `typescript-testing`.
+  If no relevant skill is available or a skill cannot be loaded, continue with this reviewer prompt.
+  Failure to find or load a skill is not a review failure.
 
-  Focus areas after loading skills:
+  Focus areas:
   - Performance issues that matter in prod
   - N+1 queries at scale
   - Memory leaks over time
@@ -706,6 +807,6 @@ if not all_findings:
 
 1. **Parallel dispatch** — All reviewers run simultaneously
 2. **Fresh subagent per reviewer** — No context pollution between reviewers
-3. **Self-loading skills** — Each subagent loads its own relevant skills using the `skill` tool
+3. **Concrete harness agent** — Use `oracle` for reviewer personas; do not use reviewer names or `general` as `subagent_type`
 4. **Error isolation** — One reviewer failing doesn't block others
 5. **Structured output** — JSON format for easy aggregation

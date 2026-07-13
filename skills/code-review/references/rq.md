@@ -4,7 +4,7 @@
 
 This workflow:
 1. Gets diff (git diff against target branch)
-2. Triage Subagent - Analyzes diff, selects reviewers, identifies skills to load
+2. Triage Subagent - Analyzes diff, selects reviewers, identifies relevant skills to look for
 3. Reviewer Subagents (parallel) - Each selected reviewer analyzes code
 4. Synthesis Subagent - Deduplicates findings
 5. Architect Subagent - Architecture review
@@ -32,14 +32,14 @@ Capture the list of changed files and the full diff.
 
 ## Step 2: Triage Subagent
 
-**Purpose:** Analyze diff to determine context, select reviewers, identify skills to load.
+**Purpose:** Analyze diff to determine context, select reviewers, identify relevant skills to look for.
 
-**Uses:** `scout` agent - See [agents/scout.md](../../agents/scout.md)
+**Uses:** `recon` agent.
 
 ### Subagent Invocation
 
 ```yaml
-subagent_type: scout
+subagent_type: recon
 description: "Triage diff for code review"
 prompt: |
   Analyze this code diff to determine review needs.
@@ -56,12 +56,21 @@ prompt: |
      - Correctness (logic, types, error handling)
      - Maintainability (naming, complexity, tests)
      - Architecture (boundaries, layers, SOLID)
+     - PythonLanguage (Python language, runtime, typing, packaging, tests)
+     - RustLanguage (Rust ownership, lifetimes, errors, async, API design)
+     - GoLanguage (Go errors, contexts, concurrency, interfaces, package layout)
      - SecuritySkeptic (security + failure scenarios)
      - PerformanceOperator (performance at scale)
      - MaintainabilityPedant (quality + precision)
-  4. **Identify skills to load** based on detected language/framework:
+  4. **Identify relevant skills to look for** based on detected language/framework:
+     - Reviewers must look for relevant language, framework, testing, architecture, security, or tooling skills before reviewing.
+     - Reviewers should load relevant skills that are available.
+     - If no relevant skill is available, reviewers continue with their reviewer prompt.
+     - Failure to find or load a skill is not a review failure.
      - TypeScript → typescript-testing, typescript-fastify (if fastify framework)
-     - Python → python-testing, python-fastapi (if fastapi framework)
+     - Python → python-modern-python, python-testing, python-fastapi (if fastapi framework)
+     - Rust → rust-specific skills if available
+     - Go → go-specific skills if available
      
 
   Return ONLY valid JSON (no markdown, no code blocks):
@@ -75,6 +84,8 @@ prompt: |
     "skills_to_load": ["typescript-testing"]
   }
 ```
+
+`skills_to_load` lists best-effort skill candidates for reviewers to look for and load if available. It does not make any skill mandatory.
 
 ### Expected Output
 
@@ -92,23 +103,27 @@ prompt: |
 
 **Purpose:** Each selected reviewer analyzes the code from their specialty perspective.
 
-**Uses:** `general` subagent - One per reviewer, dispatched concurrently
+**Uses:** `oracle` agent - One per reviewer, dispatched concurrently.
+
+Reviewer names are prompt personas, not subagent types. Do not use `general`, `Security`, `Correctness`, `PerformanceOperator`, or any other reviewer name as `subagent_type`.
 
 **Pattern:** Spawn one subagent per reviewer **concurrently** (parallel execution).
 
-### Skill Loading Pre-Step
+### Relevant Skill Search Pre-Step
 
-Before dispatching reviewers, the detected skills are passed to each reviewer:
+Before dispatching reviewers, the detected relevant skills are passed to each reviewer as best-effort guidance:
 ```json
 {
   "skills_to_load": ["typescript-testing"]
 }
 ```
 
+The `skills_to_load` field name is retained for compatibility. Treat it as optional guidance: reviewers must look for relevant skills, load the available ones, and continue if none are available.
+
 ### Subagent Invocation (One per Reviewer)
 
 ```yaml
-subagent_type: general
+subagent_type: oracle
 description: "Security review of code diff"
 prompt: |
   You are a Security Reviewer analyzing code for security vulnerabilities.
@@ -118,11 +133,13 @@ prompt: |
   - Framework: {framework}
   - Files: {files}
 
-  **PRE-STEP: Load Relevant Skills**
-  Before reviewing, load these skills:
+  **PRE-STEP: Look for Relevant Skills**
+  Before reviewing, look for relevant language, framework, testing, architecture, security, or tooling skills.
+  Load any relevant skills that are available:
   {skills_to_load}
 
-  Use the `skill` tool to load each skill.
+  If no relevant skill is available or a skill cannot be loaded, continue with this reviewer prompt.
+  Failure to find or load a skill is not a review failure.
 
   DIFF:
   {git_diff}
@@ -184,18 +201,13 @@ for reviewer in reviewers:
 
 ---
 
-## Step 4: Synthesis Subagent (First Pass)
+## Step 4: Synthesis First Pass
 
 **Purpose:** Group, deduplicate, and assign initial severity.
 
-**Uses:** `general` subagent
+**Uses:** Inline synthesis by the main agent.
 
-### Subagent Invocation
-
-```yaml
-subagent_type: general
-description: "Synthesize code review findings"
-prompt: |
+```markdown
   Synthesize these code review findings from multiple reviewers.
 
   RAW FINDINGS:
@@ -231,7 +243,7 @@ prompt: |
 
 **Purpose:** Review architecture-specific concerns.
 
-**Uses:** `architect` agent - See [agents/architect.md](../../agents/architect.md)
+**Uses:** `architect` agent.
 
 ### Subagent Invocation
 
@@ -249,9 +261,11 @@ prompt: |
   SYNTHESIZED FINDINGS:
   {synthesized_findings_json}
 
-  **PRE-STEP: Load Relevant Skills**
-  Before reviewing, load:
-  - Use `skill` tool to load: oracle-architect
+  **PRE-STEP: Look for Relevant Skills**
+  Before reviewing, look for relevant architecture and language architecture skills.
+  Load relevant skills if available, such as `oracle-architect`.
+  If no relevant skill is available or a skill cannot be loaded, continue with this architect prompt.
+  Failure to find or load a skill is not a review failure.
 
   Focus areas:
   - Boundary violations
@@ -284,7 +298,7 @@ prompt: |
 
 **Purpose:** Validate findings by challenging assumptions.
 
-**Uses:** `oracle` agent - See [agents/oracle.md](../../agents/oracle.md)
+**Uses:** `oracle` agent.
 
 ### Subagent Invocation
 
@@ -297,9 +311,11 @@ prompt: |
   ALL FINDINGS (includes synthesized + architecture):
   {all_findings_json}
 
-  **PRE-STEP: Load Relevant Skills**
-  Before challenging, load:
-  - Use `skill` tool to load: oracle-challenge
+  **PRE-STEP: Look for Relevant Skills**
+  Before challenging, look for relevant challenge, reasoning, architecture, security, language, or framework skills.
+  Load relevant skills if available, such as `oracle-challenge`.
+  If no relevant skill is available or a skill cannot be loaded, continue with this challenge prompt.
+  Failure to find or load a skill is not a review failure.
 
   For each flagged finding, use `mcp__sequential-thinking__sequentialthinking` to analyze:
   1. Is this handled elsewhere in the codebase?
@@ -348,9 +364,9 @@ Display findings in terminal per [output.md](./output.md).
 | Step | Subagent | Uses | Parallel? | Purpose |
 |------|----------|------|----------|---------|
 | 1 | Get Diff | inline | — | `git diff <branch>` |
-| 2 | Triage | `scout` agent | No | Detect context, select reviewers, identify skills |
-| 3 | Reviewers | `general` subagent | Yes (per reviewer) | Specialty analysis |
-| 4 | Synthesis | `general` subagent | No | Deduplicate and group |
+| 2 | Triage | `recon` agent | No | Detect context, select reviewers, identify relevant skills to look for |
+| 3 | Reviewers | `oracle` agent | Yes (per reviewer) | Specialty analysis |
+| 4 | Synthesis | inline | No | Deduplicate and group |
 | 5 | Architect | `architect` agent | No | Architecture review |
 | 6 | Challenge | `oracle` agent | No | Validate findings |
 | 7 | Output | inline | — | Format and display findings |
