@@ -11,3 +11,6 @@ dist/
 
 # Git worktrees
 .worktrees/
+
+# Beads / Dolt files (added by bd init)
+.beads/proxieddb/
