@@ -1,20 +1,11 @@
 import { writeFileSync, mkdirSync, readFileSync, chmodSync } from 'fs';
 import { join } from 'path';
-import { homedir } from 'os';
 import { readTemplate } from '../utils/templates.js';
 import type { AtelierConfig, ClaudeConfig } from '../types.js';
 
-type ClaudeGeneratorConfig = ClaudeConfig & Pick<AtelierConfig, 'version' | 'skills_source' | 'skills_path'>;
 import { FileWriteError } from '../utils/errors.js';
 
-function displayPath(basePath: string, relativePath: string): string {
-  const home = homedir();
-  const fullPath = join(basePath, relativePath);
-  if (fullPath === home || fullPath.startsWith(home + '/')) {
-    return '~' + fullPath.slice(home.length);
-  }
-  return relativePath;
-}
+type ClaudeGeneratorConfig = ClaudeConfig & Pick<AtelierConfig, 'version' | 'skills_source' | 'skills_path'>;
 
 export function generateClaude(config: ClaudeGeneratorConfig, basePath = process.cwd()): void {
   const claudeDir = join(basePath, '.claude');

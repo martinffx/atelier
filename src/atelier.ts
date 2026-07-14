@@ -14,11 +14,10 @@ program
 
 program
   .command('init', { isDefault: true })
-  .description('Initialize atelier in the current project')
+  .description('Initialize atelier globally')
   .option('--harness <type>', 'Harness type (claude, opencode, or codex)')
   .option('--all', 'Also install skills')
   .option('--yes', 'Non-interactive mode with defaults')
-  .option('--project', 'Install skills in project directory instead of global')
   .action((options) => {
     if (options.yes && !options.harness) {
       handleError(new HarnessRequiredError());

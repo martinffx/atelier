@@ -2,9 +2,9 @@ import { describe, test, expect, mock, beforeEach, afterEach } from 'bun:test';
 import { mkdtempSync, rmSync, existsSync, readFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import * as os from 'os';
 
 let inquirerAnswers: Record<string, unknown> = {};
-let mockDetectHarnessResult: string | null = null;
 
 // Hoisted mock: prevents interactive hangs during tests
 mock.module('inquirer', () => ({
@@ -13,8 +13,9 @@ mock.module('inquirer', () => ({
   },
 }));
 
-mock.module('../utils/detect.js', () => ({
-  detectHarness: () => mockDetectHarnessResult,
+mock.module('os', () => ({
+  ...os,
+  homedir: () => tempDir,
 }));
 
 import { init } from './init.js';
@@ -26,7 +27,6 @@ let tempDir: string;
 beforeEach(() => {
   tempDir = mkdtempSync(join(tmpdir(), 'atelier-update-remove-test-'));
   inquirerAnswers = {};
-  mockDetectHarnessResult = null;
 });
 
 afterEach(() => {
@@ -35,13 +35,12 @@ afterEach(() => {
 
 describe('update', () => {
   test('throws when no config exists', async () => {
-    await expect(update({ basePath: tempDir, harness: 'codex' })).rejects.toThrow('.atelier/config.json not found');
+    await expect(update({ harness: 'codex' })).rejects.toThrow('.atelier/config.json not found');
   });
 
   test('regenerates codex files without touching claude files', async () => {
-    mockDetectHarnessResult = 'claude';
-    await init({ yes: true, harness: 'claude', cwd: tempDir });
-    await init({ yes: true, harness: 'codex', cwd: tempDir });
+    await init({ yes: true, harness: 'claude' });
+    await init({ yes: true, harness: 'codex' });
 
     expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(true);
     expect(existsSync(join(tempDir, '.codex/config.toml'))).toBe(true);
@@ -60,7 +59,7 @@ describe('update', () => {
       architect: 'gpt-5.6-sol',
       confirm: true,
     };
-    await update({ basePath: tempDir, harness: 'codex' });
+    await update({ harness: 'codex' });
 
     expect(existsSync(join(tempDir, '.codex/agents/recon.toml'))).toBe(true);
     expect(existsSync(join(tempDir, '.codex/agents/oracle.toml'))).toBe(true);
@@ -74,18 +73,17 @@ describe('update', () => {
 
 describe('remove', () => {
   test('throws when no config exists', async () => {
-    await expect(remove({ basePath: tempDir, harness: 'codex' })).rejects.toThrow('.atelier/config.json not found');
+    await expect(remove({ harness: 'codex' })).rejects.toThrow('.atelier/config.json not found');
   });
 
   test('removes only codex files and section, leaving claude untouched', async () => {
-    mockDetectHarnessResult = 'claude';
-    await init({ yes: true, harness: 'claude', cwd: tempDir });
-    await init({ yes: true, harness: 'codex', cwd: tempDir });
+    await init({ yes: true, harness: 'claude' });
+    await init({ yes: true, harness: 'codex' });
 
     expect(existsSync(join(tempDir, '.claude'))).toBe(true);
     expect(existsSync(join(tempDir, '.codex/agents/recon.toml'))).toBe(true);
 
-    await remove({ basePath: tempDir, harness: 'codex' });
+    await remove({ harness: 'codex' });
 
     // Codex agent files removed
     expect(existsSync(join(tempDir, '.codex/agents/recon.toml'))).toBe(false);

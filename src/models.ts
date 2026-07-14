@@ -1,11 +1,5 @@
 import type { Provider } from './types.js';
 
-export const providers: Record<string, readonly Provider[]> = {
-  claude: ['anthropic'],
-  opencode: ['opencode-zen', 'opencode-go', 'amazon-bedrock'],
-  codex: ['openai'],
-} as const;
-
 export const providerModels: Record<Provider, readonly string[]> = {
   anthropic: ['haiku', 'sonnet', 'opus', 'opusplan'],
   'opencode-zen': [
@@ -90,13 +84,6 @@ export const defaultModels: Record<Provider, Record<string, string>> = {
     recon: 'gpt-5.6-luna',
     oracle: 'gpt-5.6-sol',
     architect: 'gpt-5.6-sol',
-    default: 'gpt-5.6-terra',
+    default_model: 'gpt-5.6-terra',
   },
 } as const;
-
-export type ModelName =
-  | (typeof providerModels.anthropic)[number]
-  | (typeof providerModels['opencode-zen'])[number]
-  | (typeof providerModels['opencode-go'])[number]
-  | (typeof providerModels['amazon-bedrock'])[number]
-  | (typeof providerModels.openai)[number];

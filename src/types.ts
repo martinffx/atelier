@@ -1,9 +1,12 @@
 export type Harness = 'claude' | 'opencode' | 'codex';
 export type Provider = 'anthropic' | 'opencode-zen' | 'opencode-go' | 'amazon-bedrock' | 'openai';
 
+export const AGENT_NAMES = ['recon', 'oracle', 'architect'] as const;
+export type AgentName = typeof AGENT_NAMES[number];
+
 export interface AgentConfig {
-  template: string;
-  name: string;
+  template: AgentName;
+  name: AgentName;
   model: string;
 }
 
@@ -31,8 +34,4 @@ export interface AtelierConfig {
   claude?: ClaudeConfig;
   codex?: CodexConfig;
   opencode?: OpenCodeConfig;
-}
-
-export interface ModelRegistry {
-  [key: string]: string[];
 }

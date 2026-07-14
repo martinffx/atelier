@@ -3,6 +3,7 @@ import { dirname, join } from 'path';
 import { homedir } from 'os';
 import { z } from 'zod';
 import type { AtelierConfig, Harness, Provider } from '../types.js';
+import { AGENT_NAMES } from '../types.js';
 import { defaultModels } from '../models.js';
 import { InvalidConfigError } from './errors.js';
 
@@ -11,8 +12,8 @@ export const CONFIG_PATH = join(homedir(), CONFIG_FILE);
 const CURRENT_VERSION = '0.1.0';
 
 const AgentSchema = z.object({
-  template: z.string(),
-  name: z.string(),
+  template: z.enum(AGENT_NAMES),
+  name: z.enum(AGENT_NAMES),
   model: z.string(),
 });
 
@@ -102,7 +103,7 @@ export function getDefaultConfig(harness: Harness, provider?: Provider): Atelier
     skills_path: '~/.agents/skills',
   };
 
-  const agents = (['recon', 'oracle', 'architect'] as const).map(name => ({
+  const agents = AGENT_NAMES.map(name => ({
     template: name,
     name,
     model: '',
@@ -124,7 +125,7 @@ export function getDefaultConfig(harness: Harness, provider?: Provider): Atelier
       return {
         ...shared,
         codex: {
-          default_model: defaults.default,
+          default_model: defaults.default_model,
           agents: agents.map(a => ({ ...a, model: defaults[a.name] })),
         },
       };
@@ -141,6 +142,10 @@ export function getDefaultConfig(harness: Harness, provider?: Provider): Atelier
           agents: agents.map(a => ({ ...a, model: defaults[a.name] })),
         },
       };
+    }
+    default: {
+      const _exhaustive: never = harness;
+      throw new InvalidConfigError(`Unknown harness: ${_exhaustive}`);
     }
   }
 }

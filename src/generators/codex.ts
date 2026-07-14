@@ -21,7 +21,7 @@ export function generateCodex(config: CodexGeneratorConfig, basePath = process.c
     writeConfigToml(config, codexDir);
     writeAgentFiles(config, agentsDir);
   } catch (err) {
-    throw new FileWriteError('generateCodex', err instanceof Error ? err.message : String(err));
+    throw new FileWriteError(codexDir, err instanceof Error ? err.message : String(err));
   }
 }
 

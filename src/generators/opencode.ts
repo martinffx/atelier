@@ -8,10 +8,12 @@ type OpenCodeGeneratorConfig = OpenCodeConfig & Pick<AtelierConfig, 'version' | 
 import { FileWriteError } from '../utils/errors.js';
 import matter from 'gray-matter';
 
-export const GLOBAL_OPENCODE_DIR = join(homedir(), '.config', 'opencode');
+export function getGlobalOpencodeDir(): string {
+  return join(homedir(), '.config', 'opencode');
+}
 
 function isGlobalOpencode(basePath: string): boolean {
-  return basePath === GLOBAL_OPENCODE_DIR;
+  return basePath === getGlobalOpencodeDir();
 }
 
 function getOpencodeRoot(basePath: string): string {
