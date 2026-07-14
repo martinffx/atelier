@@ -3,7 +3,7 @@ import { dirname, join } from 'path';
 import { homedir } from 'os';
 import { z } from 'zod';
 import type { AtelierConfig, Harness, Provider } from '../types.js';
-import { defaultModels, providers } from '../models.js';
+import { defaultModels } from '../models.js';
 import { InvalidConfigError } from './errors.js';
 
 export const CONFIG_FILE = '.atelier/config.json';
@@ -16,16 +16,32 @@ const AgentSchema = z.object({
   model: z.string(),
 });
 
+const ClaudeConfigSchema = z.object({
+  default_model: z.string(),
+  agents: z.array(AgentSchema).min(1),
+});
+
+const CodexConfigSchema = z.object({
+  default_model: z.string(),
+  agents: z.array(AgentSchema).min(1),
+});
+
+const OpenCodeConfigSchema = z.object({
+  provider: z.enum(['opencode-zen', 'opencode-go', 'amazon-bedrock']),
+  build_model: z.string(),
+  plan_model: z.string(),
+  agents: z.array(AgentSchema).min(1),
+});
+
 const ConfigSchema = z.object({
   version: z.string(),
-  harness: z.enum(['claude', 'opencode']),
-  provider: z.enum(['opencode-zen', 'opencode-go', 'amazon-bedrock']).optional(),
   skills_source: z.string(),
   skills_path: z.string().min(1),
-  agents: z.array(AgentSchema).min(1),
-  build_model: z.string().optional(),
-  plan_model: z.string().optional(),
-  default_model: z.string().optional(),
+  claude: ClaudeConfigSchema.optional(),
+  codex: CodexConfigSchema.optional(),
+  opencode: OpenCodeConfigSchema.optional(),
+}).refine(data => data.claude || data.codex || data.opencode, {
+  message: 'At least one harness must be configured',
 });
 
 export function validateConfig(config: unknown): AtelierConfig {
@@ -55,35 +71,20 @@ export function readConfig(path: string = CONFIG_PATH): AtelierConfig | null {
     throw new InvalidConfigError(`Invalid JSON in ${path}: ${err instanceof Error ? err.message : String(err)}`);
   }
 
-  const config = validateConfig(parsed);
-
-  // Migrate legacy skills_path from old default
-  if (config.skills_path === '~/.agents/skills/atelier') {
-    config.skills_path = '~/.agents/skills';
+  if (isOldFlatConfig(parsed)) {
+    throw new InvalidConfigError('Config format has changed. Run `atelier init --harness <claude|opencode|codex>` to reconfigure.');
   }
 
-  const known = new Set(['recon', 'oracle', 'architect']);
-  config.agents = config.agents.filter(a => known.has(a.template));
-  for (const name of known) {
-    if (!config.agents.find(a => a.template === name)) {
-      config.agents.push({ template: name, name, model: '' });
-    }
-  }
+  return validateConfig(parsed);
+}
 
-  // Validate provider/harness consistency
-  if (config.harness === 'opencode' && !config.provider) {
-    console.warn('Warning: OpenCode harness requires a provider. Defaulting to opencode-zen.');
-    config.provider = 'opencode-zen';
-  }
-  if (config.harness === 'claude' && config.provider) {
-    console.warn('Warning: Claude harness does not use providers. Ignoring provider field.');
-    delete (config as AtelierConfig & { provider?: Provider }).provider;
-  }
-  if (config.provider && !providers[config.harness]?.includes(config.provider)) {
-    console.warn(`Warning: Provider ${config.provider} is not valid for ${config.harness} harness.`);
-  }
-
-  return config;
+function isOldFlatConfig(config: unknown): boolean {
+  return (
+    typeof config === 'object' &&
+    config !== null &&
+    'harness' in config &&
+    typeof (config as Record<string, unknown>).harness === 'string'
+  );
 }
 
 export function writeConfig(config: AtelierConfig, path: string = CONFIG_PATH): void {
@@ -95,32 +96,51 @@ export function writeConfig(config: AtelierConfig, path: string = CONFIG_PATH): 
 }
 
 export function getDefaultConfig(harness: Harness, provider?: Provider): AtelierConfig {
-  const providerKey: Provider = harness === 'claude' ? 'anthropic' : (provider || 'opencode-zen');
-  const defaults = defaultModels[providerKey];
+  const shared = {
+    version: CURRENT_VERSION,
+    skills_source: 'martinffx/atelier',
+    skills_path: '~/.agents/skills',
+  };
 
   const agents = (['recon', 'oracle', 'architect'] as const).map(name => ({
     template: name,
     name,
-    model: defaults[name],
+    model: '',
   }));
 
-  const config: AtelierConfig = {
-    version: CURRENT_VERSION,
-    harness,
-    skills_source: 'martinffx/atelier',
-    skills_path: '~/.agents/skills',
-    agents,
-  };
-
-  if (harness === 'opencode') {
-    config.build_model = defaults.build;
-    config.plan_model = defaults.plan;
-    if (provider) {
-      config.provider = provider;
+  switch (harness) {
+    case 'claude': {
+      const defaults = defaultModels.anthropic;
+      return {
+        ...shared,
+        claude: {
+          default_model: 'opusplan',
+          agents: agents.map(a => ({ ...a, model: defaults[a.name] })),
+        },
+      };
     }
-  } else {
-    config.default_model = 'opusplan';
+    case 'codex': {
+      const defaults = defaultModels.openai;
+      return {
+        ...shared,
+        codex: {
+          default_model: defaults.default,
+          agents: agents.map(a => ({ ...a, model: defaults[a.name] })),
+        },
+      };
+    }
+    case 'opencode': {
+      const selectedProvider: Provider = provider || 'opencode-zen';
+      const defaults = defaultModels[selectedProvider];
+      return {
+        ...shared,
+        opencode: {
+          provider: selectedProvider,
+          build_model: defaults.build,
+          plan_model: defaults.plan,
+          agents: agents.map(a => ({ ...a, model: defaults[a.name] })),
+        },
+      };
+    }
   }
-
-  return config;
 }

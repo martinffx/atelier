@@ -2,7 +2,9 @@ import { writeFileSync, mkdirSync, readFileSync, existsSync, readdirSync } from 
 import { join } from 'path';
 import { homedir } from 'os';
 import { readTemplate } from '../utils/templates.js';
-import type { AtelierConfig } from '../types.js';
+import type { AtelierConfig, OpenCodeConfig } from '../types.js';
+
+type OpenCodeGeneratorConfig = OpenCodeConfig & Pick<AtelierConfig, 'version' | 'skills_source' | 'skills_path'>;
 import { FileWriteError } from '../utils/errors.js';
 import matter from 'gray-matter';
 
@@ -25,7 +27,7 @@ function displayPath(basePath: string, relativePath: string): string {
   return relativePath;
 }
 
-export function generateOpenCode(config: AtelierConfig, basePath = process.cwd()): void {
+export function generateOpenCode(config: OpenCodeGeneratorConfig, basePath = process.cwd()): void {
   const opencodeRoot = getOpencodeRoot(basePath);
   const agentsDir = join(opencodeRoot, 'agent');
   const pluginsDir = join(opencodeRoot, 'plugins');
@@ -47,7 +49,7 @@ export function generateOpenCode(config: AtelierConfig, basePath = process.cwd()
   }
 }
 
-function writeOpenCodeJson(config: AtelierConfig, basePath: string): void {
+function writeOpenCodeJson(config: OpenCodeGeneratorConfig, basePath: string): void {
   const opencodeJsonPath = join(basePath, 'opencode.json');
   const existing = readExistingOpenCodeJson(opencodeJsonPath);
   const isNew = Object.keys(existing).length === 0;
@@ -113,7 +115,7 @@ function deepMerge(target: Record<string, unknown>, source: Record<string, unkno
   return result;
 }
 
-function writePluginJs(config: AtelierConfig, basePath: string): void {
+function writePluginJs(config: OpenCodeGeneratorConfig, basePath: string): void {
   const skillsDir = config.skills_path || '~/.agents/skills';
 
   const plugin = `export default {
@@ -132,7 +134,7 @@ function writePluginJs(config: AtelierConfig, basePath: string): void {
   console.log(`Created ${displayPath(basePath, isGlobalOpencode(basePath) ? 'plugins/atelier.js' : '.opencode/plugins/atelier.js')}`);
 }
 
-function writeAgentFiles(config: AtelierConfig, basePath: string): void {
+function writeAgentFiles(config: OpenCodeGeneratorConfig, basePath: string): void {
   const opencodeRoot = getOpencodeRoot(basePath);
   const agentsDir = join(opencodeRoot, 'agent');
 
@@ -153,7 +155,7 @@ interface SkillFrontmatter {
   'user-invocable'?: boolean;
 }
 
-function writeCommandFiles(config: AtelierConfig, basePath: string): void {
+function writeCommandFiles(config: OpenCodeGeneratorConfig, basePath: string): void {
   const opencodeRoot = getOpencodeRoot(basePath);
   const commandsDir = join(opencodeRoot, 'command');
 

@@ -2,7 +2,9 @@ import { writeFileSync, mkdirSync, readFileSync, chmodSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 import { readTemplate } from '../utils/templates.js';
-import type { AtelierConfig } from '../types.js';
+import type { AtelierConfig, ClaudeConfig } from '../types.js';
+
+type ClaudeGeneratorConfig = ClaudeConfig & Pick<AtelierConfig, 'version' | 'skills_source' | 'skills_path'>;
 import { FileWriteError } from '../utils/errors.js';
 
 function displayPath(basePath: string, relativePath: string): string {
@@ -14,7 +16,7 @@ function displayPath(basePath: string, relativePath: string): string {
   return relativePath;
 }
 
-export function generateClaude(config: AtelierConfig, basePath = process.cwd()): void {
+export function generateClaude(config: ClaudeGeneratorConfig, basePath = process.cwd()): void {
   const claudeDir = join(basePath, '.claude');
   const agentsDir = join(claudeDir, 'agents');
   const hooksDir = join(basePath, 'hooks');
@@ -35,7 +37,7 @@ export function generateClaude(config: AtelierConfig, basePath = process.cwd()):
   }
 }
 
-function writeSettingsJson(config: AtelierConfig, basePath: string): void {
+function writeSettingsJson(config: ClaudeGeneratorConfig, basePath: string): void {
   const settingsPath = join(basePath, '.claude/settings.json');
   const existing = readExistingSettings(settingsPath);
   const isNew = Object.keys(existing).length === 0;
@@ -97,7 +99,7 @@ function escapeShellArg(arg: string): string {
   return `'${arg.replace(/'/g, "'\\''")}'`;
 }
 
-function writeHookScript(config: AtelierConfig, basePath: string): void {
+function writeHookScript(config: ClaudeGeneratorConfig, basePath: string): void {
   const skillsPath = config.skills_path || '~/.agents/skills';
   const safeSkillsPath = escapeShellArg(skillsPath);
 
@@ -120,7 +122,7 @@ fi
   console.log('Created hooks/atelier-session-start');
 }
 
-function writeAgentFiles(config: AtelierConfig, basePath: string): void {
+function writeAgentFiles(config: ClaudeGeneratorConfig, basePath: string): void {
   const agentsDir = join(basePath, '.claude/agents');
 
   for (const agent of config.agents) {
