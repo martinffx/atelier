@@ -1,8 +1,9 @@
-export type Provider = 'anthropic' | 'opencode-zen' | 'opencode-go' | 'amazon-bedrock';
+import type { Provider } from './types.js';
 
 export const providers: Record<string, readonly Provider[]> = {
   claude: ['anthropic'],
   opencode: ['opencode-zen', 'opencode-go', 'amazon-bedrock'],
+  codex: ['openai'],
 } as const;
 
 export const providerModels: Record<Provider, readonly string[]> = {
@@ -46,6 +47,16 @@ export const providerModels: Record<Provider, readonly string[]> = {
     'amazon-bedrock/anthropic-claude-haiku-4-5',
     'amazon-bedrock/anthropic-claude-opus-4-7',
   ],
+  openai: [
+    'gpt-5.6-sol',
+    'gpt-5.6-terra',
+    'gpt-5.6-luna',
+    'gpt-5.5',
+    'gpt-5.4',
+    'gpt-5.4-mini',
+    'gpt-5.4-nano',
+    'gpt-5.3-codex-spark',
+  ],
 } as const;
 
 export const defaultModels: Record<Provider, Record<string, string>> = {
@@ -75,18 +86,17 @@ export const defaultModels: Record<Provider, Record<string, string>> = {
     build: 'amazon-bedrock/anthropic-claude-sonnet-4-5',
     plan: 'amazon-bedrock/anthropic-claude-haiku-4-5',
   },
+  openai: {
+    recon: 'gpt-5.6-luna',
+    oracle: 'gpt-5.6-sol',
+    architect: 'gpt-5.6-sol',
+    default: 'gpt-5.6-terra',
+  },
 } as const;
-
-// Backward compatibility exports
-export const claudModels = providerModels.anthropic;
-export const opencodeModels = [
-  ...providerModels['opencode-zen'],
-  ...providerModels['opencode-go'],
-  ...providerModels['amazon-bedrock'],
-] as const;
 
 export type ModelName =
   | (typeof providerModels.anthropic)[number]
   | (typeof providerModels['opencode-zen'])[number]
   | (typeof providerModels['opencode-go'])[number]
-  | (typeof providerModels['amazon-bedrock'])[number];
+  | (typeof providerModels['amazon-bedrock'])[number]
+  | (typeof providerModels.openai)[number];

@@ -2,13 +2,12 @@ import { existsSync } from 'fs';
 import { execSync } from 'child_process';
 import { join } from 'path';
 import { homedir } from 'os';
-import { detectHarness } from '../utils/detect.js';
 import { GLOBAL_OPENCODE_DIR } from '../generators/opencode.js';
 import { readConfig, writeConfig, getDefaultConfig, validateConfig, CONFIG_FILE } from '../utils/config.js';
 import { generateClaude } from '../generators/claude.js';
 import { generateOpenCode } from '../generators/opencode.js';
 import { getModelsForProvider } from '../utils/templates.js';
-import { HarnessNotDetectedError, SkillsInstallError, handleError } from '../utils/errors.js';
+import { HarnessRequiredError, SkillsInstallError, handleError } from '../utils/errors.js';
 import inquirer from 'inquirer';
 import type { Harness, AtelierConfig, Provider } from '../types.js';
 
@@ -27,7 +26,7 @@ const providerChoices: { name: string; value: Provider }[] = [
 ];
 
 function isHarness(value: string): value is Harness {
-  return value === 'claude' || value === 'opencode';
+  return value === 'claude' || value === 'opencode' || value === 'codex';
 }
 
 function getSkillsPath(project?: boolean): string {
@@ -48,10 +47,10 @@ function getHarnessBasePath(harness: Harness, options: InitOptions): string {
 export async function init(options: InitOptions): Promise<void> {
   const harnessOption = options.harness;
   if (harnessOption !== undefined && !isHarness(harnessOption)) {
-    throw new HarnessNotDetectedError();
+    throw new HarnessRequiredError();
   }
 
-  let detected = detectHarness(harnessOption);
+  let detected: Harness | null = harnessOption && isHarness(harnessOption) ? harnessOption : null;
 
   if (!detected && !options.yes) {
     const { harness } = await inquirer.prompt([
@@ -59,15 +58,15 @@ export async function init(options: InitOptions): Promise<void> {
         type: 'list',
         name: 'harness',
         message: 'Which harness are you using?',
-        choices: ['opencode', 'claude'],
-        default: 'opencode',
+        choices: ['claude', 'opencode', 'codex'],
+        default: 'claude',
       },
     ]);
     detected = harness;
   }
 
   if (!detected) {
-    throw new HarnessNotDetectedError();
+    throw new HarnessRequiredError();
   }
 
   const configBasePath = getConfigBasePath(options);

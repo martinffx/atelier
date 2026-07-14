@@ -1,5 +1,5 @@
-export type Harness = 'claude' | 'opencode';
-export type Provider = 'anthropic' | 'opencode-zen' | 'opencode-go' | 'amazon-bedrock';
+export type Harness = 'claude' | 'opencode' | 'codex';
+export type Provider = 'anthropic' | 'opencode-zen' | 'opencode-go' | 'amazon-bedrock' | 'openai';
 
 export interface AgentConfig {
   template: string;
@@ -7,16 +7,30 @@ export interface AgentConfig {
   model: string;
 }
 
+export interface ClaudeConfig {
+  default_model: string;
+  agents: AgentConfig[];
+}
+
+export interface CodexConfig {
+  default_model: string;
+  agents: AgentConfig[];
+}
+
+export interface OpenCodeConfig {
+  provider: Provider;
+  build_model: string;
+  plan_model: string;
+  agents: AgentConfig[];
+}
+
 export interface AtelierConfig {
   version: string;
-  harness: Harness;
-  provider?: Provider;
   skills_source: string;
   skills_path: string;
-  agents: AgentConfig[];
-  build_model?: string;
-  plan_model?: string;
-  default_model?: string;
+  claude?: ClaudeConfig;
+  codex?: CodexConfig;
+  opencode?: OpenCodeConfig;
 }
 
 export interface ModelRegistry {
