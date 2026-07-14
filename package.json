@@ -11,6 +11,7 @@
     "cli",
     "claude-code",
     "opencode",
+    "codex",
     "ai-agents",
     "spec-driven-development"
   ],
@@ -19,6 +20,7 @@
     "dist/",
     "skills/",
     "agents/",
+    ".codex-plugin/",
     "README.md",
     "LICENSE",
     "CHANGELOG.md"
