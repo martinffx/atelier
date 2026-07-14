@@ -7,9 +7,11 @@ let tempDir: string;
 
 const testConfig = {
   version: '1.0.0' as const,
-  harness: 'opencode' as const,
   skills_source: 'martinffx/atelier',
   skills_path: '~/.agents/skills',
+  provider: 'opencode-zen' as const,
+  build_model: 'opencode/deepseek-v4-flash',
+  plan_model: 'opencode/deepseek-v4-pro',
   agents: [
     { template: 'recon', name: 'recon', model: 'opencode/deepseek-v4-flash' },
     { template: 'oracle', name: 'oracle', model: 'opencode/kimi-k2.6' },

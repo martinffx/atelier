@@ -19,14 +19,16 @@ describe('config', () => {
 
     const config = {
       version: '1.0.0' as const,
-      harness: 'claude' as const,
       skills_source: 'martinffx/atelier',
       skills_path: '~/.agents/skills',
-      agents: [
-        { template: 'recon', name: 'recon', model: 'haiku' },
-        { template: 'oracle', name: 'oracle', model: 'opus' },
-        { template: 'architect', name: 'architect', model: 'sonnet' },
-      ],
+      claude: {
+        default_model: 'opus',
+        agents: [
+          { template: 'recon', name: 'recon', model: 'haiku' },
+          { template: 'oracle', name: 'oracle', model: 'opus' },
+          { template: 'architect', name: 'architect', model: 'sonnet' },
+        ],
+      },
     };
 
     const configPath = join(tempDir, '.atelier/config.json');
@@ -58,9 +60,33 @@ describe('config', () => {
     const { readConfig } = await import('./config.js');
 
     const badConfigPath = join(tempDir, 'bad-structure.json');
-    writeFileSync(badConfigPath, JSON.stringify({ harness: 'invalid', agents: [] }));
+    writeFileSync(
+      badConfigPath,
+      JSON.stringify({ version: '1.0.0', skills_source: 'martinffx/atelier', skills_path: '~/.agents/skills' })
+    );
 
     expect(() => readConfig(badConfigPath)).toThrow('Invalid configuration');
+  });
+
+  test('readConfig throws re-init error for old flat config', async () => {
+    const { writeFileSync, mkdirSync } = await import('fs');
+    const { readConfig } = await import('./config.js');
+
+    mkdirSync(join(tempDir, '.atelier'), { recursive: true });
+    writeFileSync(
+      join(tempDir, '.atelier/config.json'),
+      JSON.stringify({
+        version: '1.0.0',
+        harness: 'claude',
+        skills_source: 'martinffx/atelier',
+        skills_path: '~/.agents/skills',
+        agents: [{ template: 'recon', name: 'recon', model: 'haiku' }],
+      })
+    );
+
+    expect(() => readConfig(join(tempDir, '.atelier/config.json'))).toThrow(
+      'Config format has changed. Run `atelier init --harness <claude|opencode|codex>` to reconfigure.'
+    );
   });
 
   test('getDefaultConfig returns valid config with default models for claude', async () => {
@@ -69,18 +95,38 @@ describe('config', () => {
     const config = getDefaultConfig('claude');
 
     expect(config.version).toBe('0.1.0');
-    expect(config.harness).toBe('claude');
     expect(config.skills_source).toBe('martinffx/atelier');
-    expect(config.agents).toHaveLength(3);
+    expect(config.claude).toBeDefined();
+    expect(config.claude?.default_model).toBe('opusplan');
+    expect(config.claude?.agents).toHaveLength(3);
 
-    const recon = config.agents.find(a => a.name === 'recon');
+    const recon = config.claude?.agents.find(a => a.name === 'recon');
     expect(recon?.model).toBe('haiku');
 
-    const oracle = config.agents.find(a => a.name === 'oracle');
+    const oracle = config.claude?.agents.find(a => a.name === 'oracle');
     expect(oracle?.model).toBe('opus');
 
-    const architect = config.agents.find(a => a.name === 'architect');
+    const architect = config.claude?.agents.find(a => a.name === 'architect');
     expect(architect?.model).toBe('opus');
+  });
+
+  test('getDefaultConfig returns valid config with default models for codex', async () => {
+    const { getDefaultConfig } = await import('./config.js');
+
+    const config = getDefaultConfig('codex');
+
+    expect(config.codex).toBeDefined();
+    expect(config.codex?.default_model).toBe('gpt-5.6-terra');
+    expect(config.codex?.agents).toHaveLength(3);
+
+    const recon = config.codex?.agents.find(a => a.name === 'recon');
+    expect(recon?.model).toBe('gpt-5.6-luna');
+
+    const oracle = config.codex?.agents.find(a => a.name === 'oracle');
+    expect(oracle?.model).toBe('gpt-5.6-sol');
+
+    const architect = config.codex?.agents.find(a => a.name === 'architect');
+    expect(architect?.model).toBe('gpt-5.6-sol');
   });
 
   test('getDefaultConfig returns valid config with default models for opencode zen', async () => {
@@ -88,16 +134,16 @@ describe('config', () => {
 
     const config = getDefaultConfig('opencode', 'opencode-zen');
 
-    expect(config.harness).toBe('opencode');
-    expect(config.provider).toBe('opencode-zen');
+    expect(config.opencode).toBeDefined();
+    expect(config.opencode?.provider).toBe('opencode-zen');
 
-    const recon = config.agents.find(a => a.name === 'recon');
+    const recon = config.opencode?.agents.find(a => a.name === 'recon');
     expect(recon?.model).toBe('opencode/minimax-m2.7');
 
-    const oracle = config.agents.find(a => a.name === 'oracle');
+    const oracle = config.opencode?.agents.find(a => a.name === 'oracle');
     expect(oracle?.model).toBe('opencode/kimi-k2.6');
 
-    const architect = config.agents.find(a => a.name === 'architect');
+    const architect = config.opencode?.agents.find(a => a.name === 'architect');
     expect(architect?.model).toBe('opencode/deepseek-v4-pro');
   });
 
@@ -106,16 +152,16 @@ describe('config', () => {
 
     const config = getDefaultConfig('opencode', 'opencode-go');
 
-    expect(config.harness).toBe('opencode');
-    expect(config.provider).toBe('opencode-go');
+    expect(config.opencode).toBeDefined();
+    expect(config.opencode?.provider).toBe('opencode-go');
 
-    const recon = config.agents.find(a => a.name === 'recon');
+    const recon = config.opencode?.agents.find(a => a.name === 'recon');
     expect(recon?.model).toBe('opencode-go/minimax-m2.7');
 
-    const oracle = config.agents.find(a => a.name === 'oracle');
+    const oracle = config.opencode?.agents.find(a => a.name === 'oracle');
     expect(oracle?.model).toBe('opencode-go/kimi-k2.6');
 
-    const architect = config.agents.find(a => a.name === 'architect');
+    const architect = config.opencode?.agents.find(a => a.name === 'architect');
     expect(architect?.model).toBe('opencode-go/deepseek-v4-pro');
   });
 
@@ -124,57 +170,46 @@ describe('config', () => {
 
     const config = getDefaultConfig('opencode');
 
-    expect(config.harness).toBe('opencode');
-    expect(config.provider).toBeUndefined();
+    expect(config.opencode).toBeDefined();
+    expect(config.opencode?.provider).toBe('opencode-zen');
 
-    // Should use opencode-zen defaults
-    const recon = config.agents.find(a => a.name === 'recon');
+    const recon = config.opencode?.agents.find(a => a.name === 'recon');
     expect(recon?.model).toBe('opencode/minimax-m2.7');
   });
 
-  test('readConfig filters out agents with unknown templates', async () => {
-    const { writeFileSync, mkdirSync } = await import('fs');
-    const { readConfig } = await import('./config.js');
+  test('writeConfig then readConfig returns matching multi-harness config', async () => {
+    const { writeConfig, readConfig } = await import('./config.js');
 
-    mkdirSync(join(tempDir, '.atelier'), { recursive: true });
-    writeFileSync(join(tempDir, '.atelier/config.json'), JSON.stringify({
-      version: '1.0.0',
-      harness: 'claude',
+    const config = {
+      version: '1.0.0' as const,
       skills_source: 'martinffx/atelier',
       skills_path: '~/.agents/skills',
-      agents: [
-        { template: 'recon', name: 'recon', model: 'haiku' },
-        { template: 'scout', name: 'scout', model: 'fast-model' },
-        { template: 'architect', name: 'architect', model: 'opus' },
-      ],
-    }));
+      claude: {
+        default_model: 'opus',
+        agents: [
+          { template: 'recon', name: 'recon', model: 'haiku' },
+          { template: 'oracle', name: 'oracle', model: 'opus' },
+          { template: 'architect', name: 'architect', model: 'sonnet' },
+        ],
+      },
+      codex: {
+        default_model: 'gpt-5.6-terra',
+        agents: [
+          { template: 'recon', name: 'recon', model: 'gpt-5.6-luna' },
+          { template: 'oracle', name: 'oracle', model: 'gpt-5.6-sol' },
+          { template: 'architect', name: 'architect', model: 'gpt-5.6-sol' },
+        ],
+      },
+    };
 
-    const read = readConfig(join(tempDir, '.atelier/config.json'));
-    expect(read).not.toBeNull();
-    expect(read?.agents).toHaveLength(3);
-    expect(read?.agents.find(a => a.name === 'recon')).toBeDefined();
-    expect(read?.agents.find(a => a.name === 'oracle')).toBeDefined();
-    expect(read?.agents.find(a => a.name === 'scout')).toBeUndefined();
-  });
+    const configPath = join(tempDir, '.atelier/config.json');
+    writeConfig(config, configPath);
 
-  test('readConfig migrates legacy skills_path', async () => {
-    const { writeFileSync, mkdirSync } = await import('fs');
-    const { readConfig } = await import('./config.js');
-
-    mkdirSync(join(tempDir, '.atelier'), { recursive: true });
-    writeFileSync(join(tempDir, '.atelier/config.json'), JSON.stringify({
-      version: '1.0.0',
-      harness: 'claude',
-      skills_source: 'martinffx/atelier',
-      skills_path: '~/.agents/skills/atelier',
-      agents: [
-        { template: 'recon', name: 'recon', model: 'haiku' },
-      ],
-    }));
-
-    const read = readConfig(join(tempDir, '.atelier/config.json'));
-    expect(read).not.toBeNull();
-    expect(read?.skills_path).toBe('~/.agents/skills');
+    const read = readConfig(configPath);
+    expect(read).toEqual(config);
+    expect(read?.claude).toBeDefined();
+    expect(read?.codex).toBeDefined();
+    expect(read?.opencode).toBeUndefined();
   });
 
   test('writeConfig creates parent directory if missing', async () => {
@@ -182,12 +217,12 @@ describe('config', () => {
 
     const config = {
       version: '1.0.0' as const,
-      harness: 'claude' as const,
       skills_source: 'martinffx/atelier',
       skills_path: '~/.agents/skills',
-      agents: [
-        { template: 'recon', name: 'recon', model: 'haiku' },
-      ],
+      claude: {
+        default_model: 'opus',
+        agents: [{ template: 'recon', name: 'recon', model: 'haiku' }],
+      },
     };
 
     const configPath = join(tempDir, '.atelier/nested/config.json');
@@ -195,6 +230,6 @@ describe('config', () => {
 
     const read = readConfig(configPath);
     expect(read).not.toBeNull();
-    expect(read?.harness).toBe('claude');
+    expect(read?.claude).toBeDefined();
   });
 });

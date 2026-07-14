@@ -4,17 +4,12 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 
 let inquirerAnswers: Record<string, unknown> = {};
-let mockDetectHarnessResult: string | null = null;
 
 // Hoisted mock: prevents interactive hangs during tests
 mock.module('inquirer', () => ({
   default: {
     prompt: async () => inquirerAnswers,
   },
-}));
-
-mock.module('../utils/detect.js', () => ({
-  detectHarness: () => mockDetectHarnessResult,
 }));
 
 import { init } from './init.js';
@@ -26,7 +21,6 @@ let tempDir: string;
 beforeEach(() => {
   tempDir = mkdtempSync(join(tmpdir(), 'atelier-init-test-'));
   inquirerAnswers = {};
-  mockDetectHarnessResult = null;
 });
 
 afterEach(() => {
@@ -35,7 +29,6 @@ afterEach(() => {
 
 describe('init', () => {
   test('creates claude config and files with --yes', async () => {
-    mockDetectHarnessResult = 'claude';
     await init({ yes: true, harness: 'claude', cwd: tempDir });
 
     expect(existsSync(join(tempDir, '.atelier/config.json'))).toBe(true);
@@ -46,13 +39,13 @@ describe('init', () => {
     expect(existsSync(join(tempDir, '.claude/agents/architect.md'))).toBe(true);
 
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
-    expect(config.harness).toBe('claude');
-    expect(config.provider).toBeUndefined();
-    expect(config.agents).toHaveLength(3);
+    expect(config.claude).toBeDefined();
+    expect(config.opencode).toBeUndefined();
+    expect(config.codex).toBeUndefined();
+    expect(config.claude.agents).toHaveLength(3);
   });
 
   test('creates opencode config and files with --yes', async () => {
-    mockDetectHarnessResult = 'opencode';
     await init({ yes: true, harness: 'opencode', cwd: tempDir });
 
     expect(existsSync(join(tempDir, '.atelier/config.json'))).toBe(true);
@@ -61,20 +54,49 @@ describe('init', () => {
     expect(existsSync(join(tempDir, '.opencode/agent/recon.md'))).toBe(true);
 
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
-    expect(config.harness).toBe('opencode');
-    expect(config.provider).toBe('opencode-zen');
+    expect(config.opencode).toBeDefined();
+    expect(config.opencode.provider).toBe('opencode-zen');
+  });
+
+  test('creates codex config and files with --yes', async () => {
+    await init({ yes: true, harness: 'codex', cwd: tempDir });
+
+    expect(existsSync(join(tempDir, '.atelier/config.json'))).toBe(true);
+    expect(existsSync(join(tempDir, '.codex/config.toml'))).toBe(true);
+    expect(existsSync(join(tempDir, '.codex/agents/recon.toml'))).toBe(true);
+    expect(existsSync(join(tempDir, '.codex/agents/oracle.toml'))).toBe(true);
+    expect(existsSync(join(tempDir, '.codex/agents/architect.toml'))).toBe(true);
+
+    const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
+    expect(config.codex).toBeDefined();
+    expect(config.codex.default_model).toBe('gpt-5.6-terra');
+    expect(config.codex.agents).toHaveLength(3);
+  });
+
+  test('adds a second harness without removing the first', async () => {
+    await init({ yes: true, harness: 'claude', cwd: tempDir });
+    expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(true);
+
+    await init({ yes: true, harness: 'codex', cwd: tempDir });
+
+    expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(true);
+    expect(existsSync(join(tempDir, '.codex/config.toml'))).toBe(true);
+
+    const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
+    expect(config.claude).toBeDefined();
+    expect(config.codex).toBeDefined();
+    expect(config.claude.agents).toHaveLength(3);
+    expect(config.codex.agents).toHaveLength(3);
   });
 
   test('defaults to opencode-zen provider in --yes mode', async () => {
-    mockDetectHarnessResult = 'opencode';
     await init({ yes: true, harness: 'opencode', cwd: tempDir });
 
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
-    expect(config.provider).toBe('opencode-zen');
+    expect(config.opencode.provider).toBe('opencode-zen');
   });
 
   test('prompts for provider and creates config', async () => {
-    mockDetectHarnessResult = 'opencode';
     inquirerAnswers = {
       provider: 'opencode-go',
       build_model: 'opencode-go/deepseek-v4-flash',
@@ -88,17 +110,18 @@ describe('init', () => {
     await init({ harness: 'opencode', cwd: tempDir });
 
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
-    expect(config.harness).toBe('opencode');
-    expect(config.provider).toBe('opencode-go');
+    expect(config.opencode).toBeDefined();
+    expect(config.opencode.provider).toBe('opencode-go');
     expect(existsSync(join(tempDir, '.opencode/agent/recon.md'))).toBe(true);
   });
 
-  test('throws when harness not detected and --yes', async () => {
-    await expect(init({ yes: true, cwd: tempDir })).rejects.toThrow('Could not detect harness');
+  test('throws when --yes is used without --harness', async () => {
+    await expect(init({ yes: true, cwd: tempDir })).rejects.toThrow(
+      '`--yes` requires `--harness` (claude, opencode, or codex).'
+    );
   });
 
   test('uses --project flag for local skills path', async () => {
-    mockDetectHarnessResult = 'claude';
     await init({ yes: true, harness: 'claude', project: true, cwd: tempDir });
 
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
@@ -108,11 +131,12 @@ describe('init', () => {
 
 describe('update', () => {
   test('throws when no config exists', async () => {
-    await expect(update(tempDir)).rejects.toThrow('.atelier/config.json not found');
+    await expect(update({ basePath: tempDir, harness: 'claude' })).rejects.toThrow(
+      '.atelier/config.json not found'
+    );
   });
 
   test('regenerates claude files', async () => {
-    mockDetectHarnessResult = 'claude';
     await init({ yes: true, harness: 'claude', cwd: tempDir });
     expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(true);
 
@@ -121,48 +145,55 @@ describe('update', () => {
     expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(false);
 
     inquirerAnswers = { confirm: true };
-    await update(tempDir);
+    await update({ basePath: tempDir, harness: 'claude' });
     expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(true);
   });
 
   test('regenerates opencode files', async () => {
-    mockDetectHarnessResult = 'opencode';
     await init({ yes: true, harness: 'opencode', cwd: tempDir });
     expect(existsSync(join(tempDir, 'opencode.json'))).toBe(true);
 
     rmSync(join(tempDir, 'opencode.json'));
     expect(existsSync(join(tempDir, 'opencode.json'))).toBe(false);
 
-    inquirerAnswers = { confirm: true };
-    await update(tempDir);
+    inquirerAnswers = {
+      provider: 'opencode-zen',
+      build_model: 'opencode/deepseek-v4-flash',
+      plan_model: 'opencode/deepseek-v4-pro',
+      recon: 'opencode/minimax-m2.7',
+      oracle: 'opencode/kimi-k2.6',
+      architect: 'opencode/deepseek-v4-pro',
+      confirm: true,
+    };
+    await update({ basePath: tempDir, harness: 'opencode' });
     expect(existsSync(join(tempDir, 'opencode.json'))).toBe(true);
   });
 });
 
 describe('remove', () => {
   test('throws when no config exists', async () => {
-    expect(() => remove(tempDir)).toThrow('.atelier/config.json not found');
+    await expect(remove({ basePath: tempDir, harness: 'claude' })).rejects.toThrow(
+      '.atelier/config.json not found'
+    );
   });
 
   test('removes claude files', async () => {
-    mockDetectHarnessResult = 'claude';
     await init({ yes: true, harness: 'claude', cwd: tempDir });
     expect(existsSync(join(tempDir, '.claude'))).toBe(true);
     expect(existsSync(join(tempDir, '.atelier'))).toBe(true);
 
-    remove(tempDir);
+    await remove({ basePath: tempDir, harness: 'claude' });
 
     expect(existsSync(join(tempDir, '.claude'))).toBe(false);
     expect(existsSync(join(tempDir, '.atelier'))).toBe(false);
   });
 
   test('removes opencode files', async () => {
-    mockDetectHarnessResult = 'opencode';
     await init({ yes: true, harness: 'opencode', cwd: tempDir });
     expect(existsSync(join(tempDir, '.opencode'))).toBe(true);
     expect(existsSync(join(tempDir, '.atelier'))).toBe(true);
 
-    remove(tempDir);
+    await remove({ basePath: tempDir, harness: 'opencode' });
 
     expect(existsSync(join(tempDir, '.opencode'))).toBe(false);
     expect(existsSync(join(tempDir, '.atelier'))).toBe(false);

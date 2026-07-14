@@ -7,9 +7,9 @@ let tempDir: string;
 
 const testConfig = {
   version: '1.0.0' as const,
-  harness: 'claude' as const,
   skills_source: 'martinffx/atelier',
   skills_path: '~/.agents/skills',
+  default_model: 'opusplan',
   agents: [
     { template: 'recon', name: 'recon', model: 'haiku' },
     { template: 'oracle', name: 'oracle', model: 'opus' },
