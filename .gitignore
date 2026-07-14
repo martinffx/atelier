@@ -14,3 +14,8 @@ dist/
 
 # Beads / Dolt files (added by bd init)
 .beads/proxieddb/
+
+# Local agent harness artifacts (created by atelier init / bd setup)
+.agents/
+.claude/
+.codex/
