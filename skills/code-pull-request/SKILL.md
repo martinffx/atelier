@@ -29,10 +29,12 @@ git remote get-url origin
 Determine the base branch:
 
 ```bash
-git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@' || echo main
+base=$(git symbolic-ref --quiet refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+[ -n "$base" ] || base=main
+echo "$base"
 ```
 
-If that fails, ask the human what the base branch is.
+Otherwise ask the human what the base branch is.
 
 Refuse to create a PR from the default branch — that's almost always a mistake.
 Ask the human to switch to a feature branch first.

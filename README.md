@@ -198,7 +198,7 @@ Task-specific tools you invoke when you need them.
 - `code-debug` — Systematic debugging workflow
 - `code-docs` — README, API docs, changelog generation
 - `code-handoff` — Compact conversation into handoff document
-- `code-pull-request` — Create GitHub pull requests with readiness checks and structured bodies
+- `code-pull-request` — Create GitHub pull requests or GitLab merge requests with platform detection, template discovery, and structured bodies
 - `code-review` — Multi-agent code review with specialized reviewers
 - `code-subagents` — Dispatch patterns for parallel implementation
 

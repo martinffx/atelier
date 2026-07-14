@@ -191,7 +191,7 @@ Process skills come first. Knowledge skills get invoked by process skills when n
 - `code-debug` - Systematic debugging workflow and techniques
 - `code-docs` - Documentation generation for code projects
 - `code-handoff` - Compact conversation into handoff document for next agent
-- `code-pull-request` - Create GitHub pull requests with readiness checks and structured bodies
+- `code-pull-request` - Create GitHub pull requests or GitLab merge requests with platform detection, template discovery, and structured bodies
 - `code-review` - Multi-agent code review with parallel reviewers
 - `code-subagents` - Subagent dispatch patterns for implementation tasks
 
