@@ -76,11 +76,12 @@ When user asks to validate or check a commit message:
 4. Check subject follows rules (lowercase, imperative, no period)
 5. Flag any issues found
 
-### 3. Create Pull Request
+### Delegated: Pull Request Creation
 
-PR creation is now handled by the [code-pull-request](../code-pull-request/SKILL.md)
-skill, which generates readiness checks, PR body, and opens the PR via `gh`. Invoke
-that skill when the user wants to open, submit, or draft a PR.
+If the user wants to create a PR after committing, invoke the
+[code-pull-request](../code-pull-request/SKILL.md) skill. It detects the platform
+(GitHub/GitLab), finds a template, generates the body, and opens the PR via `gh`
+or `glab`.
 
 ## Input Methods
 

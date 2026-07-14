@@ -1,277 +1,149 @@
 ---
 name: code-pull-request
 description: >
-  Create GitHub pull requests with readiness checks and structured PR bodies generated
-  from conventional commits (with diff-based fallback). Use whenever the user wants to
-  open a PR, create a pull request, push a feature branch for review, says "make a PR",
-  "open a PR", "submit a PR", or after finishing implementation work. Triggers on
-  "pull request", "PR", "gh pr create", "open a PR", or when a feature branch is
-  ready for review. Make sure to use this skill whenever PR creation is mentioned,
-  even if the user doesn't explicitly ask for a "pull request" — phrases like
-  "ship this", "submit this for review", or "send this upstream" should trigger too.
+  Create GitHub pull requests or GitLab merge requests using gh or glab. Triggers on
+  "open a PR", "make a PR", "submit for review", "ship this", or when a feature branch
+  is ready for review.
 user-invocable: true
 ---
 
 # Pull Request Skill
 
-Create GitHub pull requests that are ready for review: verify readiness, generate a
-structured PR body, then open the PR via `gh`.
+Create a pull request (GitHub) or merge request (GitLab) for the current branch.
+Assumes the relevant CLI (`gh` or `glab`) is installed and authenticated.
 
-This skill is **create-only** (v1). It does not update existing PRs, monitor CI, or
-respond to review feedback. After the PR is open, hand control back to the human.
-
-## Prerequisites
-
-Before doing anything, verify the environment is ready:
-
-```bash
-gh auth status                 # gh CLI installed and authenticated
-git remote -v                 # origin points to GitHub
-git branch --show-current     # currently on a feature branch (not main)
-```
-
-If any of these fail, stop and tell the human what's missing — do not attempt to fix
-auth, remotes, or branch state automatically. PR creation from `main` is almost always
-a mistake, so refuse and ask the human to switch branches first.
+This skill is **create-only**. It does not update existing PRs, monitor CI, or
+respond to review feedback.
 
 ---
 
-## Step 1: Readiness Checks
-
-A PR that fails tests or linters wastes reviewer time. Run the project's quality gates
-before opening the PR. The goal is to never open a PR with red checks.
-
-### Working Tree
+## Step 1: Detect Platform and Base Branch
 
 ```bash
-git status --short
+git remote get-url origin
 ```
 
-The working tree should be clean (committed or stashed). If there are unstaged changes,
-ask the human whether to commit them (invoke [code-commit](../code-commit/SKILL.md))
-or stash before proceeding.
+- Contains `github.com` → use `gh` (GitHub PR)
+- Contains `gitlab` → use `glab` (GitLab MR)
 
-### Branch Sync
+Determine the base branch:
 
 ```bash
-git fetch origin
-git log --oneline origin/<base>..HEAD
+git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@' || echo main
 ```
 
-If the branch is behind the base, rebase or merge before creating the PR. Tell the
-human what's out of sync and let them choose.
+If that fails, ask the human what the base branch is.
 
-### Quality Gates
-
-Detect the project's toolchain and run the appropriate commands. Common signals:
-
-| Stack | Test | Typecheck | Lint | Build |
-|-------|------|-----------|------|-------|
-| Node/TS | `npm test` / `bun test` | `npm run typecheck` / `tsc --noEmit` | `npm run lint` / `biome check` | `npm run build` |
-| Python | `pytest` / `uv run pytest` | `mypy` / `basedpyright` | `ruff check .` | — |
-| Rust | `cargo test` | `cargo check` | `cargo clippy` | `cargo build` |
-| Go | `go test ./...` | `go vet ./...` | `golangci-lint run` | `go build ./...` |
-
-Look for clues: `package.json` scripts, `pyproject.toml`, `Cargo.toml`, `go.mod`,
-`Makefile`, or a `mise.toml` / `.tool-versions` file. If you can't determine the
-toolchain confidently, ask the human what command to run — do not guess.
-
-**If any gate fails:** stop. Show the failing output and ask the human to fix it before
-re-running. Do not open a PR with broken checks.
-
-**If all pass:** proceed to body generation.
+Refuse to create a PR from the default branch — that's almost always a mistake.
+Ask the human to switch to a feature branch first.
 
 ---
 
-## Step 2: Generate the PR Body
+## Step 2: Check for Existing PR
 
-A good PR body tells reviewers *what changed and why* without forcing them to read the
-diff. The body is generated from the project's PR template if one exists, otherwise
-from a structured synthesis of the commits and diff.
+GitHub:
+```bash
+gh pr view --json state,number,url
+```
 
-### Template Discovery
+GitLab:
+```bash
+glab mr view --json state,iid,web_url
+```
 
+- **Open** → show the URL, stop. Don't create a duplicate.
+- **Closed/merged** → check for new commits since the PR was closed:
+  ```bash
+  git log --oneline origin/<base>..HEAD
+  ```
+  New commits exist → proceed to create a new PR.
+  No new commits → tell the human, stop.
+- **None** → proceed to create.
+
+---
+
+## Step 3: Find a Template
+
+Look for the repo's PR/MR template:
+
+GitHub:
 ```bash
 ls .github/PULL_REQUEST_TEMPLATE.md 2>/dev/null
 ls .github/PULL_REQUEST_TEMPLATE/*.md 2>/dev/null
+```
+
+GitLab:
+```bash
+ls .gitlab/merge_request_templates/*.md 2>/dev/null
+ls .gitlab/merge_request_template.md 2>/dev/null
+```
+
+Also check common locations:
+```bash
 ls docs/PULL_REQUEST_TEMPLATE.md 2>/dev/null
 ls PULL_REQUEST_TEMPLATE.md 2>/dev/null
 ```
 
-**If a template exists:** use it. `gh pr create` will pick it up automatically in
-interactive mode. For inline mode, fill in each section of the template based on the
-commits and diff.
+- **Template found** → use it. The CLI will auto-apply it in interactive mode, or
+  fill each section from the commits and diff for inline mode.
+- **No template** → use the fallback template at
+  [references/default-template.md](references/default-template.md).
 
-**If no template:** use the fallback body structure below.
+---
 
-### Body Source Priority
-
-Generate the body in this order, falling back when a source is unavailable:
-
-1. **Conventional commit messages** (preferred) — parse the commit log between the
-   base branch and HEAD. Conventional commits (`feat(auth): ...`, `fix(api): ...`)
-   already encode the type and scope, which maps cleanly to PR sections.
-2. **Diff synthesis** (fallback) — if commits are messy, non-conventional, or
-   squash-style with no useful message, analyze `git diff origin/<base>...HEAD` to
-   reconstruct what changed.
-
-### Synthesis Process
+## Step 4: Generate Title and Body
 
 ```bash
-git log --oneline origin/<base>..HEAD           # commit list
+git log --oneline origin/<base>..HEAD            # commit list
 git log origin/<base>..HEAD --format='%H %s%n%b'  # full commit messages
-git diff --stat origin/<base>...HEAD            # changed files summary
+git diff --stat origin/<base>...HEAD             # changed files summary
 ```
 
-From the commits (or diff), extract:
-
-- **Summary**: one or two sentences describing what the PR does overall. Lead with
-  the *why* — the problem being solved or the feature being added — not the *how*.
-- **Changes**: bulleted list of concrete changes, grouped logically (e.g., "API",
-  "Database", "Tests"). Each bullet should be reviewable on its own.
-- **Testing**: how the changes were verified. Reference the test commands from
-  Step 1 and note any manual testing performed.
-- **Checklist**: standard items (tests pass, conventional commits, docs updated).
-- **Linked issues**: extract `Closes #N`, `Fixes #N`, or `Relates to #N` from
-  commit footers and surface them in the body. These auto-close issues on merge.
-
-### Fallback Body Template
-
-```markdown
-## Summary
-<!-- One or two sentences: what and why -->
-
-## Changes
-<!-- Bulleted, grouped by area. Each bullet self-contained. -->
--
-
-## Testing
-<!-- How it was verified: test commands run, manual steps, edge cases checked -->
-
-## Checklist
-- [ ] Tests pass
-- [ ] Commits follow conventional format
-- [ ] Documentation updated (if needed)
-
-## Linked Issues
-<!-- Closes #123, Fixes #456, Relates to #789 -->
-```
-
-### PR Title
-
-Derive from the most significant conventional commit, or synthesize from the summary:
+Derive the title from the most significant conventional commit. If commits are
+messy, synthesize from the diff:
 
 ```
 <type>(<scope>): <description>
 ```
 
-Examples:
-- `feat(auth): add JWT token refresh`
-- `fix(db): resolve connection pool leak`
-- `refactor(api): extract validation middleware`
-
-If the branch is a single-concern feature branch, the title usually matches the
-primary commit's subject. If multiple concerns, pick the dominant one and mention
-the rest in the body.
+Fill the body (template sections or fallback) from the commits and diff:
+- **Summary** — what and why, one or two sentences
+- **Changes** — bulleted, grouped by area
+- **Testing** — how it was verified (if known)
+- **Checklist** — tests pass, conventional commits, docs updated
+- **Linked issues** — extract `Closes #N`, `Fixes #N`, `Relates to #N` from commit
+  footers
 
 ---
 
-## Step 3: Create the PR
+## Step 5: Create the PR
 
-Show the human the generated title and body **before** creating the PR. Ask for
-confirmation, or for "just do it" / "skip confirm" instructions up front.
-
-### Creation Modes
-
-| Mode | Command | When to use |
-|------|---------|-------------|
-| Auto-fill | `gh pr create --fill` | Commits are clean and conventional; `--fill` uses commit messages for title/body |
-| Inline | `gh pr create --title "<title>" --body "<body>"` | Body is fully generated; fastest path |
-| Interactive | `gh pr create` | Human wants to edit the body in their editor; template auto-applied |
-| Draft | `gh pr create --draft --title "<title>" --body "<body>"` | Work in progress; not ready for merge but visible |
-
-**Default to inline mode** with the generated body — it's the fastest path that still
-produces a high-quality PR. Fall back to `--fill` only when the commits are clean
-enough that the body would be redundant. Use `--draft` when the human signals the
-work is incomplete (e.g., "draft PR", "WIP", "not ready yet").
-
-### Branch Push
-
-If the branch isn't pushed yet, `gh pr create` will prompt to push. To push
-explicitly first:
+Push the branch first if it isn't on the remote:
 
 ```bash
 git push -u origin <branch-name>
 ```
 
-### After Creation
+Show the human the generated title and body before creating. Ask for confirmation,
+or proceed if they said "just do it" up front.
 
-```bash
-gh pr view --web    # open the PR in the browser
-gh pr status        # show current PR status
-```
+### GitHub
 
-Show the human the PR URL returned by `gh pr create`. Hand control back to them —
-this skill does not monitor CI, request reviewers, or respond to feedback.
+| Mode | Command |
+|------|---------|
+| Auto-fill | `gh pr create --fill` |
+| Inline | `gh pr create --title "<title>" --body "<body>"` |
+| Draft | `gh pr create --draft --title "<title>" --body "<body>"` |
 
----
+### GitLab
 
-## When NOT to Use
+| Mode | Command |
+|------|---------|
+| Auto-fill | `glab mr create --fill` |
+| Inline | `glab mr create --title "<title>" --description "<body>"` |
+| Draft | `glab mr create --draft --title "<title>" --description "<body>"` |
 
-- **Implementation still in progress** → use `spec-implement` to finish the work first
-- **Quality gates failing** → fix in `spec-implement` or directly before opening the PR
-- **Want to update an existing PR** → out of scope for v1; use `gh` directly
-- **Want to monitor CI or respond to review comments** → out of scope for v1
-- **Just want to commit, not open a PR** → use [code-commit](../code-commit/SKILL.md)
-- **Need a code review of the diff first** → use [code-review](../code-review/SKILL.md)
+Default to inline with the generated body. Use `--fill` when commits are clean and
+the body would be redundant. Use `--draft` when the human signals work in progress.
 
----
-
-## Integration
-
-This skill coordinates with:
-
-- **[code-commit](../code-commit/SKILL.md)** — generates the conventional commits this
-  skill parses for the PR body. If commits are messy, this skill falls back to diff
-  synthesis.
-- **[code-review](../code-review/SKILL.md)** — optional pre-PR review of the diff.
-  Run `code-review` before this skill if the human wants critique before opening the PR.
-- **[spec-finish](../spec-finish/SKILL.md)** — the spec workflow's finish step invokes
-  this skill as its final action to open the PR.
-
----
-
-## Examples
-
-**Example 1: Clean conventional commits**
-
-Branch `feat/jwt-refresh` has 3 commits:
-```
-feat(auth): add token refresh endpoint
-test(auth): cover refresh flow
-docs(api): document refresh endpoint
-```
-
-Generated PR:
-- **Title**: `feat(auth): add token refresh endpoint`
-- **Body**: Summary describes the refresh feature; Changes lists the endpoint, tests,
-  and docs; Testing references `pytest -k auth`; Checklist complete.
-
-**Example 2: Messy commits, diff fallback**
-
-Branch `misc-fixes` has commits like `stuff`, `fix`, `wip`. The skill falls back to
-`git diff` to reconstruct changes: "Fixed null pointer in user service, added input
-validation to checkout endpoint, updated error responses". Synthesizes a structured
-body and a title like `fix(api): resolve null pointer and validation gaps`.
-
-**Example 3: Draft PR**
-
-Human says "open a draft PR, still WIP". Skill runs readiness checks (skipping
-strict gate enforcement if the human acknowledges failing tests), generates a body
-from commits, and runs `gh pr create --draft --title ... --body ...`.
-
-**Example 4: Project template**
-
-`.github/PULL_REQUEST_TEMPLATE.md` exists with sections `## What`, `## Why`, `## How`,
-`## Testing`. Skill fills each section from commits/diff instead of using the
-fallback template.
+After creation, show the PR/MR URL to the human. Done.

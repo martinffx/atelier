@@ -2,8 +2,9 @@
 name: spec-finish
 description: >
   Post-implementation completion workflow. Use after spec-implement completes to validate,
-  review, create stacked commits, and prepare for PR. Triggers when implementation is done,
-  when the user says "finish", "done", "complete", or after implementation tasks are finished.
+  review, create stacked commits, and open a PR via code-pull-request. Triggers when
+  implementation is done, when the user says "finish", "done", "complete", or after
+  implementation tasks are finished.
 user-invocable: true
 ---
 
@@ -115,19 +116,12 @@ Optional - use code-docs skill if needed.
 
 ## Step 5: Open the PR
 
-Invoke the [code-pull-request](../code-pull-request/SKILL.md) skill to:
-- Run final readiness checks (tests, typecheck, lint, build)
-- Generate a structured PR body from conventional commits (with diff fallback)
-- Honor the project's PR template if one exists
-- Create the PR via `gh pr create` (inline, `--fill`, or `--draft`)
+Steps 1-4 (validate, review, stack commits, update docs) must all be complete
+before proceeding.
 
-The `code-pull-request` skill handles the entire PR creation flow. Steps 1-4 of this
-skill (validate, review, stack commits, update docs) should all be complete before
-invoking it.
+### Step 5a: Present Completion Summary
 
-### Summary for Human
-
-Before invoking the PR skill, present:
+Before creating the PR, present a summary to the human:
 
 ```
 ## Completion Summary
@@ -139,6 +133,12 @@ Before invoking the PR skill, present:
 **Commits:** [N commits in stack]
 **Ready for PR:** [yes/no]
 ```
+
+### Step 5b: Invoke code-pull-request
+
+Invoke the [code-pull-request](../code-pull-request/SKILL.md) skill to create the
+PR. It detects the platform (GitHub/GitLab), checks for an existing PR, finds a
+template, generates the body from commits, and opens the PR via `gh` or `glab`.
 
 ### Handoff
 
