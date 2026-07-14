@@ -2,14 +2,15 @@ import { existsSync } from 'fs';
 import { execSync } from 'child_process';
 import { join } from 'path';
 import { homedir } from 'os';
-import { GLOBAL_OPENCODE_DIR } from '../generators/opencode.js';
 import { readConfig, writeConfig, getDefaultConfig, validateConfig, CONFIG_FILE } from '../utils/config.js';
 import { generateClaude } from '../generators/claude.js';
-import { generateOpenCode } from '../generators/opencode.js';
+import { generateOpenCode, GLOBAL_OPENCODE_DIR } from '../generators/opencode.js';
+import { generateCodex } from '../generators/codex.js';
 import { getModelsForProvider } from '../utils/templates.js';
-import { HarnessRequiredError, SkillsInstallError, handleError } from '../utils/errors.js';
+import { HarnessRequiredError, SkillsInstallError } from '../utils/errors.js';
 import inquirer from 'inquirer';
-import type { Harness, AtelierConfig, Provider } from '../types.js';
+import type { Harness, AtelierConfig, Provider, ClaudeConfig, CodexConfig, OpenCodeConfig } from '../types.js';
+import { defaultModels } from '../models.js';
 
 export interface InitOptions {
   harness?: string;
@@ -18,6 +19,8 @@ export interface InitOptions {
   project?: boolean;
   cwd?: string;
 }
+
+const HARNESS_CHOICES: Harness[] = ['claude', 'opencode', 'codex'];
 
 const providerChoices: { name: string; value: Provider }[] = [
   { name: 'OpenCode Zen', value: 'opencode-zen' },
@@ -49,184 +52,49 @@ export async function init(options: InitOptions): Promise<void> {
   if (harnessOption !== undefined && !isHarness(harnessOption)) {
     throw new HarnessRequiredError();
   }
+  if (options.yes && !harnessOption) {
+    throw new HarnessRequiredError();
+  }
 
-  let detected: Harness | null = harnessOption && isHarness(harnessOption) ? harnessOption : null;
-
-  if (!detected && !options.yes) {
-    const { harness } = await inquirer.prompt([
+  let harness: Harness;
+  if (harnessOption) {
+    harness = harnessOption;
+  } else {
+    const answer = await inquirer.prompt([
       {
         type: 'list',
         name: 'harness',
         message: 'Which harness are you using?',
-        choices: ['claude', 'opencode', 'codex'],
-        default: 'claude',
+        choices: HARNESS_CHOICES,
       },
     ]);
-    detected = harness;
-  }
-
-  if (!detected) {
-    throw new HarnessRequiredError();
+    harness = answer.harness;
   }
 
   const configBasePath = getConfigBasePath(options);
-  const harnessBasePath = getHarnessBasePath(detected, options);
+  const harnessBasePath = getHarnessBasePath(harness, options);
   const configPath = join(configBasePath, CONFIG_FILE);
-  const config = readConfig(configPath);
 
-  if (config && config.harness !== detected) {
-    console.warn(`Warning: Switching harness from ${config.harness} to ${detected}.`);
-    console.warn('This will remove .claude/ files and generate .opencode/ files.');
-    const { confirm } = await inquirer.prompt([
-      {
-        type: 'confirm',
-        name: 'confirm',
-        message: 'Continue?',
-        default: false,
-      },
-    ]);
-    if (!confirm) {
-      console.log('Cancelled.');
-      return;
-    }
-  }
+  const existingConfig = readConfig(configPath);
 
-  let finalConfig: AtelierConfig;
-  let selectedProvider: Provider | undefined;
+  const initialProvider: Provider | undefined = harness === 'opencode' ? 'opencode-zen' : undefined;
+  const defaults = getDefaultConfig(harness, initialProvider);
+  defaults.skills_path = options.project
+    ? './.agents/skills'
+    : (existingConfig?.skills_path ?? getSkillsPath(options.project));
 
-  if (config) {
-    finalConfig = config;
-    if (harnessOption && harnessOption !== config.harness) {
-      finalConfig.harness = harnessOption;
-    }
-    selectedProvider = finalConfig.provider;
-  } else {
-    finalConfig = getDefaultConfig(detected);
-    finalConfig.skills_path = getSkillsPath(options.project);
-  }
-
-  // Provider selection for opencode harness
-  if (detected === 'opencode') {
-    if (options.yes) {
-      selectedProvider = finalConfig.provider || 'opencode-zen';
-      if (!finalConfig.provider) {
-        finalConfig.provider = selectedProvider;
-      }
-      if (!config) {
-        finalConfig = getDefaultConfig(detected, selectedProvider);
-        finalConfig.skills_path = getSkillsPath(options.project);
-      }
-    } else {
-      const currentProvider = selectedProvider || 'opencode-zen';
-      const { provider } = await inquirer.prompt([
-        {
-          type: 'list',
-          name: 'provider',
-          message: 'Which provider are you using?',
-          choices: providerChoices,
-          default: currentProvider,
-        },
-      ]);
-      selectedProvider = provider;
-      finalConfig.provider = selectedProvider;
-      // Only replace config completely on fresh init; on re-init preserve existing settings
-      if (!config) {
-        finalConfig = getDefaultConfig(detected, selectedProvider);
-        finalConfig.skills_path = getSkillsPath(options.project);
-      }
-    }
-  }
+  const config: AtelierConfig = existingConfig
+    ? { ...existingConfig, ...defaults }
+    : defaults;
 
   if (!options.yes) {
-    const provider = detected === 'opencode'
-      ? (selectedProvider || 'opencode-zen')
-      : 'anthropic';
-    const harnessModels = getModelsForProvider(provider);
-    const agentNames = ['recon', 'oracle', 'architect'] as const;
-
-    const promptDefs: { type: 'list'; name: string; message: string; choices: readonly string[]; default: string }[] = [];
-
-    if (detected === 'opencode') {
-      const buildCurrent = finalConfig.build_model || harnessModels[0];
-      const planCurrent = finalConfig.plan_model || harnessModels[0];
-      promptDefs.push(
-        {
-          type: 'list' as const,
-          name: 'build_model',
-          message: `Select model for build (current: ${buildCurrent})`,
-          choices: harnessModels,
-          default: buildCurrent && harnessModels.includes(buildCurrent) ? buildCurrent : harnessModels[0],
-        },
-        {
-          type: 'list' as const,
-          name: 'plan_model',
-          message: `Select model for plan (current: ${planCurrent})`,
-          choices: harnessModels,
-          default: planCurrent && harnessModels.includes(planCurrent) ? planCurrent : harnessModels[0],
-        }
-      );
-    } else {
-      const currentDefault = finalConfig.default_model || 'opusplan';
-      promptDefs.push({
-        type: 'list' as const,
-        name: 'default_model',
-        message: `Select default model (current: ${currentDefault})`,
-        choices: harnessModels,
-        default: currentDefault,
-      });
-    }
-
-    for (const name of agentNames) {
-      const agent = finalConfig.agents.find(a => a.name === name);
-      const currentModel = agent?.model;
-      const defaultModel = currentModel && harnessModels.includes(currentModel)
-        ? currentModel
-        : harnessModels[0];
-      promptDefs.push({
-        type: 'list' as const,
-        name,
-        message: `Select model for ${name} (current: ${defaultModel})`,
-        choices: harnessModels,
-        default: defaultModel,
-      });
-    }
-
-    const answers: Record<string, string> = {};
-    let i = 0;
-    while (i < promptDefs.length) {
-      const p = promptDefs[i];
-      const choices = i > 0 ? [...p.choices, '← Go back'] : p.choices;
-      const result = await inquirer.prompt([{ type: p.type, name: p.name, message: p.message, choices, default: p.default }]);
-      if (result[p.name] === '← Go back') {
-        i--;
-        continue;
-      }
-      answers[p.name] = result[p.name] as string;
-      i++;
-    }
-
-    for (const name of agentNames) {
-      const agent = finalConfig.agents.find(a => a.name === name);
-      if (agent) {
-        agent.model = answers[name];
-      }
-    }
-
-    if (detected === 'opencode') {
-      if (answers.build_model) finalConfig.build_model = answers.build_model;
-      if (answers.plan_model) finalConfig.plan_model = answers.plan_model;
-    } else {
-      if (answers.default_model) finalConfig.default_model = answers.default_model;
-    }
+    await promptForModels(config, harness);
   }
 
-  // Validate the final config before writing
-  validateConfig(finalConfig);
-
-  writeConfig(finalConfig, configPath);
+  validateConfig(config);
 
   if (!options.yes) {
-    const files = buildFileList(finalConfig, harnessBasePath);
+    const files = buildFileList(harness, harnessBasePath);
     console.log('\nFiles to write:');
     for (const f of files) {
       const label = f.exists ? '~' : '+';
@@ -244,13 +112,10 @@ export async function init(options: InitOptions): Promise<void> {
     }
   }
 
-  if (finalConfig.harness === 'claude') {
-    generateClaude(finalConfig, harnessBasePath);
-  } else {
-    generateOpenCode(finalConfig, harnessBasePath);
-  }
+  writeConfig(config, configPath);
+  generateFiles(config, harness, harnessBasePath);
 
-  console.log(`\nAtelier initialized for ${finalConfig.harness}.`);
+  console.log(`\nAtelier initialized for ${harness}.`);
 
   if (options.all) {
     console.log('\nInstalling skills...');
@@ -272,25 +137,137 @@ export async function init(options: InitOptions): Promise<void> {
   console.log('  atelier update                  # update hooks and agents');
 }
 
-function buildFileList(config: AtelierConfig, basePath: string): { path: string; exists: boolean }[] {
+async function promptForModels(config: AtelierConfig, harness: Harness): Promise<void> {
+  const agentNames = ['recon', 'oracle', 'architect'] as const;
+
+  switch (harness) {
+    case 'claude':
+    case 'codex': {
+      const section = harness === 'claude' ? config.claude! : config.codex!;
+      const provider: Provider = harness === 'claude' ? 'anthropic' : 'openai';
+      const models = getModelsForProvider(provider);
+
+      const answers = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'default_model',
+          message: 'Select default model',
+          choices: models,
+          default: section.default_model,
+        },
+        ...agentNames.map(name => ({
+          type: 'list' as const,
+          name,
+          message: `Select model for ${name}`,
+          choices: models,
+          default: section.agents.find(a => a.name === name)?.model || models[0],
+        })),
+      ]);
+
+      section.default_model = answers.default_model;
+      for (const name of agentNames) {
+        const agent = section.agents.find(a => a.name === name);
+        if (agent) agent.model = answers[name];
+      }
+      break;
+    }
+    case 'opencode': {
+      const section = config.opencode!;
+      const { provider } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'provider',
+          message: 'Which provider are you using?',
+          choices: providerChoices,
+          default: section.provider,
+        },
+      ]);
+
+      const selectedProvider = provider as Provider;
+      section.provider = selectedProvider;
+      const defaults = defaultModels[selectedProvider];
+      section.build_model = defaults.build;
+      section.plan_model = defaults.plan;
+      for (const agent of section.agents) {
+        agent.model = defaults[agent.name as 'recon' | 'oracle' | 'architect'];
+      }
+
+      const models = getModelsForProvider(provider);
+      const answers = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'build_model',
+          message: 'Select model for build',
+          choices: models,
+          default: section.build_model,
+        },
+        {
+          type: 'list',
+          name: 'plan_model',
+          message: 'Select model for plan',
+          choices: models,
+          default: section.plan_model,
+        },
+        ...agentNames.map(name => ({
+          type: 'list' as const,
+          name,
+          message: `Select model for ${name}`,
+          choices: models,
+          default: section.agents.find(a => a.name === name)?.model || models[0],
+        })),
+      ]);
+
+      section.build_model = answers.build_model;
+      section.plan_model = answers.plan_model;
+      for (const name of agentNames) {
+        const agent = section.agents.find(a => a.name === name);
+        if (agent) agent.model = answers[name];
+      }
+      break;
+    }
+  }
+}
+
+function generateFiles(config: AtelierConfig, harness: Harness, basePath: string): void {
+  switch (harness) {
+    case 'claude':
+      generateClaude({ ...config, ...config.claude! } as ClaudeConfig & Pick<AtelierConfig, 'version' | 'skills_source' | 'skills_path'>, basePath);
+      break;
+    case 'codex':
+      generateCodex({ ...config, ...config.codex! } as CodexConfig & Pick<AtelierConfig, 'version' | 'skills_source' | 'skills_path'>, basePath);
+      break;
+    case 'opencode':
+      generateOpenCode({ ...config, ...config.opencode! } as OpenCodeConfig & Pick<AtelierConfig, 'version' | 'skills_source' | 'skills_path'>, basePath);
+      break;
+  }
+}
+
+function buildFileList(harness: Harness, basePath: string): { path: string; exists: boolean }[] {
   const files: { path: string; exists: boolean }[] = [];
 
-  if (config.harness === 'claude') {
+  if (harness === 'claude') {
     files.push(
       { path: join(basePath, '.claude/settings.json'), exists: existsSync(join(basePath, '.claude/settings.json')) },
       { path: join(basePath, 'hooks/atelier-session-start'), exists: existsSync(join(basePath, 'hooks/atelier-session-start')) },
     );
-    for (const agent of config.agents) {
-      files.push({ path: join(basePath, '.claude/agents', `${agent.name}.md`), exists: existsSync(join(basePath, '.claude/agents', `${agent.name}.md`)) });
+    for (const name of ['recon', 'oracle', 'architect']) {
+      files.push({ path: join(basePath, '.claude/agents', `${name}.md`), exists: existsSync(join(basePath, '.claude/agents', `${name}.md`)) });
     }
-  } else {
+  } else if (harness === 'opencode') {
     const root = basePath === GLOBAL_OPENCODE_DIR ? basePath : join(basePath, '.opencode');
     files.push(
       { path: join(basePath, 'opencode.json'), exists: existsSync(join(basePath, 'opencode.json')) },
       { path: join(root, 'plugins/atelier.js'), exists: existsSync(join(root, 'plugins/atelier.js')) },
     );
-    for (const agent of config.agents) {
-      files.push({ path: join(root, 'agent', `${agent.name}.md`), exists: existsSync(join(root, 'agent', `${agent.name}.md`)) });
+    for (const name of ['recon', 'oracle', 'architect']) {
+      files.push({ path: join(root, 'agent', `${name}.md`), exists: existsSync(join(root, 'agent', `${name}.md`)) });
+    }
+  } else if (harness === 'codex') {
+    files.push(
+      { path: join(basePath, '.codex/config.toml'), exists: existsSync(join(basePath, '.codex/config.toml')) },
+    );
+    for (const name of ['recon', 'oracle', 'architect']) {
+      files.push({ path: join(basePath, '.codex/agents', `${name}.toml`), exists: existsSync(join(basePath, '.codex/agents', `${name}.toml`)) });
     }
   }
 

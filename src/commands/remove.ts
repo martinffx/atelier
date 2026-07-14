@@ -1,41 +1,85 @@
 import { rmSync, existsSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
-import { readConfig, CONFIG_FILE } from '../utils/config.js';
+import { readConfig, writeConfig, CONFIG_FILE } from '../utils/config.js';
 import { GLOBAL_OPENCODE_DIR } from '../generators/opencode.js';
-import { ConfigNotFoundError } from '../utils/errors.js';
+import { ConfigNotFoundError, InvalidConfigError } from '../utils/errors.js';
+import inquirer from 'inquirer';
+import type { Harness, AtelierConfig } from '../types.js';
 
-export function remove(options?: { harness?: string; basePath?: string }): void {
-  const { basePath } = options ?? {};
+function isHarness(value: string): value is Harness {
+  return value === 'claude' || value === 'opencode' || value === 'codex';
+}
+
+function getConfiguredHarnesses(config: AtelierConfig): Harness[] {
+  const harnesses: Harness[] = [];
+  if (config.claude) harnesses.push('claude');
+  if (config.codex) harnesses.push('codex');
+  if (config.opencode) harnesses.push('opencode');
+  return harnesses;
+}
+
+export async function remove(options?: { harness?: string; basePath?: string }): Promise<void> {
+  const { harness: harnessOption, basePath } = options ?? {};
   const resolvedBasePath = basePath ?? process.cwd();
-  let config = readConfig(join(resolvedBasePath, CONFIG_FILE));
-  let harnessBasePath = resolvedBasePath;
   let configBasePath = resolvedBasePath;
+  let harnessBasePath = resolvedBasePath;
 
-  // Only fall back to global config when called without an explicit path
+  let config = readConfig(join(resolvedBasePath, CONFIG_FILE));
+
   if (!config && basePath === undefined) {
     configBasePath = homedir();
     config = readConfig(join(configBasePath, CONFIG_FILE));
-    if (config) {
-      harnessBasePath = config.harness === 'opencode'
-        ? GLOBAL_OPENCODE_DIR
-        : homedir();
-    }
   }
 
   if (!config) {
     throw new ConfigNotFoundError('remove');
   }
 
-  if (config.harness === 'claude') {
-    removeClaudeFiles(harnessBasePath);
+  let harness: Harness;
+  if (harnessOption) {
+    if (!isHarness(harnessOption)) {
+      throw new InvalidConfigError(`Invalid harness: ${harnessOption}`);
+    }
+    harness = harnessOption;
   } else {
-    removeOpenCodeFiles(harnessBasePath);
+    const configured = getConfiguredHarnesses(config);
+    if (configured.length === 0) {
+      throw new InvalidConfigError('No harnesses configured');
+    }
+    const answer = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'harness',
+        message: 'Which harness do you want to remove?',
+        choices: configured,
+      },
+    ]);
+    harness = answer.harness;
   }
 
-  rmSync(join(configBasePath, '.atelier'), { recursive: true, force: true });
+  if (harness === 'opencode' && basePath === undefined) {
+    harnessBasePath = GLOBAL_OPENCODE_DIR;
+  }
 
-  console.log('Atelier removed.');
+  if (harness === 'claude') {
+    removeClaudeFiles(harnessBasePath);
+  } else if (harness === 'opencode') {
+    removeOpenCodeFiles(harnessBasePath);
+  } else if (harness === 'codex') {
+    removeCodexFiles(harnessBasePath);
+  }
+
+  delete config[harness];
+
+  const remainingHarnesses = getConfiguredHarnesses(config);
+  if (remainingHarnesses.length === 0) {
+    rmSync(join(configBasePath, '.atelier'), { recursive: true, force: true });
+  } else {
+    writeConfig(config, join(configBasePath, CONFIG_FILE));
+  }
+
+  console.log(`Atelier removed for ${harness}.`);
   console.log('Skills remain installed. Run `npx skills remove martinffx/atelier` to remove skills.');
 }
 
@@ -104,9 +148,27 @@ function removeOpenCodeFiles(basePath: string): void {
     }
   }
 
-  // Also remove opencode.json
   const opencodeJsonPath = join(basePath, 'opencode.json');
   if (existsSync(opencodeJsonPath)) {
     rmSync(opencodeJsonPath, { force: true });
+  }
+}
+
+function removeCodexFiles(basePath: string): void {
+  const files = [
+    join(basePath, '.codex/agents/recon.toml'),
+    join(basePath, '.codex/agents/oracle.toml'),
+    join(basePath, '.codex/agents/architect.toml'),
+  ];
+
+  for (const file of files) {
+    if (existsSync(file)) {
+      rmSync(file, { force: true });
+    }
+  }
+
+  const agentsDir = join(basePath, '.codex/agents');
+  if (existsSync(agentsDir)) {
+    rmSync(agentsDir, { recursive: true, force: true });
   }
 }

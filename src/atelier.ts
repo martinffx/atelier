@@ -37,6 +37,6 @@ program
   .command('remove')
   .description('Remove atelier from the current project')
   .option('--harness <type>', 'Harness type (claude, opencode, or codex)')
-  .action((options) => { try { remove(options); } catch (e) { handleError(e); } });
+  .action((options) => { remove(options).catch(handleError); });
 
 program.parse();
