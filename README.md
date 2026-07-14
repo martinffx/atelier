@@ -124,7 +124,7 @@ Skills remain installed. Run `npx skills remove martinffx/atelier` to remove the
 
 ## Skills
 
-This repository includes 34 skills that enhance AI agents with specialized knowledge and workflows.
+This repository includes 35 skills that enhance AI agents with specialized knowledge and workflows.
 
 ### Installing Skills
 
@@ -198,6 +198,7 @@ Task-specific tools you invoke when you need them.
 - `code-debug` — Systematic debugging workflow
 - `code-docs` — README, API docs, changelog generation
 - `code-handoff` — Compact conversation into handoff document
+- `code-pull-request` — Create GitHub pull requests with readiness checks and structured bodies
 - `code-review` — Multi-agent code review with specialized reviewers
 - `code-subagents` — Dispatch patterns for parallel implementation
 
@@ -257,6 +258,7 @@ graph LR
 | "Write a plan" | spec-plan |
 | "Implement this" | spec-implement |
 | "Review this code" | code-review |
+| "Open a PR" | code-pull-request |
 | "Debug this" | code-debug |
 | "How should I test this" | oracle-testing |
 | "What's the architecture" | oracle-architect |

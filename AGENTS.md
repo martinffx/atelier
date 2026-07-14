@@ -4,7 +4,7 @@ This file provides guidance to AI agents when working with code in this reposito
 
 ## Repository Overview
 
-This is Atelier - a personal development toolkit with 34 skills for spec-driven development, deep thinking, code quality, and ecosystem patterns.
+This is Atelier - a personal development toolkit with 35 skills for spec-driven development, deep thinking, code quality, and ecosystem patterns.
 
 ## Skills Structure
 
@@ -186,11 +186,12 @@ Process skills come first. Knowledge skills get invoked by process skills when n
 - `python-temporal` - Workflow orchestration, activities
 - `python-testing` - Stub-Driven TDD, layer boundary testing
 
-**Code Utilities** (6 skills)
+**Code Utilities** (7 skills)
 - `code-commit` - Generate and validate conventional commits
 - `code-debug` - Systematic debugging workflow and techniques
 - `code-docs` - Documentation generation for code projects
 - `code-handoff` - Compact conversation into handoff document for next agent
+- `code-pull-request` - Create GitHub pull requests with readiness checks and structured bodies
 - `code-review` - Multi-agent code review with parallel reviewers
 - `code-subagents` - Subagent dispatch patterns for implementation tasks
 

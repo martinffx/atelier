@@ -113,15 +113,21 @@ Optional - use code-docs skill if needed.
 
 ---
 
-## Step 5: Prepare for PR
+## Step 5: Open the PR
 
-### Verify
-- All tests passing
-- All reviews complete
-- Documentation updated
-- Commits stacked properly
+Invoke the [code-pull-request](../code-pull-request/SKILL.md) skill to:
+- Run final readiness checks (tests, typecheck, lint, build)
+- Generate a structured PR body from conventional commits (with diff fallback)
+- Honor the project's PR template if one exists
+- Create the PR via `gh pr create` (inline, `--fill`, or `--draft`)
+
+The `code-pull-request` skill handles the entire PR creation flow. Steps 1-4 of this
+skill (validate, review, stack commits, update docs) should all be complete before
+invoking it.
 
 ### Summary for Human
+
+Before invoking the PR skill, present:
 
 ```
 ## Completion Summary
@@ -136,7 +142,7 @@ Optional - use code-docs skill if needed.
 
 ### Handoff
 
-> "Implementation complete. [N] commits stacked. Ready for [submit/open PR]."
+> "Implementation complete. [N] commits stacked. Opening PR now."
 
 ---
 
@@ -146,6 +152,7 @@ This skill orchestrates other skills:
 
 - Invokes code-review for quality check
 - Invokes code-docs if documentation needs updates
+- Invokes code-pull-request as the final step to open the PR
 
 ---
 
