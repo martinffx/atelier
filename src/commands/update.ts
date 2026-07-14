@@ -9,7 +9,8 @@ import { ConfigNotFoundError } from '../utils/errors.js';
 import inquirer from 'inquirer';
 import type { AtelierConfig, Provider } from '../types.js';
 
-export async function update(basePath?: string): Promise<void> {
+export async function update(options?: { harness?: string; basePath?: string }): Promise<void> {
+  const { basePath } = options ?? {};
   const resolvedBasePath = basePath ?? process.cwd();
   let config = readConfig(join(resolvedBasePath, CONFIG_FILE));
   let harnessBasePath = resolvedBasePath;

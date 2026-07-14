@@ -5,7 +5,8 @@ import { readConfig, CONFIG_FILE } from '../utils/config.js';
 import { GLOBAL_OPENCODE_DIR } from '../generators/opencode.js';
 import { ConfigNotFoundError } from '../utils/errors.js';
 
-export function remove(basePath?: string): void {
+export function remove(options?: { harness?: string; basePath?: string }): void {
+  const { basePath } = options ?? {};
   const resolvedBasePath = basePath ?? process.cwd();
   let config = readConfig(join(resolvedBasePath, CONFIG_FILE));
   let harnessBasePath = resolvedBasePath;
