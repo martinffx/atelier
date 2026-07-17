@@ -31,7 +31,8 @@
       "strict": false,
       "skills": [
         "./skills/oracle-debug",
-        "./skills/oracle-grillme"
+        "./skills/oracle-grill-me",
+        "./skills/oracle-domain-modelling"
       ]
     },
     {

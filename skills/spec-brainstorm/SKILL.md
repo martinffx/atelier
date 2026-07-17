@@ -237,8 +237,8 @@ If you loop twice on the same batch, stop and ask:
 > "We've looped on [batch] twice. Should we reconsider the approach?"
 
 **Terminology discipline:** while drafting batches, challenge terms against
-`CONTEXT.md` and update it inline as terms resolve. If domain confusion runs
-deep, suggest pausing for **oracle-grillme** before continuing.
+`CONTEXT.md` and update it inline as terms resolve, using the **oracle-domain-modelling**
+skill. If domain confusion runs deep, suggest pausing for **oracle-grill-me** before continuing.
 
 ### 4c. Write the spec
 
