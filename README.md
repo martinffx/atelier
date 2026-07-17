@@ -159,7 +159,8 @@ Process-oriented skills that guide you through structured development workflows.
 Analytical skills that provide patterns, principles, and deep reasoning. These adapt to your specific situation.
 
 - `oracle-debug` — Systematic debugging, root cause before fixes
-- `oracle-grillme` — Socratic interrogation of plans against domain model
+- `oracle-grill-me` — Socratic interrogation of plans against domain model
+- `oracle-domain-modelling` — Build and sharpen the project's domain model
 
 #### Domain Knowledge (`python:*`, `typescript:*`)
 

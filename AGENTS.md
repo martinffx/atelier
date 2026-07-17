@@ -4,7 +4,7 @@ This file provides guidance to AI agents when working with code in this reposito
 
 ## Repository Overview
 
-This is Atelier - a personal development toolkit with 28 skills for spec-driven development, deep thinking, code quality, and ecosystem patterns.
+This is Atelier - a personal development toolkit with 29 skills for spec-driven development, deep thinking, code quality, and ecosystem patterns.
 
 ## Skills Structure
 
@@ -142,7 +142,7 @@ If you loop 2+ times on the same issue, stop and ask the human:
 **Process skills** (spec-brainstorm, spec-plan, spec-implement, spec-finish): Follow exactly.
 Don't adapt away discipline.
 
-**Knowledge skills** (oracle-grillme): Adapt principles to
+**Knowledge skills** (oracle-grill-me, oracle-domain-modelling): Adapt principles to
 context. These inform decisions within the workflow.
 
 **Discipline skills** (oracle-debug): Strict methodology that must be followed
@@ -159,9 +159,10 @@ Process skills come first. Knowledge skills get invoked by process skills when n
 - `spec-brainstorm` - Discovery + research + architecture → design.md
 - `spec-orchestrator` - Skill routing and workflow orchestration
 
-**Deep Thinking** (2 skills)
+**Deep Thinking** (3 skills)
 - `oracle-debug` - Systematic debugging, root cause before fixes
-- `oracle-grillme` - Socratic interrogation of plans against domain model and documented decisions
+- `oracle-grill-me` - Socratic interrogation of plans against domain model and documented decisions
+- `oracle-domain-modelling` - Build and sharpen the project's domain model
 
 **TypeScript Patterns** (8 skills)
 - `typescript-api-design` - REST API design patterns
