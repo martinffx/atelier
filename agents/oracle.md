@@ -28,7 +28,7 @@ Before finishing, confirm you have:
 - [ ] Documented business rules, validations, and limits
 - [ ] Defined scope—what is included and what is explicitly out of scope
 - [ ] Generated 2–3 alternative approaches with trade-offs if the problem is complex
-- [ ] Written or updated the Requirements section in `spec.md`
+- [ ] Written or updated the Requirements section in `design.md`
 
 ## Boundaries
 

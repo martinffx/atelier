@@ -16,7 +16,7 @@ Relentless questioning of your plan against the project's domain model, sharpeni
 - **Stress-testing a plan** — "I want to add a refund flow to the Order service"
 - **Clarifying fuzzy language** — "We're calling it 'account' but is that a Customer or a User?"
 - **Onboarding to a domain** — "Walk me through how the Billing context relates to Ordering"
-- **Before writing specs** — Ensuring the domain language is solid before `spec-research` begins
+- **Before writing specs** — Ensuring the domain language is solid before `spec-brainstorm` begins
 - **After code review** — "The PR introduces 'cancellation' but our glossary says..."
 
 ## When NOT to Use
@@ -24,7 +24,7 @@ Relentless questioning of your plan against the project's domain model, sharpeni
 - **Simple implementation questions** — Use `oracle-challenge` or `oracle-architect` instead
 - **Debugging** — Use `code-debug`
 - **Testing strategy** — Use `oracle-testing`
-- **Already in spec workflow** — Use `spec-research` + `oracle-architect` for domain discovery during the spec process
+- **Already in spec workflow** — Use `spec-brainstorm` + `oracle-architect` for domain discovery during the spec process
 
 ---
 
@@ -152,8 +152,8 @@ If any of the three is missing, skip the ADR. Use the format in [references/ADR-
 |-------|----------|
 | **oracle-grillme** | Questioning domain assumptions, sharpening terminology, updating docs inline |
 | **oracle-challenge** | Critically evaluating a technical approach or decision |
-| **oracle-architect** | Designing components, data models, API contracts during spec-research |
-| **spec-research** | Structured discovery + architecture → spec.md (use grillme before this to solidify language) |
+| **oracle-architect** | Designing components, data models, API contracts during spec-brainstorm |
+| **spec-brainstorm** | Structured discovery + architecture → design.md (use grillme before this to solidify language) |
 
 **Key distinction:**
 - `oracle-challenge` = "Is this approach valid?" (critical evaluation)
