@@ -173,7 +173,13 @@ describe('update', () => {
     rmSync(join(tempDir, '.claude/settings.json'));
     expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(false);
 
-    inquirerAnswers = { confirm: true };
+    inquirerAnswers = {
+      default_model: 'opusplan',
+      recon: 'haiku',
+      oracle: 'opus',
+      architect: 'sonnet',
+      confirm: true,
+    };
     await update({ harness: 'claude' });
     expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(true);
   });

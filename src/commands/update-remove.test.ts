@@ -46,6 +46,13 @@ describe('update', () => {
     );
   });
 
+  test('throws when requested harness is not configured', async () => {
+    await init({ yes: true, harness: 'claude' });
+    await expect(update({ harness: 'codex' })).rejects.toThrow(
+      "Harness 'codex' is not configured"
+    );
+  });
+
   test('regenerates codex files without touching claude files', async () => {
     await init({ yes: true, harness: 'claude' });
     await init({ yes: true, harness: 'codex' });
@@ -125,6 +132,13 @@ describe('remove', () => {
     await init({ yes: true, harness: 'claude' });
     await expect(remove({ harness: 'foobar' })).rejects.toThrow(
       'Invalid harness "foobar". Must be claude, opencode, or codex.'
+    );
+  });
+
+  test('throws when requested harness is not configured', async () => {
+    await init({ yes: true, harness: 'claude' });
+    await expect(remove({ harness: 'codex' })).rejects.toThrow(
+      "Harness 'codex' is not configured"
     );
   });
 

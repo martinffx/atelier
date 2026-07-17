@@ -1,7 +1,7 @@
 import { execFileSync } from 'child_process';
 import { join } from 'path';
 import { homedir } from 'os';
-import { readConfig, writeConfig, getDefaultConfig, validateConfig, CONFIG_FILE } from '../utils/config.js';
+import { readConfig, writeConfig, getDefaultConfig, validateConfig, toSharedConfig, CONFIG_FILE } from '../utils/config.js';
 import {
   HARNESS_CHOICES,
   parseHarness,
@@ -10,7 +10,7 @@ import {
   generateFiles,
   buildFileList,
   shortPath,
-} from '../utils/harness.js';
+} from '../harness.js';
 import { HarnessRequiredError, InvalidConfigError, SkillsInstallError } from '../utils/errors.js';
 import inquirer from 'inquirer';
 import type { Harness, AtelierConfig, HarnessSection } from '../types.js';
@@ -94,14 +94,10 @@ export async function init(options: InitOptions): Promise<void> {
     }
   }
 
-  const shared = {
-    version: config.version,
-    skills_source: config.skills_source,
-    skills_path: config.skills_path,
-  };
+  const shared = toSharedConfig(config);
 
-  writeConfig(config, configPath);
   generateFiles(shared, section, harness, harnessBasePath);
+  writeConfig(config, configPath);
 
   console.log(`\nAtelier initialized for ${harness}.`);
 

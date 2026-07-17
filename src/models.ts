@@ -57,10 +57,11 @@ export type SimpleDefaultModels = Record<AgentName, string> & { default_model?: 
 export type OpenCodeDefaultModels = Record<AgentName, string> & { build: string; plan: string };
 
 export const defaultModels: {
-  anthropic: SimpleDefaultModels;
+  anthropic: SimpleDefaultModels & { default_model: string };
   openai: SimpleDefaultModels & { default_model: string };
 } & Record<OpenCodeProvider, OpenCodeDefaultModels> = {
   anthropic: {
+    default_model: 'opusplan',
     recon: 'haiku',
     oracle: 'opus',
     architect: 'opus',

@@ -47,7 +47,7 @@ export function generateOpenCode(config: OpenCodeGeneratorConfig, basePath: stri
     writeAgentFiles(config, basePath);
     writeCommandFiles(config, basePath);
   } catch (err) {
-    throw new FileWriteError('generateOpenCode', err instanceof Error ? err.message : String(err));
+    throw new FileWriteError(join(basePath, '.opencode'), err instanceof Error ? err.message : String(err));
   }
 }
 
@@ -218,7 +218,13 @@ interface SkillFrontmatter {
   'user-invocable'?: boolean;
 }
 
-function getUserInvocableSkillNames(skillsPath: string): string[] {
+interface SkillMetadata {
+  name: string;
+  description: string;
+  userInvocable: boolean;
+}
+
+function readSkillMetadata(skillsPath: string): SkillMetadata[] {
   const resolved = resolveSkillsPath(skillsPath);
   if (!resolved || !existsSync(resolved)) {
     return [];
@@ -231,7 +237,7 @@ function getUserInvocableSkillNames(skillsPath: string): string[] {
     return [];
   }
 
-  const names: string[] = [];
+  const metadata: SkillMetadata[] = [];
   for (const entry of entries) {
     const skillMdPath = join(resolved, entry, 'SKILL.md');
     if (!existsSync(skillMdPath)) {
@@ -247,12 +253,20 @@ function getUserInvocableSkillNames(skillsPath: string): string[] {
 
     const { data } = matter(skillContent);
     const fm = data as SkillFrontmatter;
-    if (fm['user-invocable'] === true) {
-      names.push(entry);
-    }
+    metadata.push({
+      name: entry,
+      description: fm.description || `Activate the ${entry} skill`,
+      userInvocable: fm['user-invocable'] === true,
+    });
   }
 
-  return names;
+  return metadata;
+}
+
+function getUserInvocableSkillNames(skillsPath: string): string[] {
+  return readSkillMetadata(skillsPath)
+    .filter(skill => skill.userInvocable)
+    .map(skill => skill.name);
 }
 
 function writeCommandFiles(config: OpenCodeGeneratorConfig, basePath: string): void {
@@ -265,41 +279,19 @@ function writeCommandFiles(config: OpenCodeGeneratorConfig, basePath: string): v
     throw new FileWriteError(commandsDir, err instanceof Error ? err.message : String(err));
   }
 
-  for (const commandName of getUserInvocableSkillNames(config.skills_path)) {
-    const description = getSkillDescription(config.skills_path, commandName) || `Activate the ${commandName} skill`;
-
+  const skills = readSkillMetadata(config.skills_path).filter(skill => skill.userInvocable);
+  for (const { name, description } of skills) {
     const commandContent = `---
 description: ${description}
 ---
-Activate the ${commandName} skill and follow its instructions precisely.
+Activate the ${name} skill and follow its instructions precisely.
 
 User request: $ARGUMENTS
 `;
 
-    const commandPath = join(commandsDir, `${commandName}.md`);
+    const commandPath = join(commandsDir, `${name}.md`);
     writeFileSync(commandPath, commandContent);
-    console.log(`Created ${displayPath(basePath, isGlobalOpencode(basePath) ? `command/${commandName}.md` : `.opencode/command/${commandName}.md`)}`);
-  }
-}
-
-function getSkillDescription(skillsPath: string, skillName: string): string | undefined {
-  const resolved = resolveSkillsPath(skillsPath);
-  if (!resolved) {
-    return undefined;
-  }
-
-  const skillMdPath = join(resolved, skillName, 'SKILL.md');
-  if (!existsSync(skillMdPath)) {
-    return undefined;
-  }
-
-  try {
-    const skillContent = readFileSync(skillMdPath, { encoding: 'utf-8' });
-    const { data } = matter(skillContent);
-    const fm = data as SkillFrontmatter;
-    return fm.description;
-  } catch {
-    return undefined;
+    console.log(`Created ${displayPath(basePath, isGlobalOpencode(basePath) ? `command/${name}.md` : `.opencode/command/${name}.md`)}`);
   }
 }
 

@@ -1,5 +1,5 @@
 import { describe, test, expect, afterEach, beforeEach } from 'bun:test';
-import { mkdtempSync, rmSync, readFileSync, statSync, mkdirSync, writeFileSync } from 'fs';
+import { mkdtempSync, rmSync, readFileSync, statSync, mkdirSync, writeFileSync, existsSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import * as TOML from 'smol-toml';
@@ -130,5 +130,57 @@ describe('generateCodex', () => {
     expect(Array.isArray(config.agents)).toBe(false);
     expect((config.agents as Record<string, unknown>).max_threads).toBe(6);
     expect(config.customField).toBe('preserved');
+  });
+});
+
+describe('removeCodexArtifacts', () => {
+  test('removes agent files', async () => {
+    const { generateCodex, removeCodexArtifacts } = await import('./codex.js');
+    generateCodex(testConfig, tempDir);
+
+    removeCodexArtifacts(testConfig, tempDir);
+
+    expect(existsSync(join(tempDir, '.codex/agents/recon.toml'))).toBe(false);
+    expect(existsSync(join(tempDir, '.codex/agents/oracle.toml'))).toBe(false);
+    expect(existsSync(join(tempDir, '.codex/agents/architect.toml'))).toBe(false);
+  });
+
+  test('preserves custom keys in config.toml', async () => {
+    const { generateCodex, removeCodexArtifacts } = await import('./codex.js');
+
+    generateCodex(testConfig, tempDir);
+
+    const configPath = join(tempDir, '.codex/config.toml');
+    const existing = TOML.parse(readFileSync(configPath, 'utf-8')) as Record<string, unknown>;
+    existing.custom_field = 'preserved';
+    writeFileSync(configPath, TOML.stringify(existing));
+
+    removeCodexArtifacts(testConfig, tempDir);
+
+    expect(existsSync(configPath)).toBe(true);
+    const after = TOML.parse(readFileSync(configPath, 'utf-8')) as Record<string, unknown>;
+    expect(after.custom_field).toBe('preserved');
+    expect(after.model).toBeUndefined();
+    expect(after.model_reasoning_effort).toBeUndefined();
+  });
+
+  test('deletes config.toml and empty .codex directory when only atelier keys remain', async () => {
+    const { generateCodex, removeCodexArtifacts } = await import('./codex.js');
+    generateCodex(testConfig, tempDir);
+
+    removeCodexArtifacts(testConfig, tempDir);
+
+    expect(existsSync(join(tempDir, '.codex/config.toml'))).toBe(false);
+    expect(existsSync(join(tempDir, '.codex'))).toBe(false);
+  });
+
+  test('throws on malformed config.toml', async () => {
+    const { generateCodex, removeCodexArtifacts } = await import('./codex.js');
+    const { writeFileSync } = await import('fs');
+
+    generateCodex(testConfig, tempDir);
+    writeFileSync(join(tempDir, '.codex/config.toml'), 'not valid toml');
+
+    expect(() => removeCodexArtifacts(testConfig, tempDir)).toThrow('Failed to parse');
   });
 });

@@ -6,21 +6,21 @@ import type {
   Harness,
   AtelierConfig,
   Provider,
-  ClaudeConfig,
-  CodexConfig,
+  SimpleConfig,
   OpenCodeConfig,
   OpenCodeProvider,
   HarnessSection,
   SharedConfig,
   FileEntry,
-} from '../types.js';
-import { AGENT_NAMES, HARNESS_CHOICES } from '../types.js';
-import { defaultModels } from '../models.js';
-import { getModelsForProvider } from './templates.js';
-import { generateClaude, removeClaudeArtifacts } from '../generators/claude.js';
-import { generateOpenCode, removeOpenCodeArtifacts, getGlobalOpencodeDir, getOpencodeRoot } from '../generators/opencode.js';
-import { generateCodex, removeCodexArtifacts } from '../generators/codex.js';
-import { InvalidConfigError, InvalidHarnessError } from './errors.js';
+} from './types.js';
+import type { OpenCodeGeneratorConfig } from './generators/opencode.js';
+import { AGENT_NAMES, HARNESS_CHOICES } from './types.js';
+import { defaultModels } from './models.js';
+import { getModelsForProvider } from './utils/templates.js';
+import { generateClaude, removeClaudeArtifacts } from './generators/claude.js';
+import { generateOpenCode, removeOpenCodeArtifacts, getGlobalOpencodeDir, getOpencodeRoot } from './generators/opencode.js';
+import { generateCodex, removeCodexArtifacts } from './generators/codex.js';
+import { InvalidConfigError, InvalidHarnessError } from './utils/errors.js';
 
 export { HARNESS_CHOICES };
 
@@ -50,38 +50,20 @@ export function getGlobalBasePath(harness: Harness): string {
 }
 
 interface HarnessMeta {
-  name: Harness;
-  provider: Provider | undefined;
-  defaultProvider: Provider | undefined;
   getBasePath: () => string;
   promptForModels: (section: HarnessSection) => Promise<HarnessSection>;
   generateFiles: (shared: SharedConfig, section: HarnessSection, basePath: string) => void;
   buildFileList: (basePath: string) => FileEntry[];
-  removeArtifacts: (shared: SharedConfig, section: HarnessSection, basePath: string) => void;
-}
-
-function isClaudeSection(section: HarnessSection): section is ClaudeConfig {
-  return 'default_model' in section && !('provider' in section);
-}
-
-function isCodexSection(section: HarnessSection): section is CodexConfig {
-  return 'default_model' in section && !('provider' in section);
+  removeArtifacts: (config: SimpleConfig | OpenCodeGeneratorConfig, basePath: string) => void;
 }
 
 function isOpenCodeSection(section: HarnessSection): section is OpenCodeConfig {
   return 'provider' in section;
 }
 
-function assertClaudeSection(section: HarnessSection): ClaudeConfig {
-  if (!isClaudeSection(section)) {
-    throw new InvalidConfigError('Expected claude section');
-  }
-  return section;
-}
-
-function assertCodexSection(section: HarnessSection): CodexConfig {
-  if (!isCodexSection(section)) {
-    throw new InvalidConfigError('Expected codex section');
+function assertSimpleSection(section: HarnessSection): SimpleConfig {
+  if (isOpenCodeSection(section)) {
+    throw new InvalidConfigError('Expected simple config section');
   }
   return section;
 }
@@ -95,37 +77,25 @@ function assertOpenCodeSection(section: HarnessSection): OpenCodeConfig {
 
 export const harnessRegistry: Record<Harness, HarnessMeta> = {
   claude: {
-    name: 'claude',
-    provider: 'anthropic',
-    defaultProvider: undefined,
     getBasePath: () => homedir(),
-    promptForModels: (section) => promptForClaudeModels(assertClaudeSection(section)),
-    generateFiles: (shared, section, basePath) => generateClaude({ ...shared, ...assertClaudeSection(section) }, basePath),
+    promptForModels: (section) => promptForSimpleModels(assertSimpleSection(section), 'anthropic'),
+    generateFiles: (shared, section, basePath) => generateClaude({ ...shared, ...assertSimpleSection(section) }, basePath),
     buildFileList: (basePath) => buildClaudeFileList(basePath),
-    removeArtifacts: (shared, section, basePath) => removeClaudeArtifacts(assertClaudeSection(section), basePath),
+    removeArtifacts: (config, basePath) => removeClaudeArtifacts(config as SimpleConfig, basePath),
   },
   codex: {
-    name: 'codex',
-    provider: 'openai',
-    defaultProvider: undefined,
     getBasePath: () => homedir(),
-    promptForModels: (section) => promptForCodexModels(assertCodexSection(section)),
-    generateFiles: (shared, section, basePath) => generateCodex({ ...shared, ...assertCodexSection(section) }, basePath),
+    promptForModels: (section) => promptForSimpleModels(assertSimpleSection(section), 'openai'),
+    generateFiles: (shared, section, basePath) => generateCodex({ ...shared, ...assertSimpleSection(section) }, basePath),
     buildFileList: (basePath) => buildCodexFileList(basePath),
-    removeArtifacts: (shared, section, basePath) => removeCodexArtifacts(assertCodexSection(section), basePath),
+    removeArtifacts: (config, basePath) => removeCodexArtifacts(config as SimpleConfig, basePath),
   },
   opencode: {
-    name: 'opencode',
-    provider: undefined,
-    defaultProvider: 'opencode-zen',
     getBasePath: () => getGlobalOpencodeDir(),
     promptForModels: (section) => promptForOpenCodeModels(assertOpenCodeSection(section)),
     generateFiles: (shared, section, basePath) => generateOpenCode({ ...shared, ...assertOpenCodeSection(section) }, basePath),
     buildFileList: (basePath) => buildOpenCodeFileList(basePath),
-    removeArtifacts: (shared, section, basePath) => removeOpenCodeArtifacts(
-      { ...shared, ...assertOpenCodeSection(section) },
-      basePath,
-    ),
+    removeArtifacts: (config, basePath) => removeOpenCodeArtifacts(config as OpenCodeGeneratorConfig, basePath),
   },
 };
 
@@ -137,42 +107,7 @@ export async function promptForModels(section: HarnessSection, harness: Harness)
   return meta.promptForModels(section);
 }
 
-async function promptForClaudeModels(section: ClaudeConfig): Promise<ClaudeConfig> {
-  const provider: Provider = 'anthropic';
-  const models = getModelsForProvider(provider);
-
-  const answers = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'default_model',
-      message: 'Select default model',
-      choices: models,
-      default: section.default_model,
-    },
-    ...AGENT_NAMES.map(name => ({
-      type: 'list' as const,
-      name,
-      message: `Select model for ${name}`,
-      choices: models,
-      default: section.agents.find(a => a.name === name)?.model || models[0],
-    })),
-  ]);
-
-  return {
-    default_model: answers.default_model,
-    agents: AGENT_NAMES.map(name => {
-      const agent = section.agents.find(a => a.name === name);
-      return {
-        template: name,
-        name,
-        model: answers[name] || agent?.model || models[0],
-      };
-    }),
-  };
-}
-
-async function promptForCodexModels(section: CodexConfig): Promise<CodexConfig> {
-  const provider: Provider = 'openai';
+async function promptForSimpleModels(section: SimpleConfig, provider: Provider): Promise<SimpleConfig> {
   const models = getModelsForProvider(provider);
 
   const answers = await inquirer.prompt([
@@ -280,7 +215,8 @@ export function removeArtifacts(shared: SharedConfig, section: HarnessSection, h
   if (!meta) {
     throw new InvalidConfigError(`Unknown harness: ${harness}`);
   }
-  meta.removeArtifacts(shared, section, basePath);
+  const config = isOpenCodeSection(section) ? { ...shared, ...section } : section;
+  meta.removeArtifacts(config, basePath);
 }
 
 function buildClaudeFileList(basePath: string): FileEntry[] {

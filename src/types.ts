@@ -13,15 +13,14 @@ export interface AgentConfig {
   model: string;
 }
 
-export interface ClaudeConfig {
+export interface SimpleConfig {
   default_model: string;
   agents: AgentConfig[];
 }
 
-export interface CodexConfig {
-  default_model: string;
-  agents: AgentConfig[];
-}
+// Claude and Codex share the same simple config shape; the harness key provides the meaning.
+export type ClaudeConfig = SimpleConfig;
+export type CodexConfig = SimpleConfig;
 
 export interface OpenCodeConfig {
   provider: OpenCodeProvider;
@@ -30,7 +29,7 @@ export interface OpenCodeConfig {
   agents: AgentConfig[];
 }
 
-export type HarnessSection = ClaudeConfig | CodexConfig | OpenCodeConfig;
+export type HarnessSection = SimpleConfig | OpenCodeConfig;
 
 export type AtelierConfig = {
   version: string;

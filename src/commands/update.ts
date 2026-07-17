@@ -1,6 +1,6 @@
 import { join } from 'path';
 import { homedir } from 'os';
-import { readConfig, writeConfig, CONFIG_FILE } from '../utils/config.js';
+import { readConfig, writeConfig, validateConfig, toSharedConfig, CONFIG_FILE } from '../utils/config.js';
 import {
   parseHarness,
   getConfiguredHarnesses,
@@ -9,7 +9,7 @@ import {
   generateFiles,
   buildFileList,
   shortPath,
-} from '../utils/harness.js';
+} from '../harness.js';
 import { ConfigNotFoundError, InvalidConfigError } from '../utils/errors.js';
 import inquirer from 'inquirer';
 import type { Harness, AtelierConfig, HarnessSection } from '../types.js';
@@ -55,7 +55,12 @@ export async function update(options?: UpdateOptions): Promise<void> {
     harness = answer.harness;
   }
 
-  const section = await promptForModels(config[harness]!, harness);
+  const existingSection = config[harness];
+  if (!existingSection) {
+    throw new InvalidConfigError(`Harness '${harness}' is not configured. Run 'atelier init --harness ${harness}' first.`);
+  }
+
+  const section = await promptForModels(existingSection, harness);
 
   const harnessBasePath = getGlobalBasePath(harness);
 
@@ -78,14 +83,11 @@ export async function update(options?: UpdateOptions): Promise<void> {
 
   config[harness] = section;
 
-  const shared = {
-    version: config.version,
-    skills_source: config.skills_source,
-    skills_path: config.skills_path,
-  };
+  const shared = toSharedConfig(config);
 
-  writeConfig(config, configPath);
+  validateConfig(config);
   generateFiles(shared, section, harness, harnessBasePath);
+  writeConfig(config, configPath);
 
   console.log(`Atelier updated for ${harness}.`);
   console.log('Skills are managed separately. Run `npx skills update martinffx/atelier` to update skills.');

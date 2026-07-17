@@ -1,14 +1,17 @@
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from 'fs';
 import { dirname, join } from 'path';
 import { homedir } from 'os';
 import { z } from 'zod';
-import type { AtelierConfig, Harness, OpenCodeProvider, ClaudeConfig, CodexConfig, OpenCodeConfig, AgentConfig, HarnessSection } from '../types.js';
+import type { AtelierConfig, Harness, OpenCodeProvider, SimpleConfig, OpenCodeConfig, AgentConfig, SharedConfig } from '../types.js';
 import { AGENT_NAMES } from '../types.js';
 import { defaultModels } from '../models.js';
 import { InvalidConfigError } from './errors.js';
 import type { Result } from './result.js';
 import { ok, err } from './result.js';
 
+// Error-handling convention: readConfig returns Result<T,E> for expected I/O errors
+// (not found, invalid JSON, old format). All other config functions throw AtelierError
+// subclasses for logic/configuration errors.
 export const CONFIG_FILE = '.atelier/config.json';
 export const CONFIG_PATH = join(homedir(), CONFIG_FILE);
 const CURRENT_VERSION = '0.1.0';
@@ -24,12 +27,7 @@ const AgentSchema = z.object({
   model: z.string(),
 });
 
-const ClaudeConfigSchema = z.object({
-  default_model: z.string(),
-  agents: z.array(AgentSchema).min(1),
-});
-
-const CodexConfigSchema = z.object({
+const SimpleConfigSchema = z.object({
   default_model: z.string(),
   agents: z.array(AgentSchema).min(1),
 });
@@ -47,8 +45,8 @@ const ConfigSchema = z.object({
   version: z.string(),
   skills_source: z.string(),
   skills_path: z.string().min(1),
-  claude: ClaudeConfigSchema.optional(),
-  codex: CodexConfigSchema.optional(),
+  claude: SimpleConfigSchema.optional(),
+  codex: SimpleConfigSchema.optional(),
   opencode: OpenCodeConfigSchema.optional(),
 }).refine(data => data.claude || data.codex || data.opencode, {
   message: 'At least one harness must be configured',
@@ -84,7 +82,7 @@ export function readConfig(path: string = CONFIG_PATH): Result<AtelierConfig, Co
   if (isOldFlatConfig(parsed)) {
     return err({
       type: 'old-format',
-      message: 'Config format has changed. Run `atelier init --harness <claude|opencode|codex>` to reconfigure.',
+      message: 'Config format has changed',
     });
   }
 
@@ -97,11 +95,16 @@ export function readConfig(path: string = CONFIG_PATH): Result<AtelierConfig, Co
 }
 
 function isOldFlatConfig(config: unknown): boolean {
+  if (typeof config !== 'object' || config === null) {
+    return false;
+  }
+  const record = config as Record<string, unknown>;
+  // Old flat config has a top-level harness field and no new-format harness sections.
   return (
-    typeof config === 'object' &&
-    config !== null &&
-    'harness' in config &&
-    typeof (config as Record<string, unknown>).harness === 'string'
+    typeof record.harness === 'string' &&
+    record.claude === undefined &&
+    record.codex === undefined &&
+    record.opencode === undefined
   );
 }
 
@@ -113,6 +116,21 @@ export function writeConfig(config: AtelierConfig, path: string = CONFIG_PATH): 
   writeFileSync(path, JSON.stringify(config, null, 2) + '\n');
 }
 
+export function toSharedConfig(config: AtelierConfig): SharedConfig {
+  return {
+    version: config.version,
+    skills_source: config.skills_source,
+    skills_path: config.skills_path,
+  };
+}
+
+export function removeConfigDir(path: string = CONFIG_PATH): void {
+  const dir = dirname(path);
+  if (existsSync(dir)) {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
 function createEmptyAgents(): AgentConfig[] {
   return AGENT_NAMES.map(name => ({
     template: name,
@@ -121,15 +139,15 @@ function createEmptyAgents(): AgentConfig[] {
   }));
 }
 
-export function getDefaultClaudeConfig(): ClaudeConfig {
+export function getDefaultClaudeConfig(): SimpleConfig {
   const defaults = defaultModels.anthropic;
   return {
-    default_model: 'opusplan',
+    default_model: defaults.default_model,
     agents: createEmptyAgents().map(a => ({ ...a, model: defaults[a.name] })),
   };
 }
 
-export function getDefaultCodexConfig(): CodexConfig {
+export function getDefaultCodexConfig(): SimpleConfig {
   const defaults = defaultModels.openai;
   return {
     default_model: defaults.default_model,
@@ -169,17 +187,4 @@ export function getDefaultConfig(harness: Harness): AtelierConfig {
   }
 }
 
-export function getDefaultSectionConfig(harness: Harness): HarnessSection {
-  switch (harness) {
-    case 'claude':
-      return getDefaultClaudeConfig();
-    case 'codex':
-      return getDefaultCodexConfig();
-    case 'opencode':
-      return getDefaultOpenCodeConfig();
-    default: {
-      const _exhaustive: never = harness;
-      throw new InvalidConfigError(`Unknown harness: ${_exhaustive}`);
-    }
-  }
-}
+

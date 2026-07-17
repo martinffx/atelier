@@ -1,8 +1,7 @@
-import { rmSync, existsSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
-import { readConfig, writeConfig, CONFIG_FILE } from '../utils/config.js';
-import { parseHarness, getConfiguredHarnesses, getGlobalBasePath, removeArtifacts } from '../utils/harness.js';
+import { readConfig, writeConfig, removeConfigDir, toSharedConfig, CONFIG_FILE } from '../utils/config.js';
+import { parseHarness, getConfiguredHarnesses, getGlobalBasePath, removeArtifacts } from '../harness.js';
 import { ConfigNotFoundError, InvalidConfigError } from '../utils/errors.js';
 import inquirer from 'inquirer';
 import type { Harness } from '../types.js';
@@ -51,21 +50,19 @@ export async function remove(options?: RemoveOptions): Promise<void> {
   const basePath = getGlobalBasePath(harness);
   const section = config[harness];
 
-  if (section) {
-    const shared = {
-      version: config.version,
-      skills_source: config.skills_source,
-      skills_path: config.skills_path,
-    };
-    removeArtifacts(shared, section, harness, basePath);
+  if (!section) {
+    throw new InvalidConfigError(`Harness '${harness}' is not configured.`);
   }
+
+  const shared = toSharedConfig(config);
+  removeArtifacts(shared, section, harness, basePath);
 
   const updatedConfig = { ...config };
   delete updatedConfig[harness];
 
   const remainingHarnesses = getConfiguredHarnesses(updatedConfig);
   if (remainingHarnesses.length === 0) {
-    rmSync(join(homedir(), '.atelier'), { recursive: true, force: true });
+    removeConfigDir(configPath);
   } else {
     writeConfig(updatedConfig, configPath);
   }

@@ -1,5 +1,5 @@
 import { describe, test, expect, afterEach, beforeEach } from 'bun:test';
-import { mkdtempSync, rmSync, readFileSync, statSync } from 'fs';
+import { mkdtempSync, rmSync, readFileSync, statSync, existsSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
@@ -129,5 +129,57 @@ describe('generateClaude', () => {
     );
 
     expect(atelierHooks).toHaveLength(1);
+  });
+});
+
+describe('removeClaudeArtifacts', () => {
+  test('removes agent files and hook script', async () => {
+    const { generateClaude, removeClaudeArtifacts } = await import('./claude.js');
+    generateClaude(testConfig, tempDir);
+
+    removeClaudeArtifacts(testConfig, tempDir);
+
+    expect(existsSync(join(tempDir, '.claude/agents/recon.md'))).toBe(false);
+    expect(existsSync(join(tempDir, '.claude/agents/oracle.md'))).toBe(false);
+    expect(existsSync(join(tempDir, '.claude/agents/architect.md'))).toBe(false);
+    expect(existsSync(join(tempDir, 'hooks/atelier-session-start'))).toBe(false);
+  });
+
+  test('preserves custom keys in settings.json', async () => {
+    const { generateClaude, removeClaudeArtifacts } = await import('./claude.js');
+    const { writeFileSync, mkdirSync } = await import('fs');
+
+    mkdirSync(join(tempDir, '.claude'), { recursive: true });
+    writeFileSync(join(tempDir, '.claude/settings.json'), JSON.stringify({
+      customField: 'preserved',
+    }));
+
+    removeClaudeArtifacts(testConfig, tempDir);
+
+    const settingsPath = join(tempDir, '.claude/settings.json');
+    expect(existsSync(settingsPath)).toBe(true);
+    const settings = JSON.parse(readFileSync(settingsPath, 'utf-8'));
+    expect(settings.customField).toBe('preserved');
+    expect(settings.model).toBeUndefined();
+    expect(settings.$schema).toBeUndefined();
+  });
+
+  test('deletes settings.json when only atelier keys remain', async () => {
+    const { generateClaude, removeClaudeArtifacts } = await import('./claude.js');
+    generateClaude(testConfig, tempDir);
+
+    removeClaudeArtifacts(testConfig, tempDir);
+
+    expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(false);
+  });
+
+  test('throws on malformed settings.json', async () => {
+    const { generateClaude, removeClaudeArtifacts } = await import('./claude.js');
+    const { writeFileSync } = await import('fs');
+
+    generateClaude(testConfig, tempDir);
+    writeFileSync(join(tempDir, '.claude/settings.json'), 'not valid json');
+
+    expect(() => removeClaudeArtifacts(testConfig, tempDir)).toThrow('Failed to parse');
   });
 });

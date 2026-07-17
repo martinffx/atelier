@@ -1,4 +1,4 @@
-import { writeFileSync, mkdirSync, readFileSync, existsSync, rmSync } from 'fs';
+import { writeFileSync, mkdirSync, readFileSync, existsSync, rmSync, readdirSync } from 'fs';
 import { join } from 'path';
 import * as TOML from 'smol-toml';
 import type { CodexConfig, SharedConfig } from '../types.js';
@@ -25,10 +25,29 @@ export function generateCodex(config: CodexGeneratorConfig, basePath: string): v
   }
 }
 
+const MANAGED_CODEX_KEYS: Array<{ key: string; nested?: Record<string, string[]> }> = [
+  { key: 'model' },
+  { key: 'model_reasoning_effort' },
+  {
+    key: 'features',
+    nested: { features: ['multi_agent'] },
+  },
+  {
+    key: 'agents',
+    nested: { agents: ['max_threads', 'max_depth'] },
+  },
+];
+
 export function removeCodexArtifacts(config: CodexConfig, basePath: string): void {
   const codexDir = join(basePath, '.codex');
   const agentsDir = join(codexDir, 'agents');
 
+  removeAgentFiles(config, agentsDir);
+  cleanCodexConfig(codexDir);
+  removeEmptyCodexDir(codexDir);
+}
+
+function removeAgentFiles(config: CodexConfig, agentsDir: string): void {
   for (const agent of config.agents) {
     const file = join(agentsDir, `${agent.name}.toml`);
     if (existsSync(file)) {
@@ -39,41 +58,61 @@ export function removeCodexArtifacts(config: CodexConfig, basePath: string): voi
   if (existsSync(agentsDir)) {
     rmSync(agentsDir, { recursive: true, force: true });
   }
+}
 
+function cleanCodexConfig(codexDir: string): void {
   const configPath = join(codexDir, 'config.toml');
   if (!existsSync(configPath)) {
     return;
   }
 
-  let content: Record<string, unknown>;
+  const content = parseCodexConfig(configPath);
+  removeManagedKeys(content);
+  writeOrDeleteCodexConfig(configPath, content);
+}
+
+function parseCodexConfig(configPath: string): Record<string, unknown> {
   try {
-    content = TOML.parse(readFileSync(configPath, 'utf-8')) as Record<string, unknown>;
+    return TOML.parse(readFileSync(configPath, 'utf-8')) as Record<string, unknown>;
   } catch (err) {
     throw new HarnessConfigError(configPath, err instanceof Error ? err.message : String(err));
   }
+}
 
-  delete content.model;
-  delete content.model_reasoning_effort;
-
-  if (content.features && isObject(content.features)) {
-    delete (content.features as Record<string, unknown>).multi_agent;
-    if (Object.keys(content.features).length === 0) {
-      delete content.features;
+function removeManagedKeys(content: Record<string, unknown>): void {
+  for (const { key, nested } of MANAGED_CODEX_KEYS) {
+    if (nested) {
+      for (const [table, subKeys] of Object.entries(nested)) {
+        const tableValue = content[table];
+        if (isObject(tableValue)) {
+          for (const subKey of subKeys) {
+            delete tableValue[subKey];
+          }
+          if (Object.keys(tableValue).length === 0) {
+            delete content[table];
+          }
+        }
+      }
+    } else {
+      delete content[key];
     }
   }
+}
 
-  if (content.agents && isObject(content.agents)) {
-    delete (content.agents as Record<string, unknown>).max_threads;
-    delete (content.agents as Record<string, unknown>).max_depth;
-    if (Object.keys(content.agents).length === 0) {
-      delete content.agents;
-    }
-  }
-
+function writeOrDeleteCodexConfig(configPath: string, content: Record<string, unknown>): void {
   if (Object.keys(content).length === 0) {
     rmSync(configPath, { force: true });
   } else {
     writeFileSync(configPath, TOML.stringify(content));
+  }
+}
+
+function removeEmptyCodexDir(codexDir: string): void {
+  if (existsSync(codexDir)) {
+    const entries = readdirSync(codexDir);
+    if (entries.length === 0) {
+      rmSync(codexDir, { recursive: true, force: true });
+    }
   }
 }
 

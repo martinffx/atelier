@@ -1,5 +1,5 @@
 import { describe, test, expect, afterEach, beforeEach } from 'bun:test';
-import { mkdtempSync, rmSync, readFileSync, statSync, mkdirSync, writeFileSync } from 'fs';
+import { mkdtempSync, rmSync, readFileSync, statSync, mkdirSync, writeFileSync, existsSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
@@ -165,5 +165,74 @@ describe('generateOpenCode', () => {
 
     const commandsDir = join(tempDir, '.opencode', 'command');
     expect(statSync(commandsDir).isDirectory()).toBe(true);
+  });
+});
+
+describe('removeOpenCodeArtifacts', () => {
+  test('removes agent files, plugin, and command files', async () => {
+    const { generateOpenCode, removeOpenCodeArtifacts } = await import('./opencode.js');
+
+    mkdirSync(join(tempDir, 'skills', 'spec-brainstorm'), { recursive: true });
+    writeFileSync(
+      join(tempDir, 'skills', 'spec-brainstorm', 'SKILL.md'),
+      '---\nname: spec-brainstorm\ndescription: Conversational design workshop\nuser-invocable: true\n---\n# Skill'
+    );
+
+    const configWithSkills = {
+      ...testConfig,
+      skills_path: join(tempDir, 'skills'),
+    };
+    generateOpenCode(configWithSkills, tempDir);
+
+    expect(existsSync(join(tempDir, '.opencode/agent/recon.md'))).toBe(true);
+    expect(existsSync(join(tempDir, '.opencode/plugins/atelier.js'))).toBe(true);
+    expect(existsSync(join(tempDir, '.opencode/command/spec-brainstorm.md'))).toBe(true);
+
+    removeOpenCodeArtifacts(configWithSkills, tempDir);
+
+    expect(existsSync(join(tempDir, '.opencode/agent/recon.md'))).toBe(false);
+    expect(existsSync(join(tempDir, '.opencode/agent/oracle.md'))).toBe(false);
+    expect(existsSync(join(tempDir, '.opencode/agent/architect.md'))).toBe(false);
+    expect(existsSync(join(tempDir, '.opencode/plugins/atelier.js'))).toBe(false);
+    expect(existsSync(join(tempDir, '.opencode/command/spec-brainstorm.md'))).toBe(false);
+  });
+
+  test('preserves custom keys in opencode.json', async () => {
+    const { generateOpenCode, removeOpenCodeArtifacts } = await import('./opencode.js');
+
+    generateOpenCode(testConfig, tempDir);
+
+    const opencodeJsonPath = join(tempDir, 'opencode.json');
+    const existing = JSON.parse(readFileSync(opencodeJsonPath, 'utf-8'));
+    existing.custom_field = 'preserved';
+    writeFileSync(opencodeJsonPath, JSON.stringify(existing, null, 2));
+
+    removeOpenCodeArtifacts(testConfig, tempDir);
+
+    expect(existsSync(opencodeJsonPath)).toBe(true);
+    const after = JSON.parse(readFileSync(opencodeJsonPath, 'utf-8'));
+    expect(after.custom_field).toBe('preserved');
+    expect(after.agent?.build).toBeUndefined();
+    expect(after.agent?.plan).toBeUndefined();
+  });
+
+  test('deletes opencode.json when only atelier keys remain', async () => {
+    const { generateOpenCode, removeOpenCodeArtifacts } = await import('./opencode.js');
+
+    generateOpenCode(testConfig, tempDir);
+
+    removeOpenCodeArtifacts(testConfig, tempDir);
+
+    expect(existsSync(join(tempDir, 'opencode.json'))).toBe(false);
+  });
+
+  test('throws on malformed opencode.json', async () => {
+    const { generateOpenCode, removeOpenCodeArtifacts } = await import('./opencode.js');
+    const { writeFileSync } = await import('fs');
+
+    generateOpenCode(testConfig, tempDir);
+    writeFileSync(join(tempDir, 'opencode.json'), 'not valid json');
+
+    expect(() => removeOpenCodeArtifacts(testConfig, tempDir)).toThrow('Failed to parse');
   });
 });
