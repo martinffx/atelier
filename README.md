@@ -29,7 +29,7 @@ That's it. Your project is now configured for spec-driven development.
 
 Atelier sets up three things in your project:
 
-### 1. Skills (34 available)
+### 1. Skills (35 available)
 
 Specialized knowledge modules that auto-invoke based on context. Install them via the CLI (`--all` flag) or separately:
 
@@ -231,6 +231,7 @@ graph LR
     A[spec-brainstorm] -->|spec.md| B[spec-plan]
     B -->|plan.json| C[spec-implement]
     C --> D[spec-finish]
+    D -.->|invokes| E[code-pull-request]
     
     B -.->|design flaw| A
     C -.->|missing tasks| B
@@ -242,7 +243,7 @@ graph LR
 1. **Research** - Discovery + research + architecture → `spec.md`
 2. **Plan** - Break into tasks → `plan.json`
 3. **Implement** - Execute with TDD
-4. **Finish** - Validate and review
+4. **Finish** - Validate, review, and open the PR
 
 **Iteration is normal** - Backflows (dotted lines) are expected when:
 - Planning reveals design flaws → back to research

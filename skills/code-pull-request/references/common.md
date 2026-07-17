@@ -7,11 +7,15 @@ Shared steps used by every workflow. Run these first.
 ## Detect Platform
 
 ```bash
-git remote get-url origin
+git remote -v
 ```
+
+Scan the push URLs for the platform host — don't assume the remote is named
+`origin` (forks and multi-remote setups often use `upstream` or other names):
 
 - Contains `github.com` → use `gh` (GitHub PR)
 - Contains `gitlab` → use `glab` (GitLab MR)
+- Multiple or no matches → ask the human which remote to use.
 
 ---
 
@@ -19,11 +23,15 @@ git remote get-url origin
 
 ```bash
 base=$(git symbolic-ref --quiet refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
-[ -n "$base" ] || base=main
+if [ -z "$base" ]; then
+  for candidate in main master; do
+    git rev-parse --verify --quiet "origin/$candidate" >/dev/null && base=$candidate && break
+  done
+fi
 echo "$base"
 ```
 
-Otherwise ask the human what the base branch is.
+If that's still empty, ask the human what the base branch is.
 
 ---
 

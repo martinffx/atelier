@@ -99,18 +99,24 @@ or proceed if they said "just do it" up front.
 | Mode | Command |
 |------|---------|
 | Auto-fill | `gh pr create --fill` |
-| Inline | `gh pr create --title "<title>" --body "<body>"` |
-| Draft | `gh pr create --draft --title "<title>" --body "<body>"` |
+| Inline | `gh pr create --title "<title>" --body-file -` (body via stdin) |
+| Draft | `gh pr create --draft --title "<title>" --body-file -` (body via stdin) |
 
 ### GitLab
 
 | Mode | Command |
 |------|---------|
 | Auto-fill | `glab mr create --fill` |
-| Inline | `glab mr create --title "<title>" --description "<body>"` |
-| Draft | `glab mr create --draft --title "<title>" --description "<body>"` |
+| Inline | `glab mr create --title "<title>" --description "$(cat <body-file>)"` |
+| Draft | `glab mr create --draft --title "<title>" --description "$(cat <body-file>)"` |
 
-Default to inline with the generated body. Use `--fill` when commits are clean and
-the body would be redundant. Use `--draft` when the human signals work in progress.
+Default to inline with the generated body. **Never pass a multi-line body directly
+in the command string** (`--body "<body>"`) — quotes, backticks, and `$` in
+Markdown break shell quoting. Write the body to a temp file first, then pass it
+via stdin (`gh --body-file -`) or command substitution (`glab` has no
+description-file flag). Reserve direct inline strings for one-line bodies.
+
+Use `--fill` when commits are clean and the body would be redundant. Use `--draft`
+when the human signals work in progress.
 
 After creation, show the PR/MR URL to the human. Done.

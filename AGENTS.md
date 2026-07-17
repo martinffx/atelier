@@ -106,7 +106,8 @@ graph TB
     
     subgraph "spec-finish"
         F1[Validate] --> F2[Review]
-        F2 --> F3[PR Ready]
+        F2 --> F3[Open PR]
+        F3 -.->|invokes| U1[code-pull-request]
     end
     
     P -.->|design flaw| R

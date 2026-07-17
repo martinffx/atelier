@@ -117,7 +117,8 @@ Optional - use code-docs skill if needed.
 ## Step 5: Open the PR
 
 Steps 1-4 (validate, review, stack commits, update docs) must all be complete
-before proceeding.
+before proceeding. **If code-review found blocking issues, stop — return to
+spec-implement to fix them. Do not proceed to Step 5b.**
 
 ### Step 5a: Present Completion Summary
 
@@ -130,14 +131,16 @@ Before creating the PR, present a summary to the human:
 **Tests:** [passed/failed]
 **Type Check:** [passed/failed]
 **Lint:** [passed/failed]
+**Review:** [passed/issues found]
 **Commits:** [N commits in stack]
 **Ready for PR:** [yes/no]
 ```
 
 ### Step 5b: Invoke code-pull-request
 
-Invoke the [code-pull-request](../code-pull-request/SKILL.md) skill to create the
-PR. It detects the platform (GitHub/GitLab), checks for an existing PR, finds a
+Only when the summary shows **Ready for PR: yes**, invoke the
+[code-pull-request](../code-pull-request/SKILL.md) skill to create the PR. It
+detects the platform (GitHub/GitLab), checks for an existing PR, finds a
 template, generates the body from commits, and opens the PR via `gh` or `glab`.
 
 ### Handoff

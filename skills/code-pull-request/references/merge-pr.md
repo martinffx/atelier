@@ -24,10 +24,16 @@ Run the lookup in [common.md](common.md#find-the-open-prmr-for-the-current-branc
 
 ### GitHub
 ```bash
-gh pr checks <number> --required
+gh pr checks <number>            # all checks
+gh pr checks <number> --required # the merge gate
 ```
-Exit codes: 0 = all required checks pass; non-zero includes the pending case (exit 8).
-Use `gh pr checks <number> --watch` to wait if the human asks for it.
+Exit codes for `--required`: 0 = all required checks pass; non-zero includes the
+pending case (exit 8). Use `gh pr checks <number> --watch` to wait if the human
+asks for it.
+
+`--required` only shows required checks. If the full run shows failing **optional**
+checks (lint, coverage, etc.), warn the human before proceeding — don't silently
+ignore them.
 
 ### GitLab
 ```bash
@@ -36,9 +42,18 @@ glab ci status
 glab pipeline status
 ```
 
-If any required check is **failing or pending**, stop and report the status to the
-human. Don't merge on red. The human can override by saying "merge anyway" — in that
-case skip this gate and proceed to confirmation.
+If any required check is **pending**, offer auto-merge instead of a direct merge:
+`gh pr merge --auto` (GitHub) or `glab mr merge --auto-merge` (GitLab) queues the
+merge to run once checks pass. A bare `gh pr merge` fails while required checks
+are pending — "merge anyway" does not work in that state. Note: `glab mr merge`
+enables auto-merge by default while a pipeline is running.
+
+If any required check is **failing**, stop and report the status to the human.
+Don't merge on red. If the human says "merge anyway": on GitHub a forced merge
+requires `--admin` (bypasses branch protection, needs admin rights on the repo) —
+state that implication explicitly before using it. On GitLab, merging on red is
+controlled by project settings — ask the human to fix the pipeline or adjust the
+setting.
 
 ---
 
@@ -60,15 +75,15 @@ Ask for explicit confirmation before running the merge command.
 ```bash
 gh pr merge <number> --squash --delete-branch
 ```
-Alternatives: `--rebase`, `--merge`, or `--auto` (merge automatically once required
-checks pass) per the human's request.
+Alternatives: `--rebase`, `--merge`, `--auto` (merge automatically once required
+checks pass), or `--admin` (forced merge — see Step 2) per the human's request.
 
 ### GitLab
 ```bash
 glab mr merge <iid> --squash --remove-source-branch
 ```
-Alternatives: `--rebase`, or `--when-pipeline-succeeds` (auto-merge once the pipeline
-passes) per the human's request.
+Alternatives: `--rebase`, or `--auto-merge` (merge once the pipeline succeeds —
+already the default while a pipeline is running) per the human's request.
 
 ---
 

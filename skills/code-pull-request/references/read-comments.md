@@ -17,11 +17,20 @@ If none is open, stop — nothing to read.
 
 ### GitHub
 
+Top-level comments:
+
 ```bash
 gh pr view <number> --json comments --jq '.comments[] | {author: .author.login, body: .body, createdAt: .createdAt}'
 ```
 
-Or, for a readable summary:
+Inline review comments (file/line threads) — `--json comments` does NOT include
+them, so fetch them separately:
+
+```bash
+gh pr view <number> --json reviewThreads,reviews
+```
+
+Or, for a readable summary of top-level comments:
 
 ```bash
 gh pr view <number> --comments
@@ -33,11 +42,8 @@ gh pr view <number> --comments
 glab mr note list <iid>
 ```
 
-For review-thread discussions:
-
-```bash
-glab mr discussion list <iid>
-```
+This covers both top-level notes and review-thread replies — `glab` has no
+separate `mr discussion` command.
 
 ---
 
@@ -48,7 +54,8 @@ Show each comment with:
 - **Author** (handle)
 - **Body** (full text, or first few lines if long)
 - **Created at** (timestamp)
-- **Type** (top-level note vs. review-thread discussion, if distinguishable)
+- **Type** (top-level note vs. inline review comment, if distinguishable)
+- **File/line** (for inline review comments)
 
-Newest first. Group by thread if threaded discussions are returned. Don't post
-anything — this is read-only.
+Newest first. Group inline review comments by file/line, and threads by their
+parent comment. Don't post anything — this is read-only.
