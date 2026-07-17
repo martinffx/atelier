@@ -21,7 +21,7 @@ Relentless questioning of your plan against the project's domain model, sharpeni
 
 ## When NOT to Use
 
-- **Simple implementation questions** — Use `oracle-debug` or `spec-brainstorm` instead
+- **Simple implementation questions** — Use `spec-brainstorm` instead
 - **Debugging** — Use `oracle-debug`
 - **Already in spec workflow** — Use `spec-brainstorm` for domain discovery
 
@@ -152,5 +152,4 @@ If any of the three is missing, skip the ADR. Use the format in [references/ADR-
 | **oracle-grillme** | Questioning domain assumptions, sharpening terminology, updating docs inline |
 | **spec-brainstorm** | Structured discovery + architecture → design.md (use grillme before this to solidify language) |
 
-**Key distinction:**
-- `oracle-grillme` = "What do we mean by these words?" (domain interrogation)
+**Key distinction:** `oracle-grillme` = "What do we mean by these words?" (domain interrogation).

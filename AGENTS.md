@@ -142,8 +142,11 @@ If you loop 2+ times on the same issue, stop and ask the human:
 **Process skills** (spec-brainstorm, spec-plan, spec-implement, spec-finish): Follow exactly.
 Don't adapt away discipline.
 
-**Knowledge skills** (oracle-debug): Adapt principles to
+**Knowledge skills** (oracle-grillme): Adapt principles to
 context. These inform decisions within the workflow.
+
+**Discipline skills** (oracle-debug): Strict methodology that must be followed
+exactly — no adaptation that bypasses root-cause investigation.
 
 Process skills come first. Knowledge skills get invoked by process skills when needed.
 
@@ -157,7 +160,7 @@ Process skills come first. Knowledge skills get invoked by process skills when n
 - `spec-orchestrator` - Skill routing and workflow orchestration
 
 **Deep Thinking** (2 skills)
-- `oracle-debug` - Systematic debugging, root-cause-first investigation
+- `oracle-debug` - Systematic debugging, root cause before fixes
 - `oracle-grillme` - Socratic interrogation of plans against domain model and documented decisions
 
 **TypeScript Patterns** (8 skills)

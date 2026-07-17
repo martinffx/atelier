@@ -210,12 +210,13 @@ with acceptance criteria and priorities. If rejected: revise. If the rejection
 reveals a scope misunderstanding, loop back to Discovery (Step 2).
 
 **Batch B: Architecture** — component design, domain modeling, and layer
-boundaries. Then present: component structure, domain model, where business logic
-lives, where IO lives. If rejected: revise. If the
-rejection undermines the chosen approach, offer to return to approach exploration
-(4a). If it reveals a fundamental gap, loop back to Research (Step 3). If the
-detail reveals the work is far more complex than estimated, say so and offer to
-revisit the approach.
+boundaries. Use `python-architecture` or `typescript-api-design` as relevant to
+your stack. Then present: component structure, domain model, where business
+logic lives, where IO lives. If rejected: revise. If the rejection undermines
+the chosen approach, offer to return to approach exploration (4a). If it
+reveals a fundamental gap, loop back to Research (Step 3). If the detail reveals
+the work is far more complex than estimated, say so and offer to revisit the
+approach.
 
 **Batch C: API Design + Data Model** — contracts derived from the approved
 architecture. Skip sections that don't apply, but say so explicitly ("No API

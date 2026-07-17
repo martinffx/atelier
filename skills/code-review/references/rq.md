@@ -312,8 +312,8 @@ prompt: |
   {all_findings_json}
 
   **PRE-STEP: Look for Relevant Skills**
-  Before challenging, look for relevant challenge, reasoning, architecture, security, language, or framework skills.
-  Load relevant skills if available, such as `oracle-debug` or a language-specific testing skill.
+  Before challenging, look for relevant language, framework, or debugging skills.
+  Load relevant skills if available, such as a language-specific testing skill.
   If no relevant skill is available or a skill cannot be loaded, continue with this challenge prompt.
   Failure to find or load a skill is not a review failure.
 

@@ -109,6 +109,8 @@ Read the task's **inputs** first — understand what context you need.
 Then read the **description** — know what to build and the constraints.
 
 Write tests that cover the validation criteria before writing implementation.
+Invoke `typescript-testing` or `python-testing` (whichever matches the project)
+for test design patterns when needed.
 
 ```
 1. Read task inputs and description

@@ -1,9 +1,9 @@
 ---
 name: oracle-debug
 description: >
-  Disciplined debugging methodology. Use when diagnosing bugs, test failures, unexpected behavior,
-  build failures, integration issues, or performance regressions. Always find root cause before
-  attempting any fix.
+  Disciplined debugging methodology. Triggers on bug reports, test failures, "debug this",
+  "diagnose this", unexpected behavior, build failures, integration issues, or performance
+  regressions. Always find root cause before attempting any fix.
 user-invocable: true
 ---
 
@@ -52,6 +52,9 @@ You must complete each phase before proceeding to the next.
 
 **Before attempting any fix:**
 
+Use the project's domain glossary and ADRs to build a clear mental model of the
+relevant modules before tracing.
+
 1. **Read error messages carefully.** Read the full stack trace, line numbers, file paths, and error codes. Don't skip warnings.
 2. **Build a fast feedback loop.** If you don't have a fast, deterministic, pass/fail signal for the bug, no amount of code-reading will save you. Spend disproportionate effort here.
 
@@ -76,6 +79,7 @@ You must complete each phase before proceeding to the next.
    - Log what data exits each component
    - Verify environment/config propagation
    - Check state at each layer
+
    Run once to gather evidence, then narrow to the failing component.
 6. **Trace backward through the call stack.** Where does the bad value originate? What called this with the bad value? Trace up until you find the source. Fix at the source, not at the symptom.
 
@@ -110,7 +114,7 @@ Find the pattern before fixing.
 
 Use the scientific method.
 
-1. **Generate 3–5 ranked hypotheses.** Single-hypothesis generation anchors on the first plausible idea. Each hypothesis must be falsifiable: state the prediction it makes.
+1. **Generate 3–5 ranked hypotheses.** Single-hypothesis generation anchors on the first plausible idea. Each hypothesis must be falsifiable: state the prediction it makes. **Show the ranked list to the user before testing** — they often have domain knowledge that re-ranks instantly.
 
    > Format: "If `<X>` is the cause, then `<changing Y>` will make the bug disappear / `<changing Z>` will make it worse."
 
@@ -211,6 +215,4 @@ After each session, summarize:
 - **Common bug patterns** → `references/bug-patterns.md`
 - **Logging & techniques** → `references/techniques.md`
 
----
-
-*Structure inspired by obra/superpowers systematic-debugging.*
+Structure inspired by [obra/superpowers systematic-debugging](https://github.com/obra/superpowers).

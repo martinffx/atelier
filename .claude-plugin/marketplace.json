@@ -5,20 +5,6 @@
   "owner": {
     "name": "Martin Richards"
   },
-  "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "startup|resume|clear|compact",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "'${CLAUDE_PLUGIN_ROOT}/hooks/session-start'",
-            "async": false
-          }
-        ]
-      }
-    ]
-  },
   "plugins": [
     {
       "name": "spec",
@@ -28,7 +14,7 @@
       "agents": [
         "./agents/oracle",
         "./agents/architect",
-        "./agents/clerk"
+        "./agents/recon"
       ],
       "skills": [
         "./skills/spec-brainstorm",
@@ -82,14 +68,14 @@
     },
     {
       "name": "code",
-      "description": "Code development utilities - code review, commits, stacked commits, and git worktrees",
+      "description": "Code development utilities - code review, commits, pull requests, handoffs, and subagent dispatch",
       "source": "./",
       "strict": false,
       "skills": [
         "./skills/code-commit",
-        "./skills/code-review",
         "./skills/code-handoff",
         "./skills/code-pull-request",
+        "./skills/code-review",
         "./skills/code-subagents"
       ]
     }

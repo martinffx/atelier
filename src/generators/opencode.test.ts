@@ -118,13 +118,13 @@ describe('generateOpenCode', () => {
     mkdirSync(join(tempDir, 'skills', 'atelier', 'spec-plan'), { recursive: true });
     mkdirSync(join(tempDir, 'skills', 'atelier', 'spec-implement'), { recursive: true });
     mkdirSync(join(tempDir, 'skills', 'atelier', 'spec-orchestrator'), { recursive: true });
-    mkdirSync(join(tempDir, 'skills', 'atelier', 'oracle-grillme'), { recursive: true });
+    mkdirSync(join(tempDir, 'skills', 'atelier', 'internal-reviewer'), { recursive: true });
 
     writeFileSync(join(tempDir, 'skills', 'atelier', 'spec-brainstorm', 'SKILL.md'), '---\nname: spec-brainstorm\ndescription: Conversational design workshop\nuser-invocable: true\n---\n# Skill');
     writeFileSync(join(tempDir, 'skills', 'atelier', 'spec-plan', 'SKILL.md'), '---\nname: spec-plan\ndescription: Write implementation plans\nuser-invocable: true\n---\n# Skill');
     writeFileSync(join(tempDir, 'skills', 'atelier', 'spec-implement', 'SKILL.md'), '---\nname: spec-implement\ndescription: Execute implementation tasks\nuser-invocable: true\n---\n# Skill');
     writeFileSync(join(tempDir, 'skills', 'atelier', 'spec-orchestrator', 'SKILL.md'), '---\nname: spec-orchestrator\ndescription: Route to correct skill\nuser-invocable: false\n---\n# Skill');
-    writeFileSync(join(tempDir, 'skills', 'atelier', 'oracle-grillme', 'SKILL.md'), '---\nname: oracle-grillme\ndescription: Domain grilling\nuser-invocable: false\n---\n# Skill');
+    writeFileSync(join(tempDir, 'skills', 'atelier', 'internal-reviewer', 'SKILL.md'), '---\nname: internal-reviewer\ndescription: Internal reviewer\nuser-invocable: false\n---\n# Skill');
 
     const configWithSkills = {
       ...testConfig,
@@ -148,8 +148,8 @@ describe('generateOpenCode', () => {
     const orchestratorCmd = join(tempDir, '.opencode', 'command', 'spec-orchestrator.md');
     expect(() => statSync(orchestratorCmd)).toThrow();
 
-    const grillmeCmd = join(tempDir, '.opencode', 'command', 'oracle-grillme.md');
-    expect(() => statSync(grillmeCmd)).toThrow();
+    const internalReviewerCmd = join(tempDir, '.opencode', 'command', 'internal-reviewer.md');
+    expect(() => statSync(internalReviewerCmd)).toThrow();
   });
 
   test('skips command generation when skills dir does not exist', async () => {
