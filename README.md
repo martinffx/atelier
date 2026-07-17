@@ -198,7 +198,7 @@ Task-specific tools you invoke when you need them.
 - `code-debug` — Systematic debugging workflow
 - `code-docs` — README, API docs, changelog generation
 - `code-handoff` — Compact conversation into handoff document
-- `code-pull-request` — Create GitHub pull requests or GitLab merge requests with platform detection, template discovery, and structured bodies
+- `code-pull-request` — Create, comment on, and merge GitHub pull requests or GitLab merge requests
 - `code-review` — Multi-agent code review with specialized reviewers
 - `code-subagents` — Dispatch patterns for parallel implementation
 
@@ -259,6 +259,9 @@ graph LR
 | "Implement this" | spec-implement |
 | "Review this code" | code-review |
 | "Open a PR" | code-pull-request |
+| "Merge this PR" | code-pull-request |
+| "Read PR comments" | code-pull-request |
+| "Leave a comment on the PR" | code-pull-request |
 | "Debug this" | code-debug |
 | "How should I test this" | oracle-testing |
 | "What's the architecture" | oracle-architect |
