@@ -189,7 +189,7 @@ If 3 cycles is "obviously insufficient" because the artifact is large: the artif
 ## Interaction with Other Skills
 
 - **`code-review` / `/review`**: complementary. `/review` is post-hoc PR verdict; doubt-driven is in-flight per-decision. Use both.
-- **`oracle-architect`** / **`spec-research`**: SDD verifies *facts about frameworks* against official docs. Doubt-driven verifies *your reasoning about the artifact*. SDD checks the API exists; doubt-driven checks you used it correctly under the contract.
+- **`oracle-architect`** / **`spec-brainstorm`**: SDD verifies *facts about frameworks* against official docs. Doubt-driven verifies *your reasoning about the artifact*. SDD checks the API exists; doubt-driven checks you used it correctly under the contract.
 - **`oracle-testing`**: TDD's RED step is doubt made concrete — a failing test is a disproof attempt. When TDD applies, that failing test *is* the doubt step for behavioral claims.
 - **`code-debug`**: when the reviewer surfaces a real failure mode, drop into the debugging skill to localize and fix.
 

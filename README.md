@@ -148,7 +148,7 @@ Skills fall into four categories based on what they do:
 
 Process-oriented skills that guide you through structured development workflows. These produce artifacts and should be followed step-by-step.
 
-- `spec-brainstorm` → `spec.md` — Discovery, requirements, architecture
+- `spec-brainstorm` → `design.md` — Discovery, requirements, architecture
 - `spec-plan` → `plan.json` — Break spec into implementable tasks
 - `spec-implement` — Execute tasks with TDD
 - `spec-finish` — Validate, review, prepare for PR
@@ -227,7 +227,7 @@ Skills are organized into four categories based on their role:
 
 ```mermaid
 graph LR
-    A[spec-brainstorm] -->|spec.md| B[spec-plan]
+    A[spec-brainstorm] -->|design.md| B[spec-plan]
     B -->|plan.json| C[spec-implement]
     C --> D[spec-finish]
     
@@ -238,7 +238,7 @@ graph LR
 ```
 
 **Standard flow:**
-1. **Research** - Discovery + research + architecture → `spec.md`
+1. **Research** - Discovery + research + architecture → `design.md`
 2. **Plan** - Break into tasks → `plan.json`
 3. **Implement** - Execute with TDD
 4. **Finish** - Validate and review
