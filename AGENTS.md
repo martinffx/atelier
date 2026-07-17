@@ -80,11 +80,11 @@ graph TB
     
     O --> R
     
-    subgraph "spec-research"
+    subgraph "spec-brainstorm"
         R1[Discovery] --> R2[Research]
         R2 --> R3[Design]
         R3 -.->|invokes| A1[oracle-architect]
-        R3 --> R4[spec.md]
+        R3 --> R4[design.md]
     end
     
     R4 --> P
@@ -119,7 +119,7 @@ graph TB
 
 | After completing... | The ONLY next step is... |
 |---------------------|--------------------------|
-| spec-research | spec-plan |
+| spec-brainstorm | spec-plan |
 | spec-plan | spec-implement |
 | spec-implement | spec-finish |
 
@@ -140,7 +140,7 @@ If you loop 2+ times on the same issue, stop and ask the human:
 
 ### Skill Types
 
-**Process skills** (spec-research, spec-plan, spec-implement, spec-finish): Follow exactly.
+**Process skills** (spec-brainstorm, spec-plan, spec-implement, spec-finish): Follow exactly.
 Don't adapt away discipline.
 
 **Knowledge skills** (oracle-architect, oracle-testing): Adapt principles to
@@ -154,7 +154,7 @@ Process skills come first. Knowledge skills get invoked by process skills when n
 - `spec-finish` - Post-implementation validation
 - `spec-implement` - Execute tasks from plan.json
 - `spec-plan` - Implementation plan + tasks → plan.json
-- `spec-research` - Discovery + research + architecture → spec.md
+- `spec-brainstorm` - Discovery + research + architecture → design.md
 - `spec-orchestrator` - Skill routing and workflow orchestration
 
 **Deep Thinking** (7 skills)
