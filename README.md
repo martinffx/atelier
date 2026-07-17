@@ -29,7 +29,7 @@ That's it. Your project is now configured for spec-driven development.
 
 Atelier sets up three things in your project:
 
-### 1. Skills (35 available)
+### 1. Skills (28 available)
 
 Specialized knowledge modules that auto-invoke based on context. Install them via the CLI (`--all` flag) or separately:
 
@@ -124,7 +124,7 @@ Skills remain installed. Run `npx skills remove martinffx/atelier` to remove the
 
 ## Skills
 
-This repository includes 35 skills that enhance AI agents with specialized knowledge and workflows.
+This repository includes 28 skills that enhance AI agents with specialized knowledge and workflows.
 
 ### Installing Skills
 
@@ -158,13 +158,9 @@ Process-oriented skills that guide you through structured development workflows.
 
 Analytical skills that provide patterns, principles, and deep reasoning. These adapt to your specific situation.
 
-- `oracle-architect` — DDD, hexagonal architecture, component design
-- `oracle-challenge` — Challenge assumptions, validate decisions
-- `oracle-doubt` — Adversarial review of non-trivial decisions
-- `oracle-grillme` — Socratic interrogation of plans against domain model
-- `oracle-security` — Security architecture and threat modeling
-- `oracle-testing` — Stub-driven TDD, layer boundary testing
-- `oracle-thinkdeep` — Extended sequential reasoning for complex problems
+- `oracle-debug` — Systematic debugging, root cause before fixes
+- `oracle-grill-me` — Socratic interrogation of plans against domain model
+- `oracle-domain-modelling` — Build and sharpen the project's domain model
 
 #### Domain Knowledge (`python:*`, `typescript:*`)
 
@@ -195,8 +191,6 @@ Technology-specific patterns and best practices. These are like having a senior 
 Task-specific tools you invoke when you need them.
 
 - `code-commit` — Generate and validate conventional commits
-- `code-debug` — Systematic debugging workflow
-- `code-docs` — README, API docs, changelog generation
 - `code-handoff` — Compact conversation into handoff document
 - `code-pull-request` — Create, comment on, and merge GitHub pull requests or GitLab merge requests
 - `code-review` — Multi-agent code review with specialized reviewers
@@ -263,9 +257,7 @@ graph LR
 | "Merge this PR" | code-pull-request |
 | "Read PR comments" | code-pull-request |
 | "Leave a comment on the PR" | code-pull-request |
-| "Debug this" | code-debug |
-| "How should I test this" | oracle-testing |
-| "What's the architecture" | oracle-architect |
+| "Debug this" | oracle-debug |
 
 ## Development
 

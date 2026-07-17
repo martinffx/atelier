@@ -4,7 +4,7 @@ This file provides guidance to AI agents when working with code in this reposito
 
 ## Repository Overview
 
-This is Atelier - a personal development toolkit with 35 skills for spec-driven development, deep thinking, code quality, and ecosystem patterns.
+This is Atelier - a personal development toolkit with 29 skills for spec-driven development, deep thinking, code quality, and ecosystem patterns.
 
 ## Skills Structure
 
@@ -83,7 +83,6 @@ graph TB
     subgraph "spec-brainstorm"
         R1[Discovery] --> R2[Research]
         R2 --> R3[Design]
-        R3 -.->|invokes| A1[oracle-architect]
         R3 --> R4[design.md]
     end
     
@@ -97,8 +96,7 @@ graph TB
     P3 --> I
     
     subgraph "spec-implement"
-        I1[TDD] -.->|invokes| T1[oracle-testing]
-        I1 --> I2[Track]
+        I1[TDD] --> I2[Track]
         I2 --> I3[Report]
     end
     
@@ -144,8 +142,11 @@ If you loop 2+ times on the same issue, stop and ask the human:
 **Process skills** (spec-brainstorm, spec-plan, spec-implement, spec-finish): Follow exactly.
 Don't adapt away discipline.
 
-**Knowledge skills** (oracle-architect, oracle-testing): Adapt principles to
+**Knowledge skills** (oracle-grill-me, oracle-domain-modelling): Adapt principles to
 context. These inform decisions within the workflow.
+
+**Discipline skills** (oracle-debug): Strict methodology that must be followed
+exactly — no adaptation that bypasses root-cause investigation.
 
 Process skills come first. Knowledge skills get invoked by process skills when needed.
 
@@ -158,14 +159,10 @@ Process skills come first. Knowledge skills get invoked by process skills when n
 - `spec-brainstorm` - Discovery + research + architecture → design.md
 - `spec-orchestrator` - Skill routing and workflow orchestration
 
-**Deep Thinking** (7 skills)
-- `oracle-architect` - DDD patterns, component responsibilities
-- `oracle-challenge` - Critical thinking and challenging approaches
-- `oracle-doubt` - Adversarial review of non-trivial decisions with fresh-context scrutiny
-- `oracle-grillme` - Socratic interrogation of plans against domain model and documented decisions
-- `oracle-security` - Security architecture and threat modeling
-- `oracle-testing` - TDD patterns, boundary testing
-- `oracle-thinkdeep` - Extended sequential reasoning for complex problems
+**Deep Thinking** (3 skills)
+- `oracle-debug` - Systematic debugging, root cause before fixes
+- `oracle-grill-me` - Socratic interrogation of plans against domain model and documented decisions
+- `oracle-domain-modelling` - Build and sharpen the project's domain model
 
 **TypeScript Patterns** (8 skills)
 - `typescript-api-design` - REST API design patterns
@@ -187,10 +184,8 @@ Process skills come first. Knowledge skills get invoked by process skills when n
 - `python-temporal` - Workflow orchestration, activities
 - `python-testing` - Stub-Driven TDD, layer boundary testing
 
-**Code Utilities** (7 skills)
+**Code Utilities** (5 skills)
 - `code-commit` - Generate and validate conventional commits
-- `code-debug` - Systematic debugging workflow and techniques
-- `code-docs` - Documentation generation for code projects
 - `code-handoff` - Compact conversation into handoff document for next agent
 - `code-pull-request` - Create, comment on, and merge GitHub pull requests or GitLab merge requests
 - `code-review` - Multi-agent code review with parallel reviewers

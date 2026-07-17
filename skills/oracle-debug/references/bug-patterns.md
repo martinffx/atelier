@@ -1,6 +1,6 @@
 # Common Bug Patterns
 
-Quick reference for recognising and fixing recurring bug categories.
+Quick reference for recognizing and fixing recurring bug categories.
 
 ---
 
@@ -45,7 +45,7 @@ const name = user.profile.name;
 
 ## Logic Errors
 
-**Symptoms:** Wrong output, wrong behaviour
+**Symptoms:** Wrong output, wrong behavior
 
 **Debug approach:**
 1. Trace through the logic manually
@@ -68,4 +68,4 @@ const name = user.profile.name;
 2. Identify hot paths
 3. Optimize the bottleneck
 
-**See also:** Phase 4 "Perf branch" in SKILL.md for the disciplined approach.
+**See also:** Phase 3 "Performance regressions" in SKILL.md for the disciplined approach.

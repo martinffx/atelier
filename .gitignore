@@ -12,7 +12,8 @@ dist/
 # Git worktrees
 .worktrees/
 
-# Harness output directories
+# Local harness configs
+.agents/
 .claude/
 .codex/
 .opencode/
