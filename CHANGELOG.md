@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.3.0](https://github.com/martinffx/atelier/compare/v1.2.2...v1.3.0) (2026-07-17)
+
+
+### Features
+
+* **code-pull-request:** add comment and merge workflows with progressive disclosure ([53e8957](https://github.com/martinffx/atelier/commit/53e89574ae1c37d0c3e868c7bbecee560e38c573))
+* **code:** add code-pull-request skill for PR creation ([62e32a6](https://github.com/martinffx/atelier/commit/62e32a6373be02cfad5fd3cb3fa248efcf3cc06c))
+* **code:** add code-pull-request skill for PR creation ([e4d2475](https://github.com/martinffx/atelier/commit/e4d24752f610177d6706cf382f3db3c9f5406355))
+* **skills:** split oracle-grillme into oracle-grill-me and oracle-domain-modelling ([#40](https://github.com/martinffx/atelier/issues/40)) ([e373c12](https://github.com/martinffx/atelier/commit/e373c12d05d9cde3ddb02fb0fc26ee770fb959a2))
+* **spec-brainstorm:** add section-by-section design approval ([f66eb62](https://github.com/martinffx/atelier/commit/f66eb6275780768300218d329bff8882b6d20e5d))
+* **spec-brainstorm:** add section-by-section design approval ([9cfb7e7](https://github.com/martinffx/atelier/commit/9cfb7e732fe20c546c2465218a8392dcba7859ad))
+
+
+### Bug Fixes
+
+* **code-pull-request:** correct description contract and base-branch detection ([73d48c6](https://github.com/martinffx/atelier/commit/73d48c6652f14bcc5224d91e546d219816d27e03))
+* **code-pull-request:** resolve code-review findings ([fda9086](https://github.com/martinffx/atelier/commit/fda90860b99ef7ed2fd0731785af0b27251e5d1f))
+* **skills:** address review findings from skill consolidation ([cccb1f8](https://github.com/martinffx/atelier/commit/cccb1f8430de7b699900c70d1b33207d771ac664))
+
 ## [1.2.2](https://github.com/martinffx/atelier/compare/v1.2.1...v1.2.2) (2026-05-23)
 
 
