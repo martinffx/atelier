@@ -270,12 +270,13 @@ Atelier reads any existing `.codex/config.toml` with `smol-toml`, overwrites the
 
 ### Removal
 
-`atelier remove --harness codex` deletes only:
+`atelier remove --harness codex` deletes:
 - `.codex/agents/recon.toml`
 - `.codex/agents/oracle.toml`
 - `.codex/agents/architect.toml`
+- The Atelier-managed keys from `.codex/config.toml` (`model`, `model_reasoning_effort`, `features.multi_agent`, `agents.max_threads`, `agents.max_depth`)
 
-It leaves `.codex/config.toml` alone and removes the `codex` section from `.atelier/config.json`. Other harnesses are untouched.
+It preserves any custom keys in `.codex/config.toml`. If no keys remain, the file is removed. It removes the `codex` section from `.atelier/config.json`. Other harnesses are untouched.
 
 ### Update
 
@@ -315,7 +316,7 @@ Without `--harness`, prompt user to select which configured harness(es) to updat
 atelier remove [--harness <claude|opencode|codex>]
 ```
 
-Without `--harness`, prompt user to select which configured harness(es) to remove. With `--harness`, remove only that harness. Deletes generated files for the selected harness and removes its section from `.atelier/config.json`.
+Without `--harness`, prompt user to select which configured harness(es) to remove. With `--harness`, remove only that harness. Deletes generated files for the selected harness, strips Atelier-managed keys from the harness config file (preserving custom keys), and removes its section from `.atelier/config.json`.
 
 ## Data Model
 
@@ -485,11 +486,13 @@ src/
 │   ├── claude.ts              # MODIFY: accept harness-scoped config
 │   └── opencode.ts            # MODIFY: accept harness-scoped config
 └── utils/
-    ├── config.ts              # MODIFY: harness-scoped schema, old format error
-    ├── config.test.ts         # MODIFY: update tests for new schema
+    ├── config.ts              # MODIFY: harness-scoped schema, old format error, Result-based readConfig
+    ├── config.test.ts         # MODIFY: update tests for new schema and Result API
+    ├── harness.ts             # CREATE: harness registry, prompts, dispatch, preview
+    ├── result.ts              # CREATE: Result<T,E> type for explicit error handling
     ├── detect.ts              # DELETE: no auto-detection
     ├── templates.ts           # MODIFY: add getDeveloperInstructions() helper
-    └── errors.ts              # MODIFY: update error messages
+    └── errors.ts              # MODIFY: add InvalidHarnessError / HarnessConfigError, opt-in re-init hint
 ```
 
 ## Success Criteria
@@ -499,7 +502,7 @@ src/
 - [ ] `.codex/agents/recon.toml`, `oracle.toml`, `architect.toml` generated with correct TOML format
 - [ ] `atelier init --harness claude --yes` then `atelier init --harness codex --yes` produces multi-harness config
 - [ ] `atelier update --harness codex` regenerates codex files without touching claude/opencode files
-- [ ] `atelier remove --harness codex` deletes codex agent files and removes `codex` section from config
+- [ ] `atelier remove --harness codex` deletes codex agent files, strips managed keys from `.codex/config.toml` while preserving custom keys, and removes `codex` section from config
 - [ ] `atelier init --yes` without `--harness` exits with clear error
 - [ ] Old flat `.atelier/config.json` format throws clear re-init error
 - [ ] All existing tests updated and passing

@@ -4,16 +4,16 @@ import { homedir } from 'os';
 import { readConfig, writeConfig, getDefaultConfig, validateConfig, CONFIG_FILE } from '../utils/config.js';
 import {
   HARNESS_CHOICES,
-  isHarness,
+  parseHarness,
   getGlobalBasePath,
   promptForModels,
   generateFiles,
   buildFileList,
   shortPath,
 } from '../utils/harness.js';
-import { HarnessRequiredError, SkillsInstallError } from '../utils/errors.js';
+import { HarnessRequiredError, InvalidConfigError, SkillsInstallError } from '../utils/errors.js';
 import inquirer from 'inquirer';
-import type { Harness, AtelierConfig } from '../types.js';
+import type { Harness, AtelierConfig, HarnessSection } from '../types.js';
 
 export interface InitOptions {
   harness?: string;
@@ -23,16 +23,13 @@ export interface InitOptions {
 
 export async function init(options: InitOptions): Promise<void> {
   const harnessOption = options.harness;
-  if (harnessOption !== undefined && !isHarness(harnessOption)) {
-    throw new HarnessRequiredError();
-  }
   if (options.yes && !harnessOption) {
     throw new HarnessRequiredError();
   }
 
   let harness: Harness;
   if (harnessOption) {
-    harness = harnessOption;
+    harness = parseHarness(harnessOption);
   } else {
     const answer = await inquirer.prompt([
       {
@@ -46,24 +43,33 @@ export async function init(options: InitOptions): Promise<void> {
   }
 
   const configPath = join(homedir(), CONFIG_FILE);
-  const existingConfig = readConfig(configPath);
+  const configResult = readConfig(configPath);
 
-  const initialProvider = harness === 'opencode' ? 'opencode-zen' : undefined;
-  const defaults = getDefaultConfig(harness, initialProvider);
+  if (!configResult.ok) {
+    if (configResult.error.type === 'not-found') {
+      // Continue with default config below
+    } else {
+      throw new InvalidConfigError(
+        configResult.error.message,
+        { suggestReinit: configResult.error.type === 'old-format' }
+      );
+    }
+  }
+
+  const existingConfig = configResult.ok ? configResult.value : undefined;
+  const defaults = getDefaultConfig(harness);
 
   const config: AtelierConfig = existingConfig
     ? { ...existingConfig }
     : defaults;
 
-  if (existingConfig) {
-    if (harness === 'claude') config.claude = defaults.claude;
-    else if (harness === 'codex') config.codex = defaults.codex;
-    else if (harness === 'opencode') config.opencode = defaults.opencode;
-  }
+  let section: HarnessSection = config[harness] ?? defaults[harness]!;
 
   if (!options.yes) {
-    await promptForModels(config, harness);
+    section = await promptForModels(section, harness);
   }
+
+  config[harness] = section;
 
   validateConfig(config);
 
@@ -88,8 +94,14 @@ export async function init(options: InitOptions): Promise<void> {
     }
   }
 
+  const shared = {
+    version: config.version,
+    skills_source: config.skills_source,
+    skills_path: config.skills_path,
+  };
+
   writeConfig(config, configPath);
-  generateFiles(config, harness, harnessBasePath);
+  generateFiles(shared, section, harness, harnessBasePath);
 
   console.log(`\nAtelier initialized for ${harness}.`);
 

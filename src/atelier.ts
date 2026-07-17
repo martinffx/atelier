@@ -3,7 +3,7 @@ import { Command } from 'commander';
 import { init } from './commands/init.js';
 import { update } from './commands/update.js';
 import { remove } from './commands/remove.js';
-import { handleError, HarnessRequiredError } from './utils/errors.js';
+import { handleError } from './utils/errors.js';
 
 const program = new Command();
 
@@ -19,10 +19,6 @@ program
   .option('--all', 'Also install skills')
   .option('--yes', 'Non-interactive mode with defaults')
   .action((options) => {
-    if (options.yes && !options.harness) {
-      handleError(new HarnessRequiredError());
-      return;
-    }
     init(options).catch(handleError);
   });
 

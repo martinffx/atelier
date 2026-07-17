@@ -105,4 +105,30 @@ describe('generateCodex', () => {
     expect(oracle.model).toBe('gpt-5.6-sol');
     expect(architect.model).toBe('gpt-5.6-sol');
   });
+
+  test('does not corrupt existing array features/agents into numeric-keyed tables', async () => {
+    const { generateCodex } = await import('./codex.js');
+
+    mkdirSync(join(tempDir, '.codex'), { recursive: true });
+    writeFileSync(
+      join(tempDir, '.codex/config.toml'),
+      TOML.stringify({
+        features: ['some', 'array'],
+        agents: ['also', 'array'],
+        customField: 'preserved',
+      })
+    );
+
+    generateCodex(testConfig, tempDir);
+
+    const configPath = join(tempDir, '.codex/config.toml');
+    const config = TOML.parse(readFileSync(configPath, 'utf-8')) as Record<string, unknown>;
+
+    // Conflicting array values are replaced by the table form; they are not corrupted into numeric keys
+    expect(Array.isArray(config.features)).toBe(false);
+    expect((config.features as Record<string, unknown>).multi_agent).toBe(true);
+    expect(Array.isArray(config.agents)).toBe(false);
+    expect((config.agents as Record<string, unknown>).max_threads).toBe(6);
+    expect(config.customField).toBe('preserved');
+  });
 });

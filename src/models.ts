@@ -1,4 +1,4 @@
-import type { Provider } from './types.js';
+import type { Provider, OpenCodeProvider, AgentName } from './types.js';
 
 export const providerModels: Record<Provider, readonly string[]> = {
   anthropic: ['haiku', 'sonnet', 'opus', 'opusplan'],
@@ -53,7 +53,13 @@ export const providerModels: Record<Provider, readonly string[]> = {
   ],
 } as const;
 
-export const defaultModels: Record<Provider, Record<string, string>> = {
+export type SimpleDefaultModels = Record<AgentName, string> & { default_model?: string };
+export type OpenCodeDefaultModels = Record<AgentName, string> & { build: string; plan: string };
+
+export const defaultModels: {
+  anthropic: SimpleDefaultModels;
+  openai: SimpleDefaultModels & { default_model: string };
+} & Record<OpenCodeProvider, OpenCodeDefaultModels> = {
   anthropic: {
     recon: 'haiku',
     oracle: 'opus',

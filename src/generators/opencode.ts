@@ -1,12 +1,12 @@
-import { writeFileSync, mkdirSync, readFileSync, existsSync, readdirSync } from 'fs';
+import { writeFileSync, mkdirSync, readFileSync, existsSync, readdirSync, rmSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 import { readTemplate } from '../utils/templates.js';
-import type { AtelierConfig, OpenCodeConfig } from '../types.js';
-
-type OpenCodeGeneratorConfig = OpenCodeConfig & Pick<AtelierConfig, 'version' | 'skills_source' | 'skills_path'>;
-import { FileWriteError } from '../utils/errors.js';
+import type { OpenCodeConfig, OpenCodeProvider, SharedConfig } from '../types.js';
+import { FileWriteError, HarnessConfigError } from '../utils/errors.js';
 import matter from 'gray-matter';
+
+export type OpenCodeGeneratorConfig = OpenCodeConfig & SharedConfig;
 
 export function getGlobalOpencodeDir(): string {
   return join(homedir(), '.config', 'opencode');
@@ -16,7 +16,7 @@ function isGlobalOpencode(basePath: string): boolean {
   return basePath === getGlobalOpencodeDir();
 }
 
-function getOpencodeRoot(basePath: string): string {
+export function getOpencodeRoot(basePath: string): string {
   return isGlobalOpencode(basePath) ? basePath : join(basePath, '.opencode');
 }
 
@@ -29,7 +29,7 @@ function displayPath(basePath: string, relativePath: string): string {
   return relativePath;
 }
 
-export function generateOpenCode(config: OpenCodeGeneratorConfig, basePath = process.cwd()): void {
+export function generateOpenCode(config: OpenCodeGeneratorConfig, basePath: string): void {
   const opencodeRoot = getOpencodeRoot(basePath);
   const agentsDir = join(opencodeRoot, 'agent');
   const pluginsDir = join(opencodeRoot, 'plugins');
@@ -48,6 +48,67 @@ export function generateOpenCode(config: OpenCodeGeneratorConfig, basePath = pro
     writeCommandFiles(config, basePath);
   } catch (err) {
     throw new FileWriteError('generateOpenCode', err instanceof Error ? err.message : String(err));
+  }
+}
+
+export function removeOpenCodeArtifacts(config: OpenCodeGeneratorConfig, basePath: string): void {
+  const opencodeRoot = getOpencodeRoot(basePath);
+
+  for (const agent of config.agents) {
+    const file = join(opencodeRoot, 'agent', `${agent.name}.md`);
+    if (existsSync(file)) {
+      rmSync(file, { force: true });
+    }
+  }
+
+  const pluginPath = join(opencodeRoot, 'plugins/atelier.js');
+  if (existsSync(pluginPath)) {
+    rmSync(pluginPath, { force: true });
+  }
+
+  const commandsDir = join(opencodeRoot, 'command');
+  if (existsSync(commandsDir)) {
+    for (const commandName of getUserInvocableSkillNames(config.skills_path)) {
+      const commandPath = join(commandsDir, `${commandName}.md`);
+      if (existsSync(commandPath)) {
+        rmSync(commandPath, { force: true });
+      }
+    }
+  }
+
+  const opencodeJsonPath = join(basePath, 'opencode.json');
+  if (!existsSync(opencodeJsonPath)) {
+    return;
+  }
+
+  let content: Record<string, unknown>;
+  try {
+    content = JSON.parse(readFileSync(opencodeJsonPath, 'utf-8')) as Record<string, unknown>;
+  } catch (err) {
+    throw new HarnessConfigError(opencodeJsonPath, err instanceof Error ? err.message : String(err));
+  }
+
+  if (content.agent && typeof content.agent === 'object' && !Array.isArray(content.agent)) {
+    const agent = content.agent as Record<string, unknown>;
+    delete agent.build;
+    delete agent.plan;
+    if (Object.keys(agent).length === 0) {
+      delete content.agent;
+    }
+  }
+
+  if (config.provider === 'amazon-bedrock' && content.provider && typeof content.provider === 'object' && !Array.isArray(content.provider)) {
+    const provider = content.provider as Record<string, unknown>;
+    delete provider['amazon-bedrock'];
+    if (Object.keys(provider).length === 0) {
+      delete content.provider;
+    }
+  }
+
+  if (Object.keys(content).length === 0) {
+    rmSync(opencodeJsonPath, { force: true });
+  } else {
+    writeFileSync(opencodeJsonPath, JSON.stringify(content, null, 2) + '\n');
   }
 }
 
@@ -157,37 +218,22 @@ interface SkillFrontmatter {
   'user-invocable'?: boolean;
 }
 
-function writeCommandFiles(config: OpenCodeGeneratorConfig, basePath: string): void {
-  const opencodeRoot = getOpencodeRoot(basePath);
-  const commandsDir = join(opencodeRoot, 'command');
-
-  try {
-    mkdirSync(commandsDir, { recursive: true });
-  } catch (err) {
-    throw new FileWriteError(commandsDir, err instanceof Error ? err.message : String(err));
-  }
-
-  let skillsDir = config.skills_path || '~/.agents/skills';
-  if (skillsDir.startsWith('~/')) {
-    skillsDir = join(homedir(), skillsDir.slice(2));
-  } else if (!skillsDir.startsWith('/')) {
-    skillsDir = join(process.cwd(), skillsDir);
-  }
-
-  if (!existsSync(skillsDir)) {
-    return;
+function getUserInvocableSkillNames(skillsPath: string): string[] {
+  const resolved = resolveSkillsPath(skillsPath);
+  if (!resolved || !existsSync(resolved)) {
+    return [];
   }
 
   let entries: string[];
   try {
-    entries = readdirSync(skillsDir, { encoding: 'utf-8' });
+    entries = readdirSync(resolved, { encoding: 'utf-8' });
   } catch {
-    return;
+    return [];
   }
 
+  const names: string[] = [];
   for (const entry of entries) {
-    const skillMdPath = join(skillsDir, entry, 'SKILL.md');
-
+    const skillMdPath = join(resolved, entry, 'SKILL.md');
     if (!existsSync(skillMdPath)) {
       continue;
     }
@@ -201,13 +247,26 @@ function writeCommandFiles(config: OpenCodeGeneratorConfig, basePath: string): v
 
     const { data } = matter(skillContent);
     const fm = data as SkillFrontmatter;
-
-    if (fm['user-invocable'] !== true) {
-      continue;
+    if (fm['user-invocable'] === true) {
+      names.push(entry);
     }
+  }
 
-    const commandName = entry;
-    const description = fm.description || `Activate the ${commandName} skill`;
+  return names;
+}
+
+function writeCommandFiles(config: OpenCodeGeneratorConfig, basePath: string): void {
+  const opencodeRoot = getOpencodeRoot(basePath);
+  const commandsDir = join(opencodeRoot, 'command');
+
+  try {
+    mkdirSync(commandsDir, { recursive: true });
+  } catch (err) {
+    throw new FileWriteError(commandsDir, err instanceof Error ? err.message : String(err));
+  }
+
+  for (const commandName of getUserInvocableSkillNames(config.skills_path)) {
+    const description = getSkillDescription(config.skills_path, commandName) || `Activate the ${commandName} skill`;
 
     const commandContent = `---
 description: ${description}
@@ -221,4 +280,35 @@ User request: $ARGUMENTS
     writeFileSync(commandPath, commandContent);
     console.log(`Created ${displayPath(basePath, isGlobalOpencode(basePath) ? `command/${commandName}.md` : `.opencode/command/${commandName}.md`)}`);
   }
+}
+
+function getSkillDescription(skillsPath: string, skillName: string): string | undefined {
+  const resolved = resolveSkillsPath(skillsPath);
+  if (!resolved) {
+    return undefined;
+  }
+
+  const skillMdPath = join(resolved, skillName, 'SKILL.md');
+  if (!existsSync(skillMdPath)) {
+    return undefined;
+  }
+
+  try {
+    const skillContent = readFileSync(skillMdPath, { encoding: 'utf-8' });
+    const { data } = matter(skillContent);
+    const fm = data as SkillFrontmatter;
+    return fm.description;
+  } catch {
+    return undefined;
+  }
+}
+
+export function resolveSkillsPath(skillsPath: string): string | null {
+  if (skillsPath.startsWith('~/')) {
+    return join(homedir(), skillsPath.slice(2));
+  }
+  if (skillsPath.startsWith('/')) {
+    return skillsPath;
+  }
+  return join(process.cwd(), skillsPath);
 }

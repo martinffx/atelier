@@ -2,14 +2,21 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { dirname, join } from 'path';
 import { homedir } from 'os';
 import { z } from 'zod';
-import type { AtelierConfig, Harness, Provider } from '../types.js';
+import type { AtelierConfig, Harness, OpenCodeProvider, ClaudeConfig, CodexConfig, OpenCodeConfig, AgentConfig, HarnessSection } from '../types.js';
 import { AGENT_NAMES } from '../types.js';
 import { defaultModels } from '../models.js';
 import { InvalidConfigError } from './errors.js';
+import type { Result } from './result.js';
+import { ok, err } from './result.js';
 
 export const CONFIG_FILE = '.atelier/config.json';
 export const CONFIG_PATH = join(homedir(), CONFIG_FILE);
 const CURRENT_VERSION = '0.1.0';
+
+export type ConfigError =
+  | { type: 'not-found' }
+  | { type: 'invalid'; message: string }
+  | { type: 'old-format'; message: string };
 
 const AgentSchema = z.object({
   template: z.enum(AGENT_NAMES),
@@ -27,8 +34,10 @@ const CodexConfigSchema = z.object({
   agents: z.array(AgentSchema).min(1),
 });
 
+const OPENCODE_PROVIDERS = ['opencode-zen', 'opencode-go', 'amazon-bedrock'] as const satisfies readonly OpenCodeProvider[];
+
 const OpenCodeConfigSchema = z.object({
-  provider: z.enum(['opencode-zen', 'opencode-go', 'amazon-bedrock']),
+  provider: z.enum(OPENCODE_PROVIDERS),
   build_model: z.string(),
   plan_model: z.string(),
   agents: z.array(AgentSchema).min(1),
@@ -53,30 +62,38 @@ export function validateConfig(config: unknown): AtelierConfig {
   return result.data as AtelierConfig;
 }
 
-export function readConfig(path: string = CONFIG_PATH): AtelierConfig | null {
+export function readConfig(path: string = CONFIG_PATH): Result<AtelierConfig, ConfigError> {
   if (!existsSync(path)) {
-    return null;
+    return err({ type: 'not-found' });
   }
 
   let content: string;
   try {
     content = readFileSync(path, 'utf-8');
-  } catch (err) {
-    throw new InvalidConfigError(`Failed to read ${path}: ${err instanceof Error ? err.message : String(err)}`);
+  } catch (readErr) {
+    return err({ type: 'invalid', message: `Failed to read ${path}: ${readErr instanceof Error ? readErr.message : String(readErr)}` });
   }
 
   let parsed: unknown;
   try {
     parsed = JSON.parse(content);
-  } catch (err) {
-    throw new InvalidConfigError(`Invalid JSON in ${path}: ${err instanceof Error ? err.message : String(err)}`);
+  } catch (parseErr) {
+    return err({ type: 'invalid', message: `Invalid JSON in ${path}: ${parseErr instanceof Error ? parseErr.message : String(parseErr)}` });
   }
 
   if (isOldFlatConfig(parsed)) {
-    throw new InvalidConfigError('Config format has changed. Run `atelier init --harness <claude|opencode|codex>` to reconfigure.');
+    return err({
+      type: 'old-format',
+      message: 'Config format has changed. Run `atelier init --harness <claude|opencode|codex>` to reconfigure.',
+    });
   }
 
-  return validateConfig(parsed);
+  try {
+    return ok(validateConfig(parsed));
+  } catch (validationErr) {
+    const message = validationErr instanceof Error ? validationErr.message : String(validationErr);
+    return err({ type: 'invalid', message });
+  }
 }
 
 function isOldFlatConfig(config: unknown): boolean {
@@ -96,53 +113,70 @@ export function writeConfig(config: AtelierConfig, path: string = CONFIG_PATH): 
   writeFileSync(path, JSON.stringify(config, null, 2) + '\n');
 }
 
-export function getDefaultConfig(harness: Harness, provider?: Provider): AtelierConfig {
+function createEmptyAgents(): AgentConfig[] {
+  return AGENT_NAMES.map(name => ({
+    template: name,
+    name,
+    model: '',
+  }));
+}
+
+export function getDefaultClaudeConfig(): ClaudeConfig {
+  const defaults = defaultModels.anthropic;
+  return {
+    default_model: 'opusplan',
+    agents: createEmptyAgents().map(a => ({ ...a, model: defaults[a.name] })),
+  };
+}
+
+export function getDefaultCodexConfig(): CodexConfig {
+  const defaults = defaultModels.openai;
+  return {
+    default_model: defaults.default_model,
+    agents: createEmptyAgents().map(a => ({ ...a, model: defaults[a.name] })),
+  };
+}
+
+export function getDefaultOpenCodeConfig(provider?: OpenCodeProvider): OpenCodeConfig {
+  const selectedProvider = provider || 'opencode-zen';
+  const defaults = defaultModels[selectedProvider];
+  return {
+    provider: selectedProvider,
+    build_model: defaults.build,
+    plan_model: defaults.plan,
+    agents: createEmptyAgents().map(a => ({ ...a, model: defaults[a.name] })),
+  };
+}
+
+export function getDefaultConfig(harness: Harness): AtelierConfig {
   const shared = {
     version: CURRENT_VERSION,
     skills_source: 'martinffx/atelier',
     skills_path: '~/.agents/skills',
   };
 
-  const agents = AGENT_NAMES.map(name => ({
-    template: name,
-    name,
-    model: '',
-  }));
-
   switch (harness) {
-    case 'claude': {
-      const defaults = defaultModels.anthropic;
-      return {
-        ...shared,
-        claude: {
-          default_model: 'opusplan',
-          agents: agents.map(a => ({ ...a, model: defaults[a.name] })),
-        },
-      };
+    case 'claude':
+      return { ...shared, claude: getDefaultClaudeConfig() };
+    case 'codex':
+      return { ...shared, codex: getDefaultCodexConfig() };
+    case 'opencode':
+      return { ...shared, opencode: getDefaultOpenCodeConfig() };
+    default: {
+      const _exhaustive: never = harness;
+      throw new InvalidConfigError(`Unknown harness: ${_exhaustive}`);
     }
-    case 'codex': {
-      const defaults = defaultModels.openai;
-      return {
-        ...shared,
-        codex: {
-          default_model: defaults.default_model,
-          agents: agents.map(a => ({ ...a, model: defaults[a.name] })),
-        },
-      };
-    }
-    case 'opencode': {
-      const selectedProvider: Provider = provider || 'opencode-zen';
-      const defaults = defaultModels[selectedProvider];
-      return {
-        ...shared,
-        opencode: {
-          provider: selectedProvider,
-          build_model: defaults.build,
-          plan_model: defaults.plan,
-          agents: agents.map(a => ({ ...a, model: defaults[a.name] })),
-        },
-      };
-    }
+  }
+}
+
+export function getDefaultSectionConfig(harness: Harness): HarnessSection {
+  switch (harness) {
+    case 'claude':
+      return getDefaultClaudeConfig();
+    case 'codex':
+      return getDefaultCodexConfig();
+    case 'opencode':
+      return getDefaultOpenCodeConfig();
     default: {
       const _exhaustive: never = harness;
       throw new InvalidConfigError(`Unknown harness: ${_exhaustive}`);

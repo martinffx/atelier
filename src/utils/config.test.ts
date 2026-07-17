@@ -34,28 +34,39 @@ describe('config', () => {
     const configPath = join(tempDir, '.atelier/config.json');
     writeConfig(config, configPath);
 
-    const read = readConfig(configPath);
-    expect(read).toEqual(config);
+    const result = readConfig(configPath);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toEqual(config);
+    }
   });
 
-  test('readConfig with no file returns null', async () => {
+  test('readConfig with no file returns not-found error', async () => {
     const { readConfig } = await import('./config.js');
 
-    const read = readConfig(join(tempDir, 'nonexistent.json'));
-    expect(read).toBeNull();
+    const result = readConfig(join(tempDir, 'nonexistent.json'));
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.type).toBe('not-found');
+    }
   });
 
-  test('readConfig throws on invalid JSON', async () => {
+  test('readConfig returns invalid error on invalid JSON', async () => {
     const { writeFileSync } = await import('fs');
     const { readConfig } = await import('./config.js');
 
     const badConfigPath = join(tempDir, 'bad-config.json');
     writeFileSync(badConfigPath, 'not valid json');
 
-    expect(() => readConfig(badConfigPath)).toThrow('Invalid JSON');
+    const result = readConfig(badConfigPath);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.type).toBe('invalid');
+      expect(result.error.message).toContain('Invalid JSON');
+    }
   });
 
-  test('readConfig throws on invalid config structure', async () => {
+  test('readConfig returns invalid error on invalid config structure', async () => {
     const { writeFileSync } = await import('fs');
     const { readConfig } = await import('./config.js');
 
@@ -65,10 +76,15 @@ describe('config', () => {
       JSON.stringify({ version: '1.0.0', skills_source: 'martinffx/atelier', skills_path: '~/.agents/skills' })
     );
 
-    expect(() => readConfig(badConfigPath)).toThrow('Invalid configuration');
+    const result = readConfig(badConfigPath);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.type).toBe('invalid');
+      expect(result.error.message).toContain('At least one harness must be configured');
+    }
   });
 
-  test('readConfig throws re-init error for old flat config', async () => {
+  test('readConfig returns old-format error for old flat config', async () => {
     const { writeFileSync, mkdirSync } = await import('fs');
     const { readConfig } = await import('./config.js');
 
@@ -84,9 +100,12 @@ describe('config', () => {
       })
     );
 
-    expect(() => readConfig(join(tempDir, '.atelier/config.json'))).toThrow(
-      'Config format has changed. Run `atelier init --harness <claude|opencode|codex>` to reconfigure.'
-    );
+    const result = readConfig(join(tempDir, '.atelier/config.json'));
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.type).toBe('old-format');
+      expect(result.error.message).toContain('Config format has changed');
+    }
   });
 
   test('getDefaultConfig returns valid config with default models for claude', async () => {
@@ -129,51 +148,48 @@ describe('config', () => {
     expect(architect?.model).toBe('gpt-5.6-sol');
   });
 
-  test('getDefaultConfig returns valid config with default models for opencode zen', async () => {
-    const { getDefaultConfig } = await import('./config.js');
+  test('getDefaultOpenCodeConfig returns valid config with default models for opencode zen', async () => {
+    const { getDefaultOpenCodeConfig } = await import('./config.js');
 
-    const config = getDefaultConfig('opencode', 'opencode-zen');
+    const section = getDefaultOpenCodeConfig('opencode-zen');
 
-    expect(config.opencode).toBeDefined();
-    expect(config.opencode?.provider).toBe('opencode-zen');
+    expect(section.provider).toBe('opencode-zen');
 
-    const recon = config.opencode?.agents.find(a => a.name === 'recon');
+    const recon = section.agents.find(a => a.name === 'recon');
     expect(recon?.model).toBe('opencode/minimax-m2.7');
 
-    const oracle = config.opencode?.agents.find(a => a.name === 'oracle');
+    const oracle = section.agents.find(a => a.name === 'oracle');
     expect(oracle?.model).toBe('opencode/kimi-k2.6');
 
-    const architect = config.opencode?.agents.find(a => a.name === 'architect');
+    const architect = section.agents.find(a => a.name === 'architect');
     expect(architect?.model).toBe('opencode/deepseek-v4-pro');
   });
 
-  test('getDefaultConfig returns valid config with default models for opencode go', async () => {
-    const { getDefaultConfig } = await import('./config.js');
+  test('getDefaultOpenCodeConfig returns valid config with default models for opencode go', async () => {
+    const { getDefaultOpenCodeConfig } = await import('./config.js');
 
-    const config = getDefaultConfig('opencode', 'opencode-go');
+    const section = getDefaultOpenCodeConfig('opencode-go');
 
-    expect(config.opencode).toBeDefined();
-    expect(config.opencode?.provider).toBe('opencode-go');
+    expect(section.provider).toBe('opencode-go');
 
-    const recon = config.opencode?.agents.find(a => a.name === 'recon');
+    const recon = section.agents.find(a => a.name === 'recon');
     expect(recon?.model).toBe('opencode-go/minimax-m2.7');
 
-    const oracle = config.opencode?.agents.find(a => a.name === 'oracle');
+    const oracle = section.agents.find(a => a.name === 'oracle');
     expect(oracle?.model).toBe('opencode-go/kimi-k2.6');
 
-    const architect = config.opencode?.agents.find(a => a.name === 'architect');
+    const architect = section.agents.find(a => a.name === 'architect');
     expect(architect?.model).toBe('opencode-go/deepseek-v4-pro');
   });
 
-  test('getDefaultConfig defaults to opencode-zen when no provider given for opencode', async () => {
-    const { getDefaultConfig } = await import('./config.js');
+  test('getDefaultOpenCodeConfig defaults to opencode-zen when no provider given', async () => {
+    const { getDefaultOpenCodeConfig } = await import('./config.js');
 
-    const config = getDefaultConfig('opencode');
+    const section = getDefaultOpenCodeConfig();
 
-    expect(config.opencode).toBeDefined();
-    expect(config.opencode?.provider).toBe('opencode-zen');
+    expect(section.provider).toBe('opencode-zen');
 
-    const recon = config.opencode?.agents.find(a => a.name === 'recon');
+    const recon = section.agents.find(a => a.name === 'recon');
     expect(recon?.model).toBe('opencode/minimax-m2.7');
   });
 
@@ -205,11 +221,14 @@ describe('config', () => {
     const configPath = join(tempDir, '.atelier/config.json');
     writeConfig(config, configPath);
 
-    const read = readConfig(configPath);
-    expect(read).toEqual(config);
-    expect(read?.claude).toBeDefined();
-    expect(read?.codex).toBeDefined();
-    expect(read?.opencode).toBeUndefined();
+    const result = readConfig(configPath);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toEqual(config);
+      expect(result.value.claude).toBeDefined();
+      expect(result.value.codex).toBeDefined();
+      expect(result.value.opencode).toBeUndefined();
+    }
   });
 
   test('writeConfig creates parent directory if missing', async () => {
@@ -228,8 +247,10 @@ describe('config', () => {
     const configPath = join(tempDir, '.atelier/nested/config.json');
     writeConfig(config, configPath);
 
-    const read = readConfig(configPath);
-    expect(read).not.toBeNull();
-    expect(read?.claude).toBeDefined();
+    const result = readConfig(configPath);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.claude).toBeDefined();
+    }
   });
 });

@@ -130,6 +130,32 @@ describe('init', () => {
       '`--yes` requires `--harness` (claude, opencode, or codex).'
     );
   });
+
+  test('throws when invalid --harness is provided', async () => {
+    await expect(init({ harness: 'foobar' })).rejects.toThrow(
+      'Invalid harness "foobar". Must be claude, opencode, or codex.'
+    );
+  });
+
+  test('prompts for harness and creates config interactively', async () => {
+    inquirerAnswers = {
+      harness: 'codex',
+      default_model: 'gpt-5.6-terra',
+      recon: 'gpt-5.6-luna',
+      oracle: 'gpt-5.6-sol',
+      architect: 'gpt-5.6-sol',
+      confirm: true,
+    };
+
+    await init({});
+
+    expect(existsSync(join(tempDir, '.atelier/config.json'))).toBe(true);
+    expect(existsSync(join(tempDir, '.codex/config.toml'))).toBe(true);
+
+    const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
+    expect(config.codex).toBeDefined();
+    expect(config.codex.default_model).toBe('gpt-5.6-terra');
+  });
 });
 
 describe('update', () => {

@@ -29,6 +29,16 @@ export class HarnessRequiredError extends AtelierError {
   }
 }
 
+export class InvalidHarnessError extends AtelierError {
+  constructor(value: string) {
+    super(
+      `Invalid harness "${value}". Must be claude, opencode, or codex.`,
+      'INVALID_HARNESS',
+      1
+    );
+  }
+}
+
 export class SkillsInstallError extends AtelierError {
   constructor(cause: string) {
     super(
@@ -49,6 +59,16 @@ export class FileWriteError extends AtelierError {
   }
 }
 
+export class HarnessConfigError extends AtelierError {
+  constructor(file: string, cause: string) {
+    super(
+      `Failed to parse ${file}: ${cause}`,
+      'HARNESS_CONFIG_ERROR',
+      1
+    );
+  }
+}
+
 export class TemplateReadError extends AtelierError {
   constructor(template: string, cause: string) {
     super(
@@ -60,9 +80,12 @@ export class TemplateReadError extends AtelierError {
 }
 
 export class InvalidConfigError extends AtelierError {
-  constructor(cause: string) {
+  constructor(cause: string, { suggestReinit = false }: { suggestReinit?: boolean } = {}) {
+    const suffix = suggestReinit
+      ? ' Run `atelier init --harness <claude|opencode|codex>` to reconfigure.'
+      : '';
     super(
-      `Invalid configuration: ${cause}. Run \`atelier init --harness <claude|opencode|codex>\` to reconfigure.`,
+      `Invalid configuration: ${cause}.${suffix}`,
       'INVALID_CONFIG',
       1
     );

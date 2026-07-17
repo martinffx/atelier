@@ -1,13 +1,13 @@
-import { writeFileSync, mkdirSync, readFileSync, chmodSync } from 'fs';
+import { writeFileSync, mkdirSync, readFileSync, chmodSync, rmSync, existsSync } from 'fs';
 import { join } from 'path';
 import { readTemplate } from '../utils/templates.js';
-import type { AtelierConfig, ClaudeConfig } from '../types.js';
+import type { ClaudeConfig, SharedConfig } from '../types.js';
 
-import { FileWriteError } from '../utils/errors.js';
+import { FileWriteError, HarnessConfigError } from '../utils/errors.js';
 
-type ClaudeGeneratorConfig = ClaudeConfig & Pick<AtelierConfig, 'version' | 'skills_source' | 'skills_path'>;
+export type ClaudeGeneratorConfig = ClaudeConfig & SharedConfig;
 
-export function generateClaude(config: ClaudeGeneratorConfig, basePath = process.cwd()): void {
+export function generateClaude(config: ClaudeGeneratorConfig, basePath: string): void {
   const claudeDir = join(basePath, '.claude');
   const agentsDir = join(claudeDir, 'agents');
   const hooksDir = join(basePath, 'hooks');
@@ -25,6 +25,66 @@ export function generateClaude(config: ClaudeGeneratorConfig, basePath = process
     writeAgentFiles(config, basePath);
   } catch (err) {
     throw new FileWriteError('generateClaude', err instanceof Error ? err.message : String(err));
+  }
+}
+
+export function removeClaudeArtifacts(config: ClaudeConfig, basePath: string): void {
+  const claudeDir = join(basePath, '.claude');
+  const agentsDir = join(claudeDir, 'agents');
+
+  for (const agent of config.agents) {
+    const file = join(agentsDir, `${agent.name}.md`);
+    if (existsSync(file)) {
+      rmSync(file, { force: true });
+    }
+  }
+
+  if (existsSync(agentsDir)) {
+    rmSync(agentsDir, { recursive: true, force: true });
+  }
+
+  const hookPath = join(basePath, 'hooks/atelier-session-start');
+  if (existsSync(hookPath)) {
+    rmSync(hookPath, { force: true });
+  }
+
+  const settingsPath = join(claudeDir, 'settings.json');
+  if (!existsSync(settingsPath)) {
+    return;
+  }
+
+  let content: Record<string, unknown>;
+  try {
+    content = JSON.parse(readFileSync(settingsPath, 'utf-8')) as Record<string, unknown>;
+  } catch (err) {
+    throw new HarnessConfigError(settingsPath, err instanceof Error ? err.message : String(err));
+  }
+
+  delete content.$schema;
+  delete content.model;
+
+  if (content.hooks && typeof content.hooks === 'object' && !Array.isArray(content.hooks)) {
+    const hooks = content.hooks as Record<string, unknown>;
+    if (Array.isArray(hooks.SessionStart)) {
+      hooks.SessionStart = (hooks.SessionStart as Array<Record<string, unknown>>).filter(
+        (hook: Record<string, unknown>) => {
+          const innerHooks = hook.hooks as Array<Record<string, unknown>> | undefined;
+          return !innerHooks?.some((h: Record<string, unknown>) => h.command === 'hooks/atelier-session-start');
+        }
+      );
+      if ((hooks.SessionStart as unknown[]).length === 0) {
+        delete hooks.SessionStart;
+      }
+      if (Object.keys(hooks).length === 0) {
+        delete content.hooks;
+      }
+    }
+  }
+
+  if (Object.keys(content).length === 0) {
+    rmSync(settingsPath, { force: true });
+  } else {
+    writeFileSync(settingsPath, JSON.stringify(content, null, 2) + '\n');
   }
 }
 
@@ -101,7 +161,7 @@ function writeHookScript(config: ClaudeGeneratorConfig, basePath: string): void 
 SKILLS_DIR=${safeSkillsPath}
 
 if [ -d "$SKILLS_DIR" ]; then
-  echo '{"additionalContext": {"skillsDir": "'"$SKILLS_DIR"'}}'
+  echo '{"additionalContext": {"skillsDir": "'"$SKILLS_DIR"'"}}'
 else
   echo '{"additionalContext": {}}'
 fi

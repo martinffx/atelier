@@ -2,7 +2,7 @@ import { join } from 'path';
 import { homedir } from 'os';
 import { readConfig, writeConfig, CONFIG_FILE } from '../utils/config.js';
 import {
-  isHarness,
+  parseHarness,
   getConfiguredHarnesses,
   getGlobalBasePath,
   promptForModels,
@@ -12,7 +12,7 @@ import {
 } from '../utils/harness.js';
 import { ConfigNotFoundError, InvalidConfigError } from '../utils/errors.js';
 import inquirer from 'inquirer';
-import type { Harness, AtelierConfig } from '../types.js';
+import type { Harness, AtelierConfig, HarnessSection } from '../types.js';
 
 export interface UpdateOptions {
   harness?: string;
@@ -22,18 +22,23 @@ export async function update(options?: UpdateOptions): Promise<void> {
   const harnessOption = options?.harness;
   const configPath = join(homedir(), CONFIG_FILE);
 
-  const config = readConfig(configPath);
+  const configResult = readConfig(configPath);
 
-  if (!config) {
-    throw new ConfigNotFoundError('update');
+  if (!configResult.ok) {
+    if (configResult.error.type === 'not-found') {
+      throw new ConfigNotFoundError('update');
+    }
+    throw new InvalidConfigError(
+      configResult.error.message,
+      { suggestReinit: configResult.error.type === 'old-format' }
+    );
   }
+
+  const config = configResult.value;
 
   let harness: Harness;
   if (harnessOption) {
-    if (!isHarness(harnessOption)) {
-      throw new InvalidConfigError(`Invalid harness: ${harnessOption}`);
-    }
-    harness = harnessOption;
+    harness = parseHarness(harnessOption);
   } else {
     const configured = getConfiguredHarnesses(config);
     if (configured.length === 0) {
@@ -50,9 +55,7 @@ export async function update(options?: UpdateOptions): Promise<void> {
     harness = answer.harness;
   }
 
-  await promptForModels(config, harness);
-
-  writeConfig(config, configPath);
+  const section = await promptForModels(config[harness]!, harness);
 
   const harnessBasePath = getGlobalBasePath(harness);
 
@@ -73,7 +76,16 @@ export async function update(options?: UpdateOptions): Promise<void> {
     return;
   }
 
-  generateFiles(config, harness, harnessBasePath);
+  config[harness] = section;
+
+  const shared = {
+    version: config.version,
+    skills_source: config.skills_source,
+    skills_path: config.skills_path,
+  };
+
+  writeConfig(config, configPath);
+  generateFiles(shared, section, harness, harnessBasePath);
 
   console.log(`Atelier updated for ${harness}.`);
   console.log('Skills are managed separately. Run `npx skills update martinffx/atelier` to update skills.');
