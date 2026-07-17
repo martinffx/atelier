@@ -2,8 +2,9 @@
 name: spec-brainstorm
 description: >
   Conversational design workshop for new features. Interviews the human one question
-  at a time, explores 2-3 approaches with trade-offs, then produces a focused spec.
-  Combines requirements discovery with codebase research and architecture design.
+  at a time, explores 2-3 approaches with trade-offs, and presents the design
+  section by section for approval before writing the spec. Combines requirements
+  discovery with codebase research and architecture design.
   Use when the user says "create a spec", "design this feature", "let's brainstorm",
   "what should we build", or at the start of any feature/refactor/complex-bug workflow.
 user-invocable: true
@@ -14,13 +15,14 @@ argument-hint: <topic or feature description>
 
 Conversational design workshop that produces a focused, reviewed spec.
 
-One question at a time. Multiple approaches explored. Ruthless scope control.
-No implementation until design is approved.
+One question at a time. Multiple approaches explored. Design approved in
+sections. Ruthless scope control. No implementation until design is approved.
 
 ## Artifact
 
 ```
-docs/specs/YYYY-MM-DD-<topic>-design.md  ← This skill's output
+docs/specs/YYYY-MM-DD-<feature>/
+└── design.md  ← This skill's output
 ```
 
 Requirements are inline — no separate requirements.json needed.
@@ -156,11 +158,14 @@ review before I continue with the design."
 
 ---
 
-## Step 4: Design — Explore Approaches
+## Step 4: Design
+
+Design happens in three phases: explore approaches, present the design in sections,
+then write the spec file.
+
+### 4a. Explore approaches
 
 Before settling on a design, present **2-3 approaches** with trade-offs.
-
-### Approach exploration
 
 For each approach, address:
 
@@ -169,7 +174,7 @@ For each approach, address:
 3. **Cons** — What's painful, expensive, or risky
 4. **Complexity estimate** — Rough sense of implementation effort
 
-Then make a recommendation and explain why.
+Lead with your recommended option and explain why it wins.
 
 **Example:**
 
@@ -186,23 +191,59 @@ Then make a recommendation and explain why.
 > **Recommendation:** Approach B — the query flexibility matters more here than
 > implementation speed.
 
-### Design approval gate
+Get explicit approval on the chosen approach before presenting the design.
 
-Get explicit approval on the chosen approach before writing the full spec.
-
-**Tell the human:** "Which approach should we go with? Or should I explore a different
-direction?"
+**Tell the human:** "Which approach should we go with? Or should I explore a
+different direction?"
 
 **STOP. Wait for human to choose an approach.**
 
-### Write the spec
+### 4b. Present the design in sections
 
-Once an approach is chosen, write the full spec document.
+Present the design in batches. Get approval after each batch before continuing.
 
-Use the Skill tool to invoke **oracle-architect** for component design, domain modeling,
-and layer boundaries.
+Sections already confirmed in earlier steps (Problem, Scope, Constraints, Context)
+are written into the spec from those confirmations — do not re-present them.
 
-### What the spec should contain
+**Batch A: User Stories** — the contract you're designing against. Formal stories
+with acceptance criteria and priorities. If rejected: revise. If the rejection
+reveals a scope misunderstanding, loop back to Discovery (Step 2).
+
+**Batch B: Architecture** — invoke **oracle-architect** first for component design,
+domain modeling, and layer boundaries. Then present: component structure, domain
+model, where business logic lives, where IO lives. If rejected: revise. If the
+rejection undermines the chosen approach, offer to return to approach exploration
+(4a). If it reveals a fundamental gap, loop back to Research (Step 3). If the
+detail reveals the work is far more complex than estimated, say so and offer to
+revisit the approach.
+
+**Batch C: API Design + Data Model** — contracts derived from the approved
+architecture. Skip sections that don't apply, but say so explicitly ("No API
+changes — moving to Trade-offs"). Never skip silently. If rejected: revise. If
+the rejection implicates the architecture, go back to Batch B.
+
+**Batch D: Trade-offs + Open Questions** — alternatives considered, why this
+approach wins, known limitations, anything unresolved. Usually revisable inline.
+
+Each batch ends with:
+
+**Tell the human:** "Does this look right?"
+
+**STOP. Wait for approval before continuing.**
+
+If you loop twice on the same batch, stop and ask:
+
+> "We've looped on [batch] twice. Should we reconsider the approach?"
+
+**Terminology discipline:** while drafting batches, challenge terms against
+`CONTEXT.md` and update it inline as terms resolve. If domain confusion runs
+deep, suggest pausing for **oracle-grillme** before continuing.
+
+### 4c. Write the spec
+
+Once all batches are approved, write the full spec document.
+
+#### What the spec should contain
 
 ```markdown
 # Feature Name
@@ -256,70 +297,48 @@ and layer boundaries.
 Scale each section to complexity — a few sentences if straightforward, detailed if
 nuanced.
 
-### Reference implementations
+#### Reference implementations
 
-If human provides reference code — from open source, from elsewhere in codebase — use it
-as a concrete guide. Working from a reference produces dramatically better designs.
+If the human provides reference code — from open source, from elsewhere in the
+codebase — use it as a concrete guide. Working from a reference produces
+dramatically better designs.
 
----
+#### Self-review
 
-## Step 5: Self-Review
+After writing the file, check it with fresh eyes:
 
-Before presenting the spec to the human, run this checklist silently:
+1. **Placeholder scan** — Any TBD, TODO, FIXME, or incomplete sections? Every
+   section should have real content or be removed.
+2. **Internal consistency** — Do sections contradict each other? If the
+   Architecture section says "stateless" but the Data Model includes session
+   state, resolve the conflict.
+3. **Scope check** — Is this focused enough for a single implementation plan?
+   If the spec covers more than one independent subsystem, it should have been
+   decomposed in Step 2. If it's still too broad, flag it now.
+4. **Ambiguity check** — Could any requirement be interpreted two ways? If so,
+   pick one interpretation, state it explicitly, and let the human correct you.
 
-### 1. Placeholder scan
-
-Are there any TBD, TODO, FIXME, or incomplete sections? Every section should have real
-content or be removed.
-
-### 2. Internal consistency
-
-Do sections contradict each other? If the Architecture section says "stateless" but the
-Data Model includes session state, resolve the conflict before presenting.
-
-### 3. Scope check
-
-Is this focused enough for a single implementation plan? If the spec covers more than
-one independent subsystem, it should have been decomposed in Step 2. If it's still too
-broad, flag it now.
-
-### 4. Ambiguity check
-
-Could any requirement be interpreted two ways? If so, pick one interpretation, state it
-explicitly, and let the human correct you.
-
-Fix any issues found. Then present.
-
-**Tell the human:** "The spec is complete. Ready for your review."
-
-**STOP. Wait for human review.**
+**Substance rule:** if a fix changes the substance of an approved section,
+re-present that section for approval. Wording and consistency fixes go inline —
+note them at handoff.
 
 ---
 
-## Step 6: Annotation
+## Step 5: Handoff
 
-Human may annotate the spec directly — adding corrections, rejections, domain knowledge,
-or "remove this section entirely."
+**Tell the human:**
 
-When they say "I added notes":
+> "Spec written to `docs/specs/<path>`. Every section was approved during our
+> conversation — review it if you'd like, or we can go straight to the
+> implementation plan. Ready for spec-plan?"
 
-1. Re-read the full document
-2. Address every note
-3. Update the spec
-4. Run the self-review checklist again (Step 5)
-5. **Do not move to planning**
+If the human requests changes — in conversation or by annotating the file —
+address every note, update the spec, and re-run the self-review. If a change
+alters the substance of an approved section, re-present that section for
+approval before continuing.
 
-This may repeat 1-6 times. Spec is not approved until human explicitly says so.
-
----
-
-## Handoff
-
-When the spec is approved, the next step is **spec-plan**.
-
-> "Spec is approved. Ready to write the implementation plan?"
+The next step is **spec-plan**. Do not start planning without the human's
+go-ahead. Do not write code.
 
 If planning reveals design flaws, loop back to research. See **spec-orchestrator**
 for iteration patterns.
-
-Do not start planning without explicit approval. Do not write code.

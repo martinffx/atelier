@@ -25,7 +25,7 @@ Before finishing, confirm you have:
 - [ ] Specified API endpoints with methods, paths, and request/response contracts
 - [ ] Listed error cases and handling strategy
 - [ ] Broken work into dependency-ordered tasks (entity → repository → service → router)
-- [ ] Written or updated the Technical Design section in `spec.md`
+- [ ] Written or updated the Technical Design section in `design.md`
 - [ ] Written or updated `plan.json` with the task breakdown
 
 ## Boundaries
