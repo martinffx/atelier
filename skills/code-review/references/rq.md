@@ -263,7 +263,7 @@ prompt: |
 
   **PRE-STEP: Look for Relevant Skills**
   Before reviewing, look for relevant architecture and language architecture skills.
-  Load relevant skills if available, such as `oracle-architect`.
+  Load relevant skills if available, such as `typescript-api-design` or the language skill for this codebase.
   If no relevant skill is available or a skill cannot be loaded, continue with this architect prompt.
   Failure to find or load a skill is not a review failure.
 
@@ -313,7 +313,7 @@ prompt: |
 
   **PRE-STEP: Look for Relevant Skills**
   Before challenging, look for relevant challenge, reasoning, architecture, security, language, or framework skills.
-  Load relevant skills if available, such as `oracle-challenge`.
+  Load relevant skills if available, such as `oracle-debug` or a language-specific testing skill.
   If no relevant skill is available or a skill cannot be loaded, continue with this challenge prompt.
   Failure to find or load a skill is not a review failure.
 

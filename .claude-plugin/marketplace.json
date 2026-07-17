@@ -44,13 +44,8 @@
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/oracle-architect",
-        "./skills/oracle-challenge",
-        "./skills/oracle-doubt",
-        "./skills/oracle-grillme",
-        "./skills/oracle-security",
-        "./skills/oracle-testing",
-        "./skills/oracle-thinkdeep"
+        "./skills/oracle-debug",
+        "./skills/oracle-grillme"
       ]
     },
     {
@@ -92,11 +87,10 @@
       "strict": false,
       "skills": [
         "./skills/code-commit",
-        "./skills/code-debug",
-        "./skills/code-subagents",
-        "./skills/code-docs",
         "./skills/code-review",
-        "./skills/code-handoff"
+        "./skills/code-handoff",
+        "./skills/code-pull-request",
+        "./skills/code-subagents"
       ]
     }
   ]

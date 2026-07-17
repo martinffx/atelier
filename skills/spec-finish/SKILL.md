@@ -100,15 +100,12 @@ Use the Skill tool to invoke code-review skill for comprehensive code review.
 
 ## Step 4: Update Documentation
 
-Optional - use code-docs skill if needed.
-
 ### Check for Updates
 - README changes needed?
 - API documentation updated?
 - Changelog updated?
 
 ### If documentation needed
-- Load code-docs
 - Update relevant docs
 - Commit with docs
 
@@ -154,7 +151,6 @@ template, generates the body from commits, and opens the PR via `gh` or `glab`.
 This skill orchestrates other skills:
 
 - Invokes code-review for quality check
-- Invokes code-docs if documentation needs updates
 - Invokes code-pull-request as the final step to open the PR
 
 ---

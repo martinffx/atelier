@@ -209,9 +209,9 @@ are written into the spec from those confirmations — do not re-present them.
 with acceptance criteria and priorities. If rejected: revise. If the rejection
 reveals a scope misunderstanding, loop back to Discovery (Step 2).
 
-**Batch B: Architecture** — invoke **oracle-architect** first for component design,
-domain modeling, and layer boundaries. Then present: component structure, domain
-model, where business logic lives, where IO lives. If rejected: revise. If the
+**Batch B: Architecture** — component design, domain modeling, and layer
+boundaries. Then present: component structure, domain model, where business logic
+lives, where IO lives. If rejected: revise. If the
 rejection undermines the chosen approach, offer to return to approach exploration
 (4a). If it reveals a fundamental gap, loop back to Research (Step 3). If the
 detail reveals the work is far more complex than estimated, say so and offer to

@@ -108,8 +108,7 @@ Update the todo status to in_progress.
 Read the task's **inputs** first — understand what context you need.
 Then read the **description** — know what to build and the constraints.
 
-Invoke **oracle-testing** for test design. Write tests that cover the validation
-criteria before writing implementation.
+Write tests that cover the validation criteria before writing implementation.
 
 ```
 1. Read task inputs and description
