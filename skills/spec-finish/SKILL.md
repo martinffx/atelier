@@ -2,8 +2,9 @@
 name: spec-finish
 description: >
   Post-implementation completion workflow. Use after spec-implement completes to validate,
-  review, create stacked commits, and prepare for PR. Triggers when implementation is done,
-  when the user says "finish", "done", "complete", or after implementation tasks are finished.
+  review, create stacked commits, and open a PR via code-pull-request. Triggers when
+  implementation is done, when the user says "finish", "done", "complete", or after
+  implementation tasks are finished.
 user-invocable: true
 ---
 
@@ -113,15 +114,15 @@ Optional - use code-docs skill if needed.
 
 ---
 
-## Step 5: Prepare for PR
+## Step 5: Open the PR
 
-### Verify
-- All tests passing
-- All reviews complete
-- Documentation updated
-- Commits stacked properly
+Steps 1-4 (validate, review, stack commits, update docs) must all be complete
+before proceeding. **If code-review found blocking issues, stop — return to
+spec-implement to fix them. Do not proceed to Step 5b.**
 
-### Summary for Human
+### Step 5a: Present Completion Summary
+
+Before creating the PR, present a summary to the human:
 
 ```
 ## Completion Summary
@@ -130,13 +131,21 @@ Optional - use code-docs skill if needed.
 **Tests:** [passed/failed]
 **Type Check:** [passed/failed]
 **Lint:** [passed/failed]
+**Review:** [passed/issues found]
 **Commits:** [N commits in stack]
 **Ready for PR:** [yes/no]
 ```
 
+### Step 5b: Invoke code-pull-request
+
+Only when the summary shows **Ready for PR: yes**, invoke the
+[code-pull-request](../code-pull-request/SKILL.md) skill to create the PR. It
+detects the platform (GitHub/GitLab), checks for an existing PR, finds a
+template, generates the body from commits, and opens the PR via `gh` or `glab`.
+
 ### Handoff
 
-> "Implementation complete. [N] commits stacked. Ready for [submit/open PR]."
+> "Implementation complete. [N] commits stacked. Opening PR now."
 
 ---
 
@@ -146,6 +155,7 @@ This skill orchestrates other skills:
 
 - Invokes code-review for quality check
 - Invokes code-docs if documentation needs updates
+- Invokes code-pull-request as the final step to open the PR
 
 ---
 

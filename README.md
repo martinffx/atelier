@@ -29,7 +29,7 @@ That's it. Your project is now configured for spec-driven development.
 
 Atelier sets up three things in your project:
 
-### 1. Skills (34 available)
+### 1. Skills (35 available)
 
 Specialized knowledge modules that auto-invoke based on context. Install them via the CLI (`--all` flag) or separately:
 
@@ -124,7 +124,7 @@ Skills remain installed. Run `npx skills remove martinffx/atelier` to remove the
 
 ## Skills
 
-This repository includes 34 skills that enhance AI agents with specialized knowledge and workflows.
+This repository includes 35 skills that enhance AI agents with specialized knowledge and workflows.
 
 ### Installing Skills
 
@@ -198,6 +198,7 @@ Task-specific tools you invoke when you need them.
 - `code-debug` — Systematic debugging workflow
 - `code-docs` — README, API docs, changelog generation
 - `code-handoff` — Compact conversation into handoff document
+- `code-pull-request` — Create, comment on, and merge GitHub pull requests or GitLab merge requests
 - `code-review` — Multi-agent code review with specialized reviewers
 - `code-subagents` — Dispatch patterns for parallel implementation
 
@@ -230,6 +231,7 @@ graph LR
     A[spec-brainstorm] -->|design.md| B[spec-plan]
     B -->|plan.json| C[spec-implement]
     C --> D[spec-finish]
+    D -.->|invokes| E[code-pull-request]
     
     B -.->|design flaw| A
     C -.->|missing tasks| B
@@ -241,7 +243,7 @@ graph LR
 1. **Research** - Discovery + research + architecture → `design.md`
 2. **Plan** - Break into tasks → `plan.json`
 3. **Implement** - Execute with TDD
-4. **Finish** - Validate and review
+4. **Finish** - Validate, review, and open the PR
 
 **Iteration is normal** - Backflows (dotted lines) are expected when:
 - Planning reveals design flaws → back to research
@@ -257,6 +259,10 @@ graph LR
 | "Write a plan" | spec-plan |
 | "Implement this" | spec-implement |
 | "Review this code" | code-review |
+| "Open a PR" | code-pull-request |
+| "Merge this PR" | code-pull-request |
+| "Read PR comments" | code-pull-request |
+| "Leave a comment on the PR" | code-pull-request |
 | "Debug this" | code-debug |
 | "How should I test this" | oracle-testing |
 | "What's the architecture" | oracle-architect |
