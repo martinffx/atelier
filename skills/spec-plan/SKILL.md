@@ -130,7 +130,7 @@ not HOW to write the code.
 
 ### Task ordering
 
-Follow bottom-up dependency ordering from oracle-architect:
+Follow bottom-up dependency ordering:
 
 ```
 Entity → Repository → Service → Router/Consumer

@@ -50,8 +50,6 @@ spec-plan        → Implementation plan + tasks → plan.json
 spec-implement   → Execute tasks, track progress, report
 spec-finish      → Post-implementation validation
 code-subagents   → Parallel dispatch, two-stage review
-oracle-architect → DDD patterns, component responsibilities
-oracle-testing   → TDD patterns, boundary testing
 ```
 
 ### "Create a spec for X" / Build / Add Feature
@@ -64,18 +62,6 @@ spec-brainstorm → spec-plan → spec-implement → spec-finish
 
 ```
 spec-brainstorm (research-heavy) → spec-plan (targeted) → spec-implement
-```
-
-### Write Tests / Testing Questions
-
-```
-oracle-testing
-```
-
-### Architecture / Domain Modeling Questions
-
-```
-oracle-architect
 ```
 
 ### Quick Fix / Trivial Change
@@ -145,8 +131,11 @@ If you loop 2+ times on the same issue, stop and ask the human:
 **Process skills** (spec-brainstorm, spec-plan, spec-implement, spec-finish): Follow exactly.
 Don't adapt away discipline.
 
-**Knowledge skills** (oracle-architect, oracle-testing): Adapt principles to
+**Knowledge skills** (oracle-grillme): Adapt principles to
 context. These inform decisions within the workflow.
+
+**Discipline skills** (oracle-debug): Strict methodology that must be followed
+exactly — no adaptation that bypasses root-cause investigation.
 
 Process skills come first. Knowledge skills get invoked by process skills when needed.
 
