@@ -6,75 +6,95 @@ user-invocable: true
 
 # Conventional Commit Skill
 
-Generate and validate commit messages following the [Conventional Commits](https://www.conventionalcommits.org/) specification.
+Create coherent, reviewable commits that follow the
+[Conventional Commits](https://www.conventionalcommits.org/) specification.
+Message syntax matters, but the selected changes must tell one clear story too.
 
-## Conventional Commit Format
+## Message Format
+
+Every generated commit has a title and body:
 
 ```
-<type>(<scope>): <subject>
+<type>(<scope>): <imperative title>
 
-[optional body]
-
-[optional footer(s)]
+<1-5 lines describing the change and, when useful, its reason or effect>
 ```
 
-### Types
+Use a lowercase scope that identifies the affected component. The title is concise,
+imperative, lowercase, and has no trailing period. The body is concrete: explain the
+behavior, motivation, or important implementation decision rather than restating the title.
 
-| Type | Description |
-|------|-------------|
-| `feat` | New feature |
-| `fix` | Bug fix |
+| Type | Use for |
+|------|---------|
+| `feat` | New user-facing capability |
+| `fix` | Corrected behavior |
 | `docs` | Documentation only |
-| `style` | Code style (formatting, semicolons, etc.) |
-| `refactor` | Code change that neither fixes nor adds |
-| `test` | Adding or updating tests |
-| `chore` | Build, tooling, dependencies |
+| `style` | Formatting only |
+| `refactor` | Restructuring without behavior change |
+| `test` | Tests only |
+| `chore` | Maintenance or tooling |
 | `perf` | Performance improvement |
-| `ci` | CI configuration changes |
+| `ci` | Continuous integration configuration |
 | `build` | Build system or dependencies |
-| `revert` | Reverting a previous commit |
+| `revert` | Reverting a prior commit |
 
-### Rules
+For breaking changes, add `!` after the scope and include a `BREAKING CHANGE:` footer.
+Include issue footers such as `Closes #123` only when the issue is known.
 
-- **Subject**: Short description, imperative mood, lowercase, no period at end
-- **Scope**: Optional, lowercase, describes what was changed (e.g., `auth`, `api`, `ui`)
-- **Breaking changes**: Add `!` after type/scope: `feat(auth)!: change API`
-- **Footer**: For breaking changes (`BREAKING CHANGE:`) or issue references (`Closes #123`)
+## Create a Commit
 
-## Operations
+When the user asks to commit, first inspect the complete worktree:
 
-### 1. Generate Commit from Diff
+1. Run `git status --short`.
+2. Read both `git diff --cached` and `git diff` so pre-staged work is not mistaken for the entire change.
+3. List untracked files with `git ls-files --others --exclude-standard` and inspect relevant ones.
+4. Read recent subjects with `git log --oneline -10` to match established scopes and wording.
+5. Flag likely secrets, credentials, local configuration, or generated output. Do not stage them without explicit direction.
 
-When user wants to commit changes:
+### Decide Whether to Split
 
-1. Run `git status` to see changed files
-2. Run `git diff --staged` for staged changes
-3. Analyze what changed to determine:
-   - **Type**: Which type best describes the changes?
-   - **Scope**: What area was affected? (optional)
-   - **Subject**: What was done? (imperative: "add" not "added")
-4. Create a conventional commit message
-5. Run `git commit -m "<message>"`
+Default to one commit containing all intended, related changes. Look for an obvious
+file-level split only when changes are independent and each group can stand alone.
 
-**Example:**
-```
-feat(auth): add JWT token refresh
+Keep these together:
 
-Implements token refresh endpoint to extend sessions
-without requiring re-authentication.
+- Implementation and its tests.
+- Documentation that describes the same change.
+- Dependency manifests and their lockfiles.
 
-Closes #142
-```
+Do not invent a split for adjacent work, use hunk-level staging, or force the user
+to reorganize a coherent change. If an obvious split exists, propose each commit with
+its files and full message, then ask once for approval. If not, propose one commit.
 
-### 2. Validate Commit Message
+### Approve, Stage, Commit
 
-When user asks to validate or check a commit message:
+Before making any write, show:
 
-1. Parse the commit message
-2. Check format: `<type>(<scope>): <subject>`
-3. Validate type is from the allowed list
-4. Check subject follows rules (lowercase, imperative, no period)
-5. Flag any issues found
+- The files in each proposed commit.
+- The full title and 1-5 line body for each commit.
+- Any excluded files and why they are excluded.
+
+Ask for approval unless the user explicitly authorizes committing immediately. After
+approval, stage only the files for the approved commit with `git add -- <paths>` and
+commit with the proposed title and body. Do not amend, rebase, push, or include
+unapproved files.
+
+Repository commit hooks are the final message validation when configured. Never bypass
+a failing hook. Report the commit hash on success; report the error and leave changes
+intact on failure.
+
+## Validate a Commit Message
+
+When the user asks to validate a message, check:
+
+1. It follows `type(scope): imperative title`.
+2. The type is listed above and the scope is lowercase.
+3. The title is lowercase, imperative, concise, and has no trailing period.
+4. A body follows after a blank line and contains 1-5 meaningful lines.
+5. Breaking changes use both `!` and a `BREAKING CHANGE:` footer.
+
+Return specific corrections and a revised message. When the repository configures
+commitlint, use it as the authoritative validation rule.
 
 ### Delegated: Pull Request Creation
 
@@ -87,24 +107,15 @@ or `glab`.
 
 | Input | Action |
 |-------|--------|
-| User says "commit" or "git commit" | Generate from git diff, then commit |
+| User says "commit" or "git commit" | Inspect the worktree, propose coherent commit(s), then commit after approval |
 | User says "validate commit" | Check the commit message format |
 | User pastes commit message | Validate the provided message |
 
-## Auto-Commit Workflow
-
-When generating a commit:
-
-1. Show the user the commit message first
-2. Ask for confirmation before committing (unless user explicitly says "just do it")
-3. Execute `git commit -m "<message>"` after confirmation
-4. Show the result of the commit
-
 ## Error Handling
 
-- If no staged changes: `git status` shows nothing → warn user nothing to commit
-- If git not initialized: Initialize repo or warn user
-- If commit fails: Show error and offer to retry
+- If there are no changes: report that there is nothing to commit.
+- If Git is not initialized: report it; do not initialize a repository unless asked.
+- If a commit fails: show the error, preserve the worktree, and do not bypass hooks.
 
 ## Examples
 
@@ -113,8 +124,7 @@ When generating a commit:
 ```
 fix(auth): resolve login timeout issue
 
-Users were logged out after 5 minutes due to
-incorrect token expiry calculation.
+Correct token expiry calculation so active users are not logged out after five minutes.
 ```
 
 **Input:** "I added a new API endpoint for users"
@@ -122,8 +132,7 @@ incorrect token expiry calculation.
 ```
 feat(api): add user profile endpoint
 
-GET /users/:id returns user profile data including
-name, email, and avatar URL.
+Expose name, email, and avatar URL from `GET /users/:id`.
 
 Closes #89
 ```
@@ -133,8 +142,7 @@ Closes #89
 ```
 feat(auth)!: change token validation endpoint
 
-The /auth/verify endpoint now requires Bearer token
-instead of query parameter.
+Require a Bearer token on `/auth/verify` instead of a query parameter.
 
 BREAKING CHANGE: Clients must update to send
 Authorization header with Bearer token.
