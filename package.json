@@ -30,6 +30,8 @@
   },
   "scripts": {
     "build": "bun build ./src/atelier.ts --outdir ./dist --target bun",
+    "clean": "rm -rf dist .agents .claude .codex .opencode hooks && rm -f *.log .DS_Store",
+    "cli": "bun src/atelier.ts",
     "typecheck": "tsgo --noEmit",
     "test": "bun test",
     "prepare": "simple-git-hooks"
