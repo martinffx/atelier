@@ -251,34 +251,4 @@ describe('remove', () => {
     expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(true);
   });
 
-  test('only removes opencode command files that match user-invocable skills', async () => {
-    const opencodeDir = join(tempDir, '.config', 'opencode');
-    // Default skills_path is ~/.agents/skills, and homedir is mocked to tempDir
-    const skillsDir = join(tempDir, '.agents', 'skills');
-
-    mkdirSync(join(skillsDir, 'spec-brainstorm'), { recursive: true });
-    mkdirSync(join(skillsDir, 'oracle-architect'), { recursive: true });
-
-    writeFileSync(
-      join(skillsDir, 'spec-brainstorm', 'SKILL.md'),
-      '---\nname: spec-brainstorm\ndescription: Conversational design workshop\nuser-invocable: true\n---\n# Skill'
-    );
-    writeFileSync(
-      join(skillsDir, 'oracle-architect', 'SKILL.md'),
-      '---\nname: oracle-architect\ndescription: DDD patterns\nuser-invocable: false\n---\n# Skill'
-    );
-
-    await init({ yes: true, harness: 'opencode' });
-    expect(existsSync(join(opencodeDir, 'command/spec-brainstorm.md'))).toBe(true);
-    expect(existsSync(join(opencodeDir, 'command/oracle-architect.md'))).toBe(false);
-
-    // Create a custom command file that atelier did not create
-    mkdirSync(join(opencodeDir, 'command'), { recursive: true });
-    writeFileSync(join(opencodeDir, 'command/custom-cmd.md'), 'custom command');
-
-    await remove({ harness: 'opencode' });
-
-    expect(existsSync(join(opencodeDir, 'command/spec-brainstorm.md'))).toBe(false);
-    expect(existsSync(join(opencodeDir, 'command/custom-cmd.md'))).toBe(true);
-  });
 });

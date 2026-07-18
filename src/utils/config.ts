@@ -3,8 +3,11 @@ import { dirname, join } from 'path';
 import { homedir } from 'os';
 import { z } from 'zod';
 import type { AtelierConfig, Harness, OpenCodeProvider, SimpleConfig, OpenCodeConfig, AgentConfig, SharedConfig } from '../types.js';
-import { AGENT_NAMES } from '../types.js';
-import { defaultModels } from '../models.js';
+import { AGENT_NAMES, HARNESS_NAMES } from '../types.js';
+// Side-load adapters so the registry is populated before we compose the schema.
+import '../adapters/index.js';
+import { listAdapters } from '../registry.js';
+import { AgentSchema, SimpleConfigSchema, OpenCodeConfigSchema } from './schemas.js';
 import { InvalidConfigError } from './errors.js';
 import type { Result } from './result.js';
 import { ok, err } from './result.js';
@@ -21,39 +24,27 @@ export type ConfigError =
   | { type: 'invalid'; message: string }
   | { type: 'old-format'; message: string };
 
-const AgentSchema = z.object({
-  template: z.enum(AGENT_NAMES),
-  name: z.enum(AGENT_NAMES),
-  model: z.string(),
-});
+export { AgentSchema, SimpleConfigSchema, OpenCodeConfigSchema } from './schemas.js';
 
-const SimpleConfigSchema = z.object({
-  default_model: z.string(),
-  agents: z.array(AgentSchema).min(1),
-});
+function buildConfigSchema() {
+  const byName = Object.fromEntries(
+    listAdapters().map(adapter => [adapter.name, adapter.configSchema])
+  ) as Partial<Record<Harness, z.ZodSchema>>;
 
-const OPENCODE_PROVIDERS = ['opencode-zen', 'opencode-go', 'amazon-bedrock'] as const satisfies readonly OpenCodeProvider[];
-
-const OpenCodeConfigSchema = z.object({
-  provider: z.enum(OPENCODE_PROVIDERS),
-  build_model: z.string(),
-  plan_model: z.string(),
-  agents: z.array(AgentSchema).min(1),
-});
-
-const ConfigSchema = z.object({
-  version: z.string(),
-  skills_source: z.string(),
-  skills_path: z.string().min(1),
-  claude: SimpleConfigSchema.optional(),
-  codex: SimpleConfigSchema.optional(),
-  opencode: OpenCodeConfigSchema.optional(),
-}).refine(data => data.claude || data.codex || data.opencode, {
-  message: 'At least one harness must be configured',
-});
+  return z.object({
+    version: z.string(),
+    skills_source: z.string(),
+    skills_path: z.string().min(1),
+    claude: byName.claude ? byName.claude.optional() : z.never().optional(),
+    codex: byName.codex ? byName.codex.optional() : z.never().optional(),
+    opencode: byName.opencode ? byName.opencode.optional() : z.never().optional(),
+  }).refine(data => data.claude || data.codex || data.opencode, {
+    message: 'At least one harness must be configured',
+  });
+}
 
 export function validateConfig(config: unknown): AtelierConfig {
-  const result = ConfigSchema.safeParse(config);
+  const result = buildConfigSchema().safeParse(config);
   if (!result.success) {
     throw new InvalidConfigError(result.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join('; '));
   }
@@ -124,6 +115,10 @@ export function toSharedConfig(config: AtelierConfig): SharedConfig {
   };
 }
 
+export function getConfiguredHarnesses(config: AtelierConfig): Harness[] {
+  return HARNESS_NAMES.filter(harness => config[harness] !== undefined);
+}
+
 export function removeConfigDir(path: string = CONFIG_PATH): void {
   const dir = dirname(path);
   if (existsSync(dir)) {
@@ -140,24 +135,47 @@ function createEmptyAgents(): AgentConfig[] {
 }
 
 export function getDefaultClaudeConfig(): SimpleConfig {
-  const defaults = defaultModels.anthropic;
   return {
-    default_model: defaults.default_model,
-    agents: createEmptyAgents().map(a => ({ ...a, model: defaults[a.name] })),
+    provider: 'anthropic',
+    default_model: 'opusplan',
+    agents: createEmptyAgents().map(a => ({ ...a, model: a.name === 'recon' ? 'haiku' : 'opus' })),
   };
 }
 
 export function getDefaultCodexConfig(): SimpleConfig {
-  const defaults = defaultModels.openai;
   return {
-    default_model: defaults.default_model,
-    agents: createEmptyAgents().map(a => ({ ...a, model: defaults[a.name] })),
+    provider: 'openai',
+    default_model: 'gpt-5.6-terra',
+    agents: createEmptyAgents().map(a => ({ ...a, model: a.name === 'recon' ? 'gpt-5.6-luna' : 'gpt-5.6-sol' })),
   };
 }
 
 export function getDefaultOpenCodeConfig(provider?: OpenCodeProvider): OpenCodeConfig {
   const selectedProvider = provider || 'opencode-zen';
-  const defaults = defaultModels[selectedProvider];
+  const defaults = {
+    'opencode-zen': {
+      recon: 'opencode/minimax-m2.7',
+      oracle: 'opencode/kimi-k2.6',
+      architect: 'opencode/deepseek-v4-pro',
+      build: 'opencode/deepseek-v4-flash',
+      plan: 'opencode/deepseek-v4-pro',
+    },
+    'opencode-go': {
+      recon: 'opencode-go/minimax-m2.7',
+      oracle: 'opencode-go/kimi-k2.6',
+      architect: 'opencode-go/deepseek-v4-pro',
+      build: 'opencode-go/deepseek-v4-flash',
+      plan: 'opencode-go/deepseek-v4-pro',
+    },
+    'amazon-bedrock': {
+      recon: 'amazon-bedrock/anthropic-claude-haiku-4-5',
+      oracle: 'amazon-bedrock/anthropic-claude-opus-4-7',
+      architect: 'amazon-bedrock/anthropic-claude-opus-4-7',
+      build: 'amazon-bedrock/anthropic-claude-sonnet-4-5',
+      plan: 'amazon-bedrock/anthropic-claude-haiku-4-5',
+    },
+  }[selectedProvider];
+
   return {
     provider: selectedProvider,
     build_model: defaults.build,
@@ -187,4 +205,16 @@ export function getDefaultConfig(harness: Harness): AtelierConfig {
   }
 }
 
-
+export function normalizeConfig(config: AtelierConfig): AtelierConfig {
+  const normalized = { ...config };
+  for (const harness of ['claude', 'codex'] as const) {
+    const section = normalized[harness];
+    if (section && !('provider' in section)) {
+      normalized[harness] = {
+        ...section,
+        provider: harness === 'claude' ? 'anthropic' : 'openai',
+      };
+    }
+  }
+  return normalized;
+}

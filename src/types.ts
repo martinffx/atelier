@@ -1,8 +1,18 @@
-export type Harness = 'claude' | 'opencode' | 'codex';
+import type { z } from 'zod';
+
+export const HARNESS_NAMES = ['claude', 'opencode', 'codex'] as const;
+export type Harness = typeof HARNESS_NAMES[number];
+
+// Backwards-compatible alias for code that still uses HARNESS_CHOICES.
+export const HARNESS_CHOICES: Harness[] = [...HARNESS_NAMES];
+
 export type Provider = 'anthropic' | 'opencode-zen' | 'opencode-go' | 'amazon-bedrock' | 'openai';
 export type OpenCodeProvider = 'opencode-zen' | 'opencode-go' | 'amazon-bedrock';
 
-export const HARNESS_CHOICES: Harness[] = ['claude', 'opencode', 'codex'];
+export interface ProviderChoice {
+  name: string;
+  value: Provider;
+}
 
 export const AGENT_NAMES = ['recon', 'oracle', 'architect'] as const;
 export type AgentName = typeof AGENT_NAMES[number];
@@ -14,6 +24,7 @@ export interface AgentConfig {
 }
 
 export interface SimpleConfig {
+  provider?: string;
   default_model: string;
   agents: AgentConfig[];
 }
@@ -42,4 +53,16 @@ export type SharedConfig = Pick<AtelierConfig, 'version' | 'skills_source' | 'sk
 export interface FileEntry {
   path: string;
   exists: boolean;
+}
+
+export interface HarnessAdapter {
+  name: Harness;
+  providerChoices?: ProviderChoice[];
+  configSchema: z.ZodSchema;
+  defaultSection(provider?: Provider): HarnessSection;
+  modelsForProvider(provider?: Provider): readonly string[];
+  installAgents(shared: SharedConfig, section: HarnessSection, basePath: string): void;
+  mergeHarnessConfig(shared: SharedConfig, section: HarnessSection, basePath: string): void;
+  fileList(basePath: string): FileEntry[];
+  remove(shared: SharedConfig, section: HarnessSection, basePath: string): void;
 }

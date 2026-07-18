@@ -8,30 +8,29 @@
 
 A personal development toolkit for AI agents - spec-driven development, code quality, deep thinking, and ecosystem patterns.
 
+Atelier ships as a set of skills installed via `npx skills` plus a small CLI that generates harness-native agent definitions and configuration.
+
 ## Quick Start
 
-Install Atelier with a single command. It auto-detects your AI harness (Claude Code or OpenCode), configures agents, and sets up session hooks:
+Install Atelier with a single command. It configures agents and harness-native settings for Claude Code, OpenCode, or Codex:
 
 ```bash
-# Initialize atelier in your project
-bunx @martinffx/atelier@latest init
-
-# Or install everything including skills
-bunx @martinffx/atelier@latest init --all
+# Initialize atelier for your harness
+npx @martinffx/atelier@latest init --harness <claude|opencode|codex>
 
 # Non-interactive mode (CI/CD)
-bunx @martinffx/atelier@latest init --yes
+npx @martinffx/atelier@latest init --harness <claude|opencode|codex> --yes
 ```
 
 That's it. Your project is now configured for spec-driven development.
 
 ## What Gets Installed
 
-Atelier sets up three things in your project:
+Atelier sets up two things:
 
 ### 1. Skills (28 available)
 
-Specialized knowledge modules that auto-invoke based on context. Install them via the CLI (`--all` flag) or separately:
+Specialized knowledge modules that auto-invoke based on context. Install them separately:
 
 ```bash
 npx skills add martinffx/atelier
@@ -41,22 +40,15 @@ npx skills add martinffx/atelier
 
 Harness-agnostic agent definitions configured with appropriate models:
 
-| Agent | Role | Claude | OpenCode |
-|-------|------|--------|----------|
-| **Scout** | Fast codebase reconnaissance | haiku | deepseek-v4-flash |
-| **Oracle** | Strategic thinking, requirements, analysis | opus | kimi-k2.6 |
-| **Architect** | DDD, system design, architecture | opus | deepseek-v4-pro |
+| Agent | Role | Claude | OpenCode | Codex |
+|-------|------|--------|----------|-------|
+| **Recon** | Fast codebase reconnaissance | haiku | deepseek-v4-flash | gpt-5.6-luna |
+| **Oracle** | Strategic thinking, requirements, analysis | opus | kimi-k2.6 | gpt-5.6-sol |
+| **Architect** | DDD, system design, architecture | opus | deepseek-v4-pro | gpt-5.6-sol |
 
-Agents are generated into `.claude/agents/` or `.opencode/agents/` with harness-specific model identifiers.
+Agents are generated into harness-specific locations (`.claude/agents/`, `.opencode/agent/`, `.codex/agents/`) with harness-native model identifiers.
 
-### 3. Session Hooks
-
-Context injection that runs on every session start, clear, or compact:
-
-- **Claude Code**: `hooks/atelier-session-start` outputs project context as JSON
-- **OpenCode**: `.opencode/plugins/atelier.js` provides config and transform hooks
-
-### 4. Task Tracking (optional)
+### 3. Task Tracking (optional)
 
 The spec workflow skills support **beads** for dependency-aware task tracking:
 
@@ -69,20 +61,24 @@ npm install -g beads
 
 **Fallback:** If beads isn't installed, skills fall back to the harness's native todo system (TodoWrite for Claude Code, built-in todos for OpenCode).
 
-### 5. Configuration
+### 4. Configuration
 
 Single source of truth in `.atelier/config.json`:
 
 ```json
 {
   "version": "1.0.0",
-  "harness": "claude",
   "skills_source": "martinffx/atelier",
-  "agents": [
-    { "template": "scout", "model": "haiku" },
-    { "template": "oracle", "model": "opus" },
-    { "template": "architect", "model": "opus" }
-  ]
+  "skills_path": "~/.agents/skills",
+  "claude": {
+    "provider": "anthropic",
+    "default_model": "opusplan",
+    "agents": [
+      { "template": "recon", "name": "recon", "model": "haiku" },
+      { "template": "oracle", "name": "oracle", "model": "opus" },
+      { "template": "architect", "name": "architect", "model": "opus" }
+    ]
+  }
 }
 ```
 
@@ -90,34 +86,32 @@ Single source of truth in `.atelier/config.json`:
 
 ### `init` (default)
 
-Initialize atelier in the current project.
+Initialize atelier for a single harness. Each invocation configures one harness; run it multiple times to configure several.
 
 ```bash
-bunx @martinffx/atelier@latest init [options]
+npx @martinffx/atelier@latest init --harness <claude|opencode|codex> [options]
 ```
 
 **Options:**
-- `--harness <type>` - Force harness type (`claude` or `opencode`)
-- `--all` - Also install skills via `npx skills add`
+- `--harness <type>` - Harness type (`claude`, `opencode`, or `codex`)
 - `--yes` - Non-interactive mode with default models
-- `--project` - Install skills in project directory (default: global)
 
-**Idempotent**: Re-running `init` is safe. It regenerates files without deleting anything unless you switch harnesses.
+**Idempotent**: Re-running `init` for the same harness is safe. It regenerates files without deleting anything unless you switch harnesses.
 
 ### `update`
 
-Refresh hooks and agents from the latest templates without touching skills:
+Refresh agents and harness-native config for one harness without touching skills:
 
 ```bash
-bunx @martinffx/atelier@latest update
+npx @martinffx/atelier@latest update --harness <claude|opencode|codex>
 ```
 
 ### `remove`
 
-Remove all atelier-generated files from the project:
+Remove all atelier-generated files for one harness:
 
 ```bash
-bunx @martinffx/atelier@latest remove
+npx @martinffx/atelier@latest remove --harness <claude|opencode|codex>
 ```
 
 Skills remain installed. Run `npx skills remove martinffx/atelier` to remove them separately.
@@ -128,7 +122,7 @@ This repository includes 28 skills that enhance AI agents with specialized knowl
 
 ### Installing Skills
 
-If you didn't use `--all` during init, install skills manually:
+Install skills manually:
 
 ```bash
 # Install all skills

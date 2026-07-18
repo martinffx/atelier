@@ -2,9 +2,7 @@ import { readFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
-import type { Provider } from '../types.js';
 import { AGENT_NAMES } from '../types.js';
-import { providerModels } from '../models.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const AGENTS_DIR = existsSync(join(__dirname, '..', 'agents'))
@@ -32,6 +30,3 @@ export function readAllTemplates(): AgentTemplate[] {
   return AGENT_NAMES.map(name => readTemplate(name));
 }
 
-export function getModelsForProvider(provider: Provider): readonly string[] {
-  return providerModels[provider];
-}

@@ -4,6 +4,9 @@ import { init } from './commands/init.js';
 import { update } from './commands/update.js';
 import { remove } from './commands/remove.js';
 import { handleError } from './utils/errors.js';
+import { HARNESS_NAMES } from './types.js';
+
+const harnessChoices = HARNESS_NAMES.join(', ');
 
 const program = new Command();
 
@@ -15,8 +18,7 @@ program
 program
   .command('init', { isDefault: true })
   .description('Initialize atelier globally')
-  .option('--harness <type>', 'Harness type (claude, opencode, or codex)')
-  .option('--all', 'Also install skills')
+  .option(`--harness <type>`, `Harness type (${harnessChoices})`)
   .option('--yes', 'Non-interactive mode with defaults')
   .action((options) => {
     init(options).catch(handleError);
@@ -24,14 +26,14 @@ program
 
 program
   .command('update')
-  .description('Update atelier hooks and agents')
-  .option('--harness <type>', 'Harness type (claude, opencode, or codex)')
+  .description('Update atelier agents')
+  .option(`--harness <type>`, `Harness type (${harnessChoices})`)
   .action((options) => { update(options).catch(handleError); });
 
 program
   .command('remove')
   .description('Remove a configured harness from atelier')
-  .option('--harness <type>', 'Harness type (claude, opencode, or codex)')
+  .option(`--harness <type>`, `Harness type (${harnessChoices})`)
   .action((options) => { remove(options).catch(handleError); });
 
 program.parse();

@@ -39,13 +39,13 @@ describe('init', () => {
 
     expect(existsSync(join(tempDir, '.atelier/config.json'))).toBe(true);
     expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(true);
-    expect(existsSync(join(tempDir, 'hooks/atelier-session-start'))).toBe(true);
     expect(existsSync(join(tempDir, '.claude/agents/recon.md'))).toBe(true);
     expect(existsSync(join(tempDir, '.claude/agents/oracle.md'))).toBe(true);
     expect(existsSync(join(tempDir, '.claude/agents/architect.md'))).toBe(true);
 
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
     expect(config.claude).toBeDefined();
+    expect(config.claude.provider).toBe('anthropic');
     expect(config.opencode).toBeUndefined();
     expect(config.codex).toBeUndefined();
     expect(config.claude.agents).toHaveLength(3);
@@ -58,8 +58,8 @@ describe('init', () => {
 
     expect(existsSync(join(tempDir, '.atelier/config.json'))).toBe(true);
     expect(existsSync(join(opencodeDir, 'opencode.json'))).toBe(true);
-    expect(existsSync(join(opencodeDir, 'plugins/atelier.js'))).toBe(true);
     expect(existsSync(join(opencodeDir, 'agent/recon.md'))).toBe(true);
+    expect(existsSync(join(opencodeDir, 'plugins/atelier.js'))).toBe(false);
 
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
     expect(config.opencode).toBeDefined();
@@ -77,6 +77,7 @@ describe('init', () => {
 
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
     expect(config.codex).toBeDefined();
+    expect(config.codex.provider).toBe('openai');
     expect(config.codex.default_model).toBe('gpt-5.6-terra');
     expect(config.codex.agents).toHaveLength(3);
   });
@@ -224,7 +225,6 @@ describe('remove', () => {
     expect(existsSync(join(tempDir, '.claude/agents/recon.md'))).toBe(false);
     expect(existsSync(join(tempDir, '.claude/agents/oracle.md'))).toBe(false);
     expect(existsSync(join(tempDir, '.claude/agents/architect.md'))).toBe(false);
-    expect(existsSync(join(tempDir, 'hooks/atelier-session-start'))).toBe(false);
     expect(existsSync(join(tempDir, '.atelier'))).toBe(false);
   });
 
