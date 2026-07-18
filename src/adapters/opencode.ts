@@ -13,6 +13,7 @@ const OPENCODE_PROVIDERS: { name: string; value: OpenCodeProvider }[] = [
   { name: 'OpenCode Zen', value: 'opencode-zen' },
   { name: 'OpenCode Go', value: 'opencode-go' },
   { name: 'Amazon Bedrock', value: 'amazon-bedrock' },
+  { name: 'OpenAI', value: 'openai' },
 ];
 
 const PROVIDER_MODELS: Record<OpenCodeProvider, readonly string[]> = {
@@ -55,6 +56,16 @@ const PROVIDER_MODELS: Record<OpenCodeProvider, readonly string[]> = {
     'amazon-bedrock/anthropic-claude-haiku-4-5',
     'amazon-bedrock/anthropic-claude-opus-4-7',
   ],
+  openai: [
+    'openai/gpt-5.6-sol',
+    'openai/gpt-5.6-terra',
+    'openai/gpt-5.6-luna',
+    'openai/gpt-5.5',
+    'openai/gpt-5.4',
+    'openai/gpt-5.4-mini',
+    'openai/gpt-5.4-nano',
+    'openai/gpt-5.3-codex-spark',
+  ],
 };
 
 const DEFAULT_MODELS: Record<OpenCodeProvider, { build: string; plan: string; recon: string; oracle: string; architect: string }> = {
@@ -78,6 +89,13 @@ const DEFAULT_MODELS: Record<OpenCodeProvider, { build: string; plan: string; re
     architect: 'amazon-bedrock/anthropic-claude-opus-4-7',
     build: 'amazon-bedrock/anthropic-claude-sonnet-4-5',
     plan: 'amazon-bedrock/anthropic-claude-haiku-4-5',
+  },
+  openai: {
+    recon: 'openai/gpt-5.6-luna',
+    oracle: 'openai/gpt-5.6-sol',
+    architect: 'openai/gpt-5.6-sol',
+    build: 'openai/gpt-5.6-terra',
+    plan: 'openai/gpt-5.6-sol',
   },
 };
 
