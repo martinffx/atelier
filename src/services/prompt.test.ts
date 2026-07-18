@@ -116,6 +116,10 @@ describe('prompt', () => {
     expect(() => guardProvider('claude' as unknown as import('../types.js').Provider)).toThrow();
   });
 
+  it('accepts OpenAI as an opencode provider', () => {
+    expect(guardProvider('openai')).toBe('openai');
+  });
+
   it('formatFileList renders exists marker', () => {
     const files = [
       { path: '~/.claude/settings.json', exists: true },

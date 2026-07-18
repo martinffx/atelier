@@ -93,5 +93,8 @@ export async function init(options: InitOptions): Promise<void> {
 
   console.log(`\nAtelier initialized for ${harness}.`);
   console.log('\nNext step:');
+  if (harness === 'opencode' && section.provider === 'openai') {
+    console.log('  opencode auth login --provider openai  # connect your OpenAI account');
+  }
   console.log('  npx skills add martinffx/atelier  # install skills');
 }

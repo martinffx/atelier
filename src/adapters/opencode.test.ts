@@ -26,6 +26,21 @@ describe('opencode adapter', () => {
     expect(models.every(m => m.startsWith('opencode-go/'))).toBe(true);
   });
 
+  it('exposes direct OpenAI models and defaults', () => {
+    const openAiSection = opencodeAdapter.defaultSection('openai');
+    const models = opencodeAdapter.modelsForProvider('openai');
+
+    expect(openAiSection.provider).toBe('openai');
+    expect(openAiSection.build_model).toBe('openai/gpt-5.6-terra');
+    expect(openAiSection.plan_model).toBe('openai/gpt-5.6-sol');
+    expect(openAiSection.agents).toEqual([
+      { template: 'recon', name: 'recon', model: 'openai/gpt-5.6-luna' },
+      { template: 'oracle', name: 'oracle', model: 'openai/gpt-5.6-sol' },
+      { template: 'architect', name: 'architect', model: 'openai/gpt-5.6-sol' },
+    ]);
+    expect(models.every(model => model.startsWith('openai/'))).toBe(true);
+  });
+
   it('mergeHarnessConfig writes opencode.json', () => {
     opencodeAdapter.mergeHarnessConfig(section(), basePath);
     const path = join(basePath, 'opencode.json');

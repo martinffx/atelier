@@ -127,6 +127,29 @@ describe('init', () => {
     expect(existsSync(join(opencodeDir, 'agent/recon.md'))).toBe(true);
   });
 
+  test('prints the OpenAI authentication command after initialization', async () => {
+    inquirerAnswers = {
+      provider: 'openai',
+      build_model: 'openai/gpt-5.6-terra',
+      plan_model: 'openai/gpt-5.6-sol',
+      recon: 'openai/gpt-5.6-luna',
+      oracle: 'openai/gpt-5.6-sol',
+      architect: 'openai/gpt-5.6-sol',
+      confirm: true,
+    };
+    const logs: string[] = [];
+    const originalLog = console.log;
+    console.log = (...args: unknown[]) => logs.push(args.join(' '));
+
+    try {
+      await init({ harness: 'opencode' });
+    } finally {
+      console.log = originalLog;
+    }
+
+    expect(logs).toContain('  opencode auth login --provider openai  # connect your OpenAI account');
+  });
+
   test('throws when --yes is used without --harness', async () => {
     await expect(init({ yes: true })).rejects.toThrow(
       '`--yes` requires `--harness` (claude, opencode, or codex).'

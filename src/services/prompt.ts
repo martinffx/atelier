@@ -110,7 +110,7 @@ export function formatFileList(files: { path: string; exists: boolean }[]): stri
 }
 
 export function guardProvider(provider: Provider | undefined): OpenCodeConfig['provider'] {
-  if (!provider || !['opencode-zen', 'opencode-go', 'amazon-bedrock'].includes(provider)) {
+  if (!provider || !['opencode-zen', 'opencode-go', 'amazon-bedrock', 'openai'].includes(provider)) {
     throw new InvalidConfigError('A valid provider must be selected for OpenCode');
   }
   return provider as OpenCodeConfig['provider'];

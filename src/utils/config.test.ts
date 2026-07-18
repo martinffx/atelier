@@ -205,6 +205,18 @@ describe('config', () => {
     expect(architect?.model).toBe('opencode-go/deepseek-v4-pro');
   });
 
+  test('opencode config accepts the OpenAI provider', async () => {
+    const { validateConfig } = await import('./config.js');
+    const opencode = opencodeAdapter.defaultSection('openai');
+
+    expect(validateConfig({
+      version: '1.0.0',
+      skills_source: 'martinffx/atelier',
+      skills_path: '~/.agents/skills',
+      opencode,
+    }).opencode?.provider).toBe('openai');
+  });
+
   test('opencode adapter defaultSection defaults to opencode-zen when no provider given', () => {
     const section = opencodeAdapter.defaultSection();
 

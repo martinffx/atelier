@@ -7,7 +7,7 @@ export type Harness = typeof HARNESS_NAMES[number];
 export type AgentName = typeof AGENT_NAMES[number];
 
 export type Provider = 'anthropic' | 'opencode-zen' | 'opencode-go' | 'amazon-bedrock' | 'openai';
-export type OpenCodeProvider = 'opencode-zen' | 'opencode-go' | 'amazon-bedrock';
+export type OpenCodeProvider = 'opencode-zen' | 'opencode-go' | 'amazon-bedrock' | 'openai';
 
 export interface ProviderChoice {
   name: string;
