@@ -7,6 +7,7 @@ const stubAdapter = (name: HarnessAdapter['name']): HarnessAdapter => ({
   configSchema: {} as unknown as HarnessAdapter['configSchema'],
   defaultSection: () => ({ default_model: 'x', agents: [] }),
   modelsForProvider: () => ['x'],
+  promptSection: async () => ({ default_model: 'x', agents: [] }),
   installAgents: () => {},
   mergeHarnessConfig: () => {},
   fileList: () => [],

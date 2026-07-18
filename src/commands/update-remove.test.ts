@@ -19,6 +19,7 @@ mock.module('os', () => ({
   homedir: () => tempDir,
 }));
 
+import '../adapters/index.js';
 import { init } from './init.js';
 import { update } from './update.js';
 import { remove } from './remove.js';

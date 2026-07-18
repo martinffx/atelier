@@ -18,6 +18,7 @@ mock.module('os', () => ({
   homedir: () => tempDir,
 }));
 
+import '../adapters/index.js';
 import { init } from './init.js';
 import { update } from './update.js';
 import { remove } from './remove.js';
@@ -156,6 +157,23 @@ describe('init', () => {
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
     expect(config.codex).toBeDefined();
     expect(config.codex.default_model).toBe('gpt-5.6-terra');
+  });
+
+  test('cancels when confirm prompt is false', async () => {
+    inquirerAnswers = {
+      harness: 'claude',
+      default_model: 'opusplan',
+      recon: 'haiku',
+      oracle: 'opus',
+      architect: 'opus',
+      confirm: false,
+    };
+
+    await init({});
+
+    expect(existsSync(join(tempDir, '.atelier/config.json'))).toBe(false);
+    expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(false);
+    expect(existsSync(join(tempDir, '.claude/agents/recon.md'))).toBe(false);
   });
 });
 

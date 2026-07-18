@@ -1,13 +1,13 @@
 import { join } from 'path';
 import { homedir } from 'os';
 import inquirer from 'inquirer';
-import { readConfig, writeConfig, getDefaultConfig, validateConfig, toSharedConfig, CONFIG_FILE } from '../utils/config.js';
+import { readConfig, writeConfig, getDefaultConfig, validateConfig, CONFIG_FILE } from '../utils/config.js';
 import { getAdapter } from '../registry.js';
-import { resolveBasePath, shortPath } from '../services/paths.js';
+import { resolveBasePath } from '../services/paths.js';
 import { promptForSection, formatFileList } from '../services/prompt.js';
 import { HarnessRequiredError, InvalidConfigError, InvalidHarnessError } from '../utils/errors.js';
 import type { Harness, AtelierConfig, HarnessSection } from '../types.js';
-import { HARNESS_NAMES } from '../types.js';
+import { HARNESS_NAMES } from '../constants.js';
 
 export interface InitOptions {
   harness?: string;
@@ -87,10 +87,8 @@ export async function init(options: InitOptions): Promise<void> {
     }
   }
 
-  const shared = toSharedConfig(config);
-
-  adapter.mergeHarnessConfig(shared, section, harnessBasePath);
-  adapter.installAgents(shared, section, harnessBasePath);
+  adapter.mergeHarnessConfig(section, harnessBasePath);
+  adapter.installAgents(section, harnessBasePath);
   writeConfig(config, configPath);
 
   console.log(`\nAtelier initialized for ${harness}.`);

@@ -13,6 +13,7 @@ describe('adapters/index', () => {
       expect(adapter.configSchema).toBeDefined();
       expect(typeof adapter.defaultSection).toBe('function');
       expect(typeof adapter.modelsForProvider).toBe('function');
+      expect(typeof adapter.promptSection).toBe('function');
       expect(typeof adapter.installAgents).toBe('function');
       expect(typeof adapter.mergeHarnessConfig).toBe('function');
       expect(typeof adapter.fileList).toBe('function');

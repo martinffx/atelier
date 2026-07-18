@@ -1,12 +1,12 @@
 import { join } from 'path';
 import { homedir } from 'os';
 import inquirer from 'inquirer';
-import { readConfig, writeConfig, validateConfig, toSharedConfig, CONFIG_FILE, getConfiguredHarnesses } from '../utils/config.js';
+import { readConfig, writeConfig, validateConfig, CONFIG_FILE } from '../utils/config.js';
 import { getAdapter } from '../registry.js';
 import { resolveBasePath } from '../services/paths.js';
 import { promptForSection, formatFileList } from '../services/prompt.js';
-import { ConfigNotFoundError, InvalidConfigError, InvalidHarnessError } from '../utils/errors.js';
-import { HARNESS_NAMES } from '../types.js';
+import { ConfigNotFoundError, InvalidConfigError } from '../utils/errors.js';
+import { resolveHarness } from './utils.js';
 import type { Harness, AtelierConfig, HarnessSection } from '../types.js';
 
 export interface UpdateOptions {
@@ -56,43 +56,11 @@ export async function update(options?: UpdateOptions): Promise<void> {
 
   config[harness] = section;
 
-  const shared = toSharedConfig(config);
-
   validateConfig(config);
-  adapter.mergeHarnessConfig(shared, section, harnessBasePath);
-  adapter.installAgents(shared, section, harnessBasePath);
+  adapter.mergeHarnessConfig(section, harnessBasePath);
+  adapter.installAgents(section, harnessBasePath);
   writeConfig(config, configPath);
 
   console.log(`Atelier updated for ${harness}.`);
   console.log('Skills are managed separately. Run `npx skills update martinffx/atelier` to update skills.');
 }
-
-async function resolveHarness(config: AtelierConfig, harnessOption: string | undefined, command: string): Promise<Harness> {
-  if (harnessOption) {
-    if (!HARNESS_NAMES.includes(harnessOption as Harness)) {
-      throw new InvalidHarnessError(harnessOption);
-    }
-    const configured = getConfiguredHarnesses(config);
-    if (!configured.includes(harnessOption as Harness)) {
-      throw new InvalidConfigError(`Harness '${harnessOption}' is not configured. Run 'atelier init --harness ${harnessOption}' first.`);
-    }
-    return harnessOption as Harness;
-  }
-
-  const configured = getConfiguredHarnesses(config);
-  if (configured.length === 0) {
-    throw new InvalidConfigError('No harnesses configured');
-  }
-
-  const answer = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'harness',
-      message: `Which harness do you want to ${command}?`,
-      choices: configured,
-    },
-  ]);
-  return answer.harness as Harness;
-}
-
-export { getConfiguredHarnesses };

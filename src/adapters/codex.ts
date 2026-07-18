@@ -1,12 +1,14 @@
-import { writeFileSync, mkdirSync, readFileSync, existsSync, rmSync, readdirSync } from 'fs';
+import { writeFileSync, mkdirSync, readFileSync, existsSync, rmSync, rmdirSync, readdirSync } from 'fs';
 import { join } from 'path';
+import inquirer from 'inquirer';
 import * as TOML from 'smol-toml';
 import { readTemplate } from '../utils/templates.js';
-import type { CodexConfig, SharedConfig, HarnessAdapter, FileEntry, Provider } from '../types.js';
-import { AGENT_NAMES } from '../types.js';
+import type { CodexConfig, HarnessAdapter, FileEntry, Provider, HarnessSection } from '../types.js';
+import { AGENT_NAMES } from '../constants.js';
 import { FileWriteError, HarnessConfigError } from '../utils/errors.js';
 import { shortPath } from '../services/paths.js';
 import { SimpleConfigSchema } from '../utils/schemas.js';
+import { promptForSimpleModels } from '../services/prompt.js';
 
 const OPENAI_MODELS = [
   'gpt-5.6-sol',
@@ -44,6 +46,7 @@ export const codexAdapter: HarnessAdapter = {
   configSchema: SimpleConfigSchema,
   defaultSection,
   modelsForProvider,
+  promptSection,
   installAgents,
   mergeHarnessConfig,
   fileList,
@@ -66,7 +69,12 @@ function modelsForProvider(_provider?: Provider): readonly string[] {
   return [...OPENAI_MODELS];
 }
 
-function installAgents(_shared: SharedConfig, config: CodexConfig, basePath: string): void {
+async function promptSection(prompt: typeof inquirer, section: HarnessSection): Promise<HarnessSection> {
+  return promptForSimpleModels(prompt, section as CodexConfig, modelsForProvider());
+}
+
+function installAgents(section: HarnessSection, basePath: string): void {
+  const config = section as CodexConfig;
   const codexDir = join(basePath, '.codex');
   const agentsDir = join(codexDir, 'agents');
 
@@ -93,7 +101,8 @@ function installAgents(_shared: SharedConfig, config: CodexConfig, basePath: str
   }
 }
 
-function mergeHarnessConfig(_shared: SharedConfig, config: CodexConfig, basePath: string): void {
+function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
+  const config = section as CodexConfig;
   const codexDir = join(basePath, '.codex');
   const configPath = join(codexDir, 'config.toml');
   let existing: Record<string, unknown> = {};
@@ -141,7 +150,8 @@ function fileList(basePath: string): FileEntry[] {
   return files;
 }
 
-function remove(_shared: SharedConfig, config: CodexConfig, basePath: string): void {
+function remove(section: HarnessSection, basePath: string): void {
+  const config = section as CodexConfig;
   const codexDir = join(basePath, '.codex');
   const agentsDir = join(codexDir, 'agents');
 
@@ -152,12 +162,22 @@ function remove(_shared: SharedConfig, config: CodexConfig, basePath: string): v
     }
   }
 
-  if (existsSync(agentsDir)) {
-    rmSync(agentsDir, { recursive: true, force: true });
-  }
-
+  removeDirIfEmpty(agentsDir);
   cleanCodexConfig(codexDir);
   removeEmptyCodexDir(codexDir);
+}
+
+function removeDirIfEmpty(dir: string): void {
+  if (!existsSync(dir)) {
+    return;
+  }
+  try {
+    if (readdirSync(dir).length === 0) {
+      rmdirSync(dir);
+    }
+  } catch (err) {
+    throw new FileWriteError(dir, err instanceof Error ? err.message : String(err));
+  }
 }
 
 function cleanCodexConfig(codexDir: string): void {
@@ -200,19 +220,28 @@ function removeManagedKeys(content: Record<string, unknown>): void {
 }
 
 function writeOrDeleteCodexConfig(configPath: string, content: Record<string, unknown>): void {
-  if (Object.keys(content).length === 0) {
-    rmSync(configPath, { force: true });
-  } else {
-    writeFileSync(configPath, TOML.stringify(content));
+  try {
+    if (Object.keys(content).length === 0) {
+      rmSync(configPath, { force: true });
+    } else {
+      writeFileSync(configPath, TOML.stringify(content));
+    }
+  } catch (err) {
+    throw new FileWriteError(configPath, err instanceof Error ? err.message : String(err));
   }
 }
 
 function removeEmptyCodexDir(codexDir: string): void {
-  if (existsSync(codexDir)) {
+  if (!existsSync(codexDir)) {
+    return;
+  }
+  try {
     const entries = readdirSync(codexDir);
     if (entries.length === 0) {
       rmSync(codexDir, { recursive: true, force: true });
     }
+  } catch (err) {
+    throw new FileWriteError(codexDir, err instanceof Error ? err.message : String(err));
   }
 }
 

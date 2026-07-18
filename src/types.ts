@@ -1,10 +1,10 @@
 import type { z } from 'zod';
+import type inquirer from 'inquirer';
+import { AGENT_NAMES, HARNESS_NAMES } from './constants.js';
+import { AgentSchema, SimpleConfigSchema, OpenCodeConfigSchema } from './utils/schemas.js';
 
-export const HARNESS_NAMES = ['claude', 'opencode', 'codex'] as const;
 export type Harness = typeof HARNESS_NAMES[number];
-
-// Backwards-compatible alias for code that still uses HARNESS_CHOICES.
-export const HARNESS_CHOICES: Harness[] = [...HARNESS_NAMES];
+export type AgentName = typeof AGENT_NAMES[number];
 
 export type Provider = 'anthropic' | 'opencode-zen' | 'opencode-go' | 'amazon-bedrock' | 'openai';
 export type OpenCodeProvider = 'opencode-zen' | 'opencode-go' | 'amazon-bedrock';
@@ -14,31 +14,14 @@ export interface ProviderChoice {
   value: Provider;
 }
 
-export const AGENT_NAMES = ['recon', 'oracle', 'architect'] as const;
-export type AgentName = typeof AGENT_NAMES[number];
-
-export interface AgentConfig {
-  template: AgentName;
-  name: AgentName;
-  model: string;
-}
-
-export interface SimpleConfig {
-  provider?: string;
-  default_model: string;
-  agents: AgentConfig[];
-}
+export type AgentConfig = z.infer<typeof AgentSchema>;
+export type SimpleConfig = z.infer<typeof SimpleConfigSchema>;
 
 // Claude and Codex share the same simple config shape; the harness key provides the meaning.
 export type ClaudeConfig = SimpleConfig;
 export type CodexConfig = SimpleConfig;
 
-export interface OpenCodeConfig {
-  provider: OpenCodeProvider;
-  build_model: string;
-  plan_model: string;
-  agents: AgentConfig[];
-}
+export type OpenCodeConfig = z.infer<typeof OpenCodeConfigSchema>;
 
 export type HarnessSection = SimpleConfig | OpenCodeConfig;
 
@@ -61,8 +44,9 @@ export interface HarnessAdapter {
   configSchema: z.ZodSchema;
   defaultSection(provider?: Provider): HarnessSection;
   modelsForProvider(provider?: Provider): readonly string[];
-  installAgents(shared: SharedConfig, section: HarnessSection, basePath: string): void;
-  mergeHarnessConfig(shared: SharedConfig, section: HarnessSection, basePath: string): void;
+  promptSection(prompt: typeof inquirer, section: HarnessSection): Promise<HarnessSection>;
+  installAgents(section: HarnessSection, basePath: string): void;
+  mergeHarnessConfig(section: HarnessSection, basePath: string): void;
   fileList(basePath: string): FileEntry[];
-  remove(shared: SharedConfig, section: HarnessSection, basePath: string): void;
+  remove(section: HarnessSection, basePath: string): void;
 }

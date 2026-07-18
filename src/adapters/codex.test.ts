@@ -1,16 +1,11 @@
 import { describe, it, expect, beforeEach } from 'bun:test';
-import { mkdtempSync, writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
+import { mkdtempSync, writeFileSync, readFileSync, existsSync, mkdirSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import * as TOML from 'smol-toml';
 import { codexAdapter } from './codex.js';
-import type { SharedConfig } from '../types.js';
 
-const shared: SharedConfig = {
-  version: '0.1.0',
-  skills_source: 'martinffx/atelier',
-  skills_path: '~/.agents/skills',
-};
+const section = () => codexAdapter.defaultSection();
 
 describe('codex adapter', () => {
   let basePath: string;
@@ -31,7 +26,7 @@ describe('codex adapter', () => {
   });
 
   it('mergeHarnessConfig writes config.toml', () => {
-    codexAdapter.mergeHarnessConfig(shared, codexAdapter.defaultSection(), basePath);
+    codexAdapter.mergeHarnessConfig(section(), basePath);
     const path = join(basePath, '.codex', 'config.toml');
     expect(existsSync(path)).toBe(true);
     const content = TOML.parse(readFileSync(path, 'utf-8')) as Record<string, unknown>;
@@ -43,14 +38,22 @@ describe('codex adapter', () => {
     const codexDir = join(basePath, '.codex');
     mkdirSync(codexDir, { recursive: true });
     writeFileSync(join(codexDir, 'config.toml'), TOML.stringify({ custom: 'value' }));
-    codexAdapter.mergeHarnessConfig(shared, codexAdapter.defaultSection(), basePath);
+    codexAdapter.mergeHarnessConfig(section(), basePath);
     const content = TOML.parse(readFileSync(join(codexDir, 'config.toml'), 'utf-8')) as Record<string, unknown>;
     expect(content.custom).toBe('value');
     expect(content.model).toBe('gpt-5.6-terra');
   });
 
+  it('mergeHarnessConfig throws on malformed config.toml', () => {
+    const codexDir = join(basePath, '.codex');
+    mkdirSync(codexDir, { recursive: true });
+    writeFileSync(join(codexDir, 'config.toml'), 'not valid toml');
+
+    expect(() => codexAdapter.mergeHarnessConfig(section(), basePath)).toThrow();
+  });
+
   it('installAgents writes agent toml files', () => {
-    codexAdapter.installAgents(shared, codexAdapter.defaultSection(), basePath);
+    codexAdapter.installAgents(section(), basePath);
     for (const name of ['recon', 'oracle', 'architect']) {
       const path = join(basePath, '.codex', 'agents', `${name}.toml`);
       expect(existsSync(path)).toBe(true);
@@ -61,8 +64,8 @@ describe('codex adapter', () => {
   });
 
   it('fileList reports managed files', () => {
-    codexAdapter.mergeHarnessConfig(shared, codexAdapter.defaultSection(), basePath);
-    codexAdapter.installAgents(shared, codexAdapter.defaultSection(), basePath);
+    codexAdapter.mergeHarnessConfig(section(), basePath);
+    codexAdapter.installAgents(section(), basePath);
     const files = codexAdapter.fileList(basePath);
     expect(files.map(f => f.path)).toEqual([
       join(basePath, '.codex', 'config.toml'),
@@ -73,29 +76,51 @@ describe('codex adapter', () => {
   });
 
   it('remove deletes agent files and strips config.toml', () => {
-    const section = codexAdapter.defaultSection();
-    codexAdapter.mergeHarnessConfig(shared, section, basePath);
-    codexAdapter.installAgents(shared, section, basePath);
-    codexAdapter.remove(shared, section, basePath);
+    const s = section();
+    codexAdapter.mergeHarnessConfig(s, basePath);
+    codexAdapter.installAgents(s, basePath);
+    codexAdapter.remove(s, basePath);
 
+    expect(existsSync(join(basePath, '.codex', 'agents', 'recon.toml'))).toBe(false);
+    expect(existsSync(join(basePath, '.codex', 'agents', 'oracle.toml'))).toBe(false);
+    expect(existsSync(join(basePath, '.codex', 'agents', 'architect.toml'))).toBe(false);
     expect(existsSync(join(basePath, '.codex', 'agents'))).toBe(false);
     expect(existsSync(join(basePath, '.codex', 'config.toml'))).toBe(false);
     expect(existsSync(join(basePath, '.codex'))).toBe(false);
   });
 
   it('remove preserves custom config.toml keys', () => {
-    const section = codexAdapter.defaultSection();
-    codexAdapter.mergeHarnessConfig(shared, section, basePath);
+    const s = section();
+    codexAdapter.mergeHarnessConfig(s, basePath);
     const path = join(basePath, '.codex', 'config.toml');
     const content = TOML.parse(readFileSync(path, 'utf-8')) as Record<string, unknown>;
     content.custom = 'value';
     writeFileSync(path, TOML.stringify(content));
 
-    codexAdapter.remove(shared, section, basePath);
+    codexAdapter.remove(s, basePath);
 
     expect(existsSync(path)).toBe(true);
     const remaining = TOML.parse(readFileSync(path, 'utf-8')) as Record<string, unknown>;
     expect(remaining.custom).toBe('value');
     expect(remaining.model).toBeUndefined();
+  });
+
+  it('remove leaves user-created files in the agents directory', () => {
+    const s = section();
+    codexAdapter.mergeHarnessConfig(s, basePath);
+    codexAdapter.installAgents(s, basePath);
+
+    const agentsDir = join(basePath, '.codex', 'agents');
+    const userAgent = join(agentsDir, 'user-agent.toml');
+    writeFileSync(userAgent, 'name = "user"');
+
+    codexAdapter.remove(s, basePath);
+
+    expect(existsSync(userAgent)).toBe(true);
+    expect(existsSync(agentsDir)).toBe(true);
+    expect(existsSync(join(agentsDir, 'recon.toml'))).toBe(false);
+
+    // Cleanup so the empty-dir removal does not affect other assertions
+    rmSync(agentsDir, { recursive: true, force: true });
   });
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
-import { promptForSection, formatFileList } from './prompt.js';
+import { promptForSection, formatFileList, promptForSimpleModels, promptForOpenCodeModels, guardProvider } from './prompt.js';
 import type { HarnessAdapter, SimpleConfig, OpenCodeConfig } from '../types.js';
 
 const mockAnswers: Record<string, unknown>[] = [];
@@ -24,6 +24,7 @@ const simpleAdapter: HarnessAdapter = {
   configSchema: {} as unknown as HarnessAdapter['configSchema'],
   defaultSection: () => ({ default_model: 'haiku', agents: [] } as unknown as SimpleConfig),
   modelsForProvider: () => ['haiku', 'sonnet', 'opus'],
+  promptSection: async (inquirer, section) => promptForSimpleModels(inquirer, section as SimpleConfig, ['haiku', 'sonnet', 'opus']),
   installAgents: () => {},
   mergeHarnessConfig: () => {},
   fileList: () => [],
@@ -39,6 +40,14 @@ const openCodeAdapter: HarnessAdapter = {
   configSchema: {} as unknown as HarnessAdapter['configSchema'],
   defaultSection: () => ({ provider: 'opencode-zen', build_model: 'a', plan_model: 'b', agents: [] } as unknown as OpenCodeConfig),
   modelsForProvider: () => ['a', 'b', 'c'],
+  promptSection: async (inquirer, section) => {
+    const current = (section as OpenCodeConfig).provider;
+    const provider = guardProvider(await (async () => {
+      const answer = await inquirer.prompt([{ type: 'list', name: 'provider', message: 'Which provider are you using?', choices: openCodeAdapter.providerChoices, default: current }]);
+      return answer.provider as OpenCodeConfig['provider'];
+    })());
+    return promptForOpenCodeModels(inquirer, section as OpenCodeConfig, openCodeAdapter.modelsForProvider(provider), provider);
+  },
   installAgents: () => {},
   mergeHarnessConfig: () => {},
   fileList: () => [],
@@ -100,6 +109,11 @@ describe('prompt', () => {
       { template: 'oracle', name: 'oracle', model: 'b' },
       { template: 'architect', name: 'architect', model: 'c' },
     ]);
+  });
+
+  it('throws when provider is undefined for opencode', () => {
+    expect(() => guardProvider(undefined)).toThrow();
+    expect(() => guardProvider('claude' as unknown as import('../types.js').Provider)).toThrow();
   });
 
   it('formatFileList renders exists marker', () => {

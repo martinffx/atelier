@@ -1,11 +1,13 @@
-import { writeFileSync, mkdirSync, readFileSync, rmSync, existsSync } from 'fs';
+import { writeFileSync, mkdirSync, readFileSync, rmSync, rmdirSync, existsSync, readdirSync } from 'fs';
 import { join } from 'path';
+import inquirer from 'inquirer';
 import { readTemplate } from '../utils/templates.js';
-import type { ClaudeConfig, SharedConfig, HarnessAdapter, FileEntry, Provider } from '../types.js';
-import { AGENT_NAMES } from '../types.js';
+import type { ClaudeConfig, HarnessAdapter, FileEntry, Provider, HarnessSection } from '../types.js';
 import { FileWriteError, HarnessConfigError } from '../utils/errors.js';
 import { shortPath } from '../services/paths.js';
 import { SimpleConfigSchema } from '../utils/schemas.js';
+import { promptForSimpleModels } from '../services/prompt.js';
+import { AGENT_NAMES } from '../constants.js';
 
 const ANTHROPIC_MODELS = ['haiku', 'sonnet', 'opus', 'opusplan'] as const;
 
@@ -21,6 +23,7 @@ export const claudeAdapter: HarnessAdapter = {
   configSchema: SimpleConfigSchema,
   defaultSection,
   modelsForProvider,
+  promptSection,
   installAgents,
   mergeHarnessConfig,
   fileList,
@@ -43,7 +46,12 @@ function modelsForProvider(_provider?: Provider): readonly string[] {
   return [...ANTHROPIC_MODELS];
 }
 
-function installAgents(_shared: SharedConfig, config: ClaudeConfig, basePath: string): void {
+async function promptSection(prompt: typeof inquirer, section: HarnessSection): Promise<HarnessSection> {
+  return promptForSimpleModels(prompt, section as ClaudeConfig, modelsForProvider());
+}
+
+function installAgents(section: HarnessSection, basePath: string): void {
+  const config = section as ClaudeConfig;
   const agentsDir = join(basePath, '.claude', 'agents');
 
   try {
@@ -63,7 +71,8 @@ function installAgents(_shared: SharedConfig, config: ClaudeConfig, basePath: st
   }
 }
 
-function mergeHarnessConfig(_shared: SharedConfig, config: ClaudeConfig, basePath: string): void {
+function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
+  const config = section as ClaudeConfig;
   const claudeDir = join(basePath, '.claude');
   const settingsPath = join(claudeDir, 'settings.json');
   const existing = readExistingSettings(settingsPath);
@@ -74,8 +83,6 @@ function mergeHarnessConfig(_shared: SharedConfig, config: ClaudeConfig, basePat
     $schema: 'https://json.schemastore.org/claude-code-settings.json',
     model: config.default_model || DEFAULT_MODELS.default_model,
   };
-
-  removeAtelierSessionStartHooks(settings);
 
   try {
     mkdirSync(claudeDir, { recursive: true });
@@ -97,7 +104,8 @@ function fileList(basePath: string): FileEntry[] {
   return files;
 }
 
-function remove(_shared: SharedConfig, config: ClaudeConfig, basePath: string): void {
+function remove(section: HarnessSection, basePath: string): void {
+  const config = section as ClaudeConfig;
   const claudeDir = join(basePath, '.claude');
   const agentsDir = join(claudeDir, 'agents');
 
@@ -108,16 +116,21 @@ function remove(_shared: SharedConfig, config: ClaudeConfig, basePath: string): 
     }
   }
 
-  if (existsSync(agentsDir)) {
-    rmSync(agentsDir, { recursive: true, force: true });
-  }
-
-  const hookPath = join(basePath, 'hooks', 'atelier-session-start');
-  if (existsSync(hookPath)) {
-    rmSync(hookPath, { force: true });
-  }
-
+  removeDirIfEmpty(agentsDir);
   removeAtelierSettings(claudeDir);
+}
+
+function removeDirIfEmpty(dir: string): void {
+  if (!existsSync(dir)) {
+    return;
+  }
+  try {
+    if (readdirSync(dir).length === 0) {
+      rmdirSync(dir);
+    }
+  } catch (err) {
+    throw new FileWriteError(dir, err instanceof Error ? err.message : String(err));
+  }
 }
 
 function removeAtelierSettings(claudeDir: string): void {
@@ -129,7 +142,6 @@ function removeAtelierSettings(claudeDir: string): void {
   const content = parseSettingsJson(settingsPath);
   delete content.$schema;
   delete content.model;
-  removeAtelierSessionStartHooks(content);
   writeOrDeleteSettings(settingsPath, content);
 }
 
@@ -142,54 +154,30 @@ function parseSettingsJson(settingsPath: string): Record<string, unknown> {
 }
 
 function writeOrDeleteSettings(settingsPath: string, content: Record<string, unknown>): void {
-  if (Object.keys(content).length === 0) {
-    rmSync(settingsPath, { force: true });
-  } else {
-    writeFileSync(settingsPath, JSON.stringify(content, null, 2) + '\n');
+  try {
+    if (Object.keys(content).length === 0) {
+      rmSync(settingsPath, { force: true });
+    } else {
+      writeFileSync(settingsPath, JSON.stringify(content, null, 2) + '\n');
+    }
+  } catch (err) {
+    throw new FileWriteError(settingsPath, err instanceof Error ? err.message : String(err));
   }
 }
 
-interface SessionStartHook {
-  hooks: { command?: string; type?: string }[];
-  matcher?: string;
+function readExistingSettings(settingsPath: string): ExistingSettings {
+  if (!existsSync(settingsPath)) {
+    return {};
+  }
+  try {
+    const content = readFileSync(settingsPath, 'utf-8');
+    return JSON.parse(content) as ExistingSettings;
+  } catch (err) {
+    throw new HarnessConfigError(settingsPath, err instanceof Error ? err.message : String(err));
+  }
 }
 
 interface ExistingSettings {
   model?: string;
-  hooks?: { SessionStart?: SessionStartHook[] };
   [key: string]: unknown;
-}
-
-function readExistingSettings(settingsPath: string): ExistingSettings {
-  try {
-    const content = readFileSync(settingsPath, 'utf-8');
-    return JSON.parse(content) as ExistingSettings;
-  } catch {
-    return {};
-  }
-}
-
-function removeAtelierSessionStartHooks(content: Record<string, unknown>): void {
-  if (!content.hooks || typeof content.hooks !== 'object' || Array.isArray(content.hooks)) {
-    return;
-  }
-
-  const hooks = content.hooks as Record<string, unknown>;
-  const sessionStart = hooks.SessionStart as Record<string, unknown>[] | undefined;
-  if (!Array.isArray(sessionStart)) {
-    return;
-  }
-
-  const filtered = sessionStart.filter((hook) => {
-    const innerHooks = hook.hooks as Array<Record<string, unknown>> | undefined;
-    return !innerHooks?.some((h: Record<string, unknown>) => h.command === 'hooks/atelier-session-start');
-  });
-  hooks.SessionStart = filtered;
-
-  if (filtered.length === 0) {
-    delete hooks.SessionStart;
-  }
-  if (Object.keys(hooks).length === 0) {
-    delete content.hooks;
-  }
 }

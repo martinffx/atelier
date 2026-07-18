@@ -4,7 +4,8 @@ import { init } from './commands/init.js';
 import { update } from './commands/update.js';
 import { remove } from './commands/remove.js';
 import { handleError } from './utils/errors.js';
-import { HARNESS_NAMES } from './types.js';
+import { HARNESS_NAMES } from './constants.js';
+import './adapters/index.js';
 
 const harnessChoices = HARNESS_NAMES.join(', ');
 

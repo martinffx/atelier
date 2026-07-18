@@ -2,7 +2,7 @@ import { readFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
-import { AGENT_NAMES } from '../types.js';
+import { AGENT_NAMES } from '../constants.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const AGENTS_DIR = existsSync(join(__dirname, '..', 'agents'))

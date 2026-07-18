@@ -88,3 +88,7 @@ _Avoid_: client config, IDE config
 > **Dev:** Where does the provider get recorded?
 >
 > **Maintainer:** In the `codex` section of `.atelier/config.json` as an optional `provider` field that defaults to `openai`. The `.codex/config.toml` file only contains harness-native settings; the adapter merges them without touching user edits.
+
+## Known limitations
+
+- **Non-atomic init/remove**: `init` writes harness-native files before writing `.atelier/config.json`; `remove` deletes harness files before updating `.atelier/config.json`. A crash between these steps can leave config and files inconsistent. This is accepted for a personal dev CLI; if it causes real problems, wrap config writes in temp-file + rename and update config before deleting files.

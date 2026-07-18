@@ -1,15 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { mkdtempSync, writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
 import { tmpdir } from 'os';
-import { dirname, join } from 'path';
+import { join } from 'path';
 import { claudeAdapter } from './claude.js';
-import type { SharedConfig } from '../types.js';
 
-const shared: SharedConfig = {
-  version: '0.1.0',
-  skills_source: 'martinffx/atelier',
-  skills_path: '~/.agents/skills',
-};
+const section = () => claudeAdapter.defaultSection();
 
 describe('claude adapter', () => {
   let basePath: string;
@@ -33,38 +28,38 @@ describe('claude adapter', () => {
     expect(claudeAdapter.modelsForProvider()).toEqual(['haiku', 'sonnet', 'opus', 'opusplan']);
   });
 
-  it('mergeHarnessConfig writes settings.json without hooks', () => {
-    claudeAdapter.mergeHarnessConfig(shared, claudeAdapter.defaultSection(), basePath);
+  it('mergeHarnessConfig writes settings.json', () => {
+    claudeAdapter.mergeHarnessConfig(section(), basePath);
     const settingsPath = join(basePath, '.claude', 'settings.json');
     expect(existsSync(settingsPath)).toBe(true);
     const content = JSON.parse(readFileSync(settingsPath, 'utf-8'));
     expect(content.$schema).toBeDefined();
     expect(content.model).toBe('opusplan');
-    expect(content.hooks).toBeUndefined();
   });
 
-  it('mergeHarnessConfig preserves user settings and removes legacy hooks', () => {
+  it('mergeHarnessConfig preserves user settings', () => {
     const claudeDir = join(basePath, '.claude');
     mkdirSync(claudeDir, { recursive: true });
     const settingsPath = join(claudeDir, 'settings.json');
-    writeFileSync(settingsPath, JSON.stringify({
-      customKey: 'value',
-      hooks: {
-        SessionStart: [
-          { hooks: [{ command: 'hooks/atelier-session-start', type: 'command' }], matcher: 'startup' },
-        ],
-      },
-    }, null, 2));
+    writeFileSync(settingsPath, JSON.stringify({ customKey: 'value' }, null, 2));
 
-    claudeAdapter.mergeHarnessConfig(shared, claudeAdapter.defaultSection(), basePath);
+    claudeAdapter.mergeHarnessConfig(section(), basePath);
     const content = JSON.parse(readFileSync(settingsPath, 'utf-8'));
     expect(content.customKey).toBe('value');
     expect(content.model).toBe('opusplan');
-    expect(content.hooks).toBeUndefined();
+  });
+
+  it('mergeHarnessConfig throws on malformed settings.json', () => {
+    const claudeDir = join(basePath, '.claude');
+    mkdirSync(claudeDir, { recursive: true });
+    const settingsPath = join(claudeDir, 'settings.json');
+    writeFileSync(settingsPath, 'not valid json');
+
+    expect(() => claudeAdapter.mergeHarnessConfig(section(), basePath)).toThrow();
   });
 
   it('installAgents writes agent files', () => {
-    claudeAdapter.installAgents(shared, claudeAdapter.defaultSection(), basePath);
+    claudeAdapter.installAgents(section(), basePath);
     for (const name of ['recon', 'oracle', 'architect']) {
       const path = join(basePath, '.claude', 'agents', `${name}.md`);
       expect(existsSync(path)).toBe(true);
@@ -75,8 +70,8 @@ describe('claude adapter', () => {
   });
 
   it('fileList reports managed files', () => {
-    claudeAdapter.mergeHarnessConfig(shared, claudeAdapter.defaultSection(), basePath);
-    claudeAdapter.installAgents(shared, claudeAdapter.defaultSection(), basePath);
+    claudeAdapter.mergeHarnessConfig(section(), basePath);
+    claudeAdapter.installAgents(section(), basePath);
     const files = claudeAdapter.fileList(basePath);
     expect(files.map(f => f.path)).toEqual([
       join(basePath, '.claude', 'settings.json'),
@@ -86,37 +81,51 @@ describe('claude adapter', () => {
     ]);
   });
 
-  it('remove deletes agent files, legacy hook, and strips settings', () => {
-    const section = claudeAdapter.defaultSection();
-    claudeAdapter.mergeHarnessConfig(shared, section, basePath);
-    claudeAdapter.installAgents(shared, section, basePath);
+  it('remove deletes agent files and strips settings', () => {
+    const s = section();
+    claudeAdapter.mergeHarnessConfig(s, basePath);
+    claudeAdapter.installAgents(s, basePath);
 
-    const hookPath = join(basePath, 'hooks', 'atelier-session-start');
-    mkdirSync(dirname(hookPath), { recursive: true });
-    writeFileSync(hookPath, '#!/bin/bash\necho test');
+    claudeAdapter.remove(s, basePath);
 
-    claudeAdapter.remove(shared, section, basePath);
-
+    expect(existsSync(join(basePath, '.claude', 'agents', 'recon.md'))).toBe(false);
+    expect(existsSync(join(basePath, '.claude', 'agents', 'oracle.md'))).toBe(false);
+    expect(existsSync(join(basePath, '.claude', 'agents', 'architect.md'))).toBe(false);
     expect(existsSync(join(basePath, '.claude', 'agents'))).toBe(false);
-    expect(existsSync(hookPath)).toBe(false);
     const settingsPath = join(basePath, '.claude', 'settings.json');
     expect(existsSync(settingsPath)).toBe(false);
   });
 
   it('remove preserves custom settings after stripping Atelier keys', () => {
-    const section = claudeAdapter.defaultSection();
-    claudeAdapter.mergeHarnessConfig(shared, section, basePath);
+    const s = section();
+    claudeAdapter.mergeHarnessConfig(s, basePath);
     const settingsPath = join(basePath, '.claude', 'settings.json');
     const content = JSON.parse(readFileSync(settingsPath, 'utf-8'));
     content.customKey = 'value';
     writeFileSync(settingsPath, JSON.stringify(content, null, 2));
 
-    claudeAdapter.remove(shared, section, basePath);
+    claudeAdapter.remove(s, basePath);
 
     expect(existsSync(settingsPath)).toBe(true);
     const remaining = JSON.parse(readFileSync(settingsPath, 'utf-8'));
     expect(remaining.customKey).toBe('value');
     expect(remaining.model).toBeUndefined();
     expect(remaining.$schema).toBeUndefined();
+  });
+
+  it('remove leaves user-created files in the agents directory', () => {
+    const s = section();
+    claudeAdapter.mergeHarnessConfig(s, basePath);
+    claudeAdapter.installAgents(s, basePath);
+
+    const agentsDir = join(basePath, '.claude', 'agents');
+    const userAgent = join(agentsDir, 'user-agent.md');
+    writeFileSync(userAgent, '# user agent');
+
+    claudeAdapter.remove(s, basePath);
+
+    expect(existsSync(userAgent)).toBe(true);
+    expect(existsSync(agentsDir)).toBe(true);
+    expect(existsSync(join(agentsDir, 'recon.md'))).toBe(false);
   });
 });

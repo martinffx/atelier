@@ -2,6 +2,8 @@ import { describe, test, expect, afterEach, beforeEach } from 'bun:test';
 import { mkdtempSync, rmSync, readFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
+import '../adapters/index.js';
+import { opencodeAdapter } from '../adapters/opencode.js';
 
 let tempDir: string;
 
@@ -108,6 +110,31 @@ describe('config', () => {
     }
   });
 
+  test('readConfig returns old-format error when harness sections are explicitly null', async () => {
+    const { writeFileSync, mkdirSync } = await import('fs');
+    const { readConfig } = await import('./config.js');
+
+    mkdirSync(join(tempDir, '.atelier'), { recursive: true });
+    writeFileSync(
+      join(tempDir, '.atelier/config.json'),
+      JSON.stringify({
+        version: '1.0.0',
+        harness: 'claude',
+        skills_source: 'martinffx/atelier',
+        skills_path: '~/.agents/skills',
+        claude: null,
+        codex: null,
+        opencode: null,
+      })
+    );
+
+    const result = readConfig(join(tempDir, '.atelier/config.json'));
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.type).toBe('old-format');
+    }
+  });
+
   test('getDefaultConfig returns valid config with default models for claude', async () => {
     const { getDefaultConfig } = await import('./config.js');
 
@@ -148,10 +175,8 @@ describe('config', () => {
     expect(architect?.model).toBe('gpt-5.6-sol');
   });
 
-  test('getDefaultOpenCodeConfig returns valid config with default models for opencode zen', async () => {
-    const { getDefaultOpenCodeConfig } = await import('./config.js');
-
-    const section = getDefaultOpenCodeConfig('opencode-zen');
+  test('opencode adapter defaultSection returns valid config with default models for opencode zen', () => {
+    const section = opencodeAdapter.defaultSection('opencode-zen');
 
     expect(section.provider).toBe('opencode-zen');
 
@@ -165,10 +190,8 @@ describe('config', () => {
     expect(architect?.model).toBe('opencode/deepseek-v4-pro');
   });
 
-  test('getDefaultOpenCodeConfig returns valid config with default models for opencode go', async () => {
-    const { getDefaultOpenCodeConfig } = await import('./config.js');
-
-    const section = getDefaultOpenCodeConfig('opencode-go');
+  test('opencode adapter defaultSection returns valid config with default models for opencode go', () => {
+    const section = opencodeAdapter.defaultSection('opencode-go');
 
     expect(section.provider).toBe('opencode-go');
 
@@ -182,10 +205,8 @@ describe('config', () => {
     expect(architect?.model).toBe('opencode-go/deepseek-v4-pro');
   });
 
-  test('getDefaultOpenCodeConfig defaults to opencode-zen when no provider given', async () => {
-    const { getDefaultOpenCodeConfig } = await import('./config.js');
-
-    const section = getDefaultOpenCodeConfig();
+  test('opencode adapter defaultSection defaults to opencode-zen when no provider given', () => {
+    const section = opencodeAdapter.defaultSection();
 
     expect(section.provider).toBe('opencode-zen');
 

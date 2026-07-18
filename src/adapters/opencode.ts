@@ -1,12 +1,13 @@
-import { writeFileSync, mkdirSync, readFileSync, existsSync, rmSync } from 'fs';
+import { writeFileSync, mkdirSync, readFileSync, existsSync, rmSync, rmdirSync, readdirSync } from 'fs';
 import { join } from 'path';
-import matter from 'gray-matter';
+import inquirer from 'inquirer';
 import { readTemplate } from '../utils/templates.js';
-import type { OpenCodeConfig, SharedConfig, HarnessAdapter, FileEntry, Provider, OpenCodeProvider } from '../types.js';
-import { AGENT_NAMES } from '../types.js';
+import type { OpenCodeConfig, HarnessAdapter, FileEntry, Provider, OpenCodeProvider, HarnessSection } from '../types.js';
+import { AGENT_NAMES } from '../constants.js';
 import { FileWriteError, HarnessConfigError } from '../utils/errors.js';
 import { shortPath, getGlobalOpencodeDir } from '../services/paths.js';
 import { OpenCodeConfigSchema } from '../utils/schemas.js';
+import { promptForOpenCodeProvider, promptForOpenCodeModels, guardProvider } from '../services/prompt.js';
 
 const OPENCODE_PROVIDERS: { name: string; value: OpenCodeProvider }[] = [
   { name: 'OpenCode Zen', value: 'opencode-zen' },
@@ -86,6 +87,7 @@ export const opencodeAdapter: HarnessAdapter = {
   configSchema: OpenCodeConfigSchema,
   defaultSection,
   modelsForProvider,
+  promptSection,
   installAgents,
   mergeHarnessConfig,
   fileList,
@@ -112,7 +114,17 @@ function modelsForProvider(provider?: Provider): readonly string[] {
   return [...PROVIDER_MODELS[selectedProvider]];
 }
 
-function installAgents(_shared: SharedConfig, config: OpenCodeConfig, basePath: string): void {
+async function promptSection(prompt: typeof inquirer, section: HarnessSection): Promise<HarnessSection> {
+  const openCodeSection = section as OpenCodeConfig;
+  const provider = guardProvider(
+    await promptForOpenCodeProvider(prompt, OPENCODE_PROVIDERS, openCodeSection.provider)
+  );
+  const models = modelsForProvider(provider);
+  return promptForOpenCodeModels(prompt, openCodeSection, models, provider);
+}
+
+function installAgents(section: HarnessSection, basePath: string): void {
+  const config = section as OpenCodeConfig;
   const opencodeRoot = getOpencodeRoot(basePath);
   const agentsDir = join(opencodeRoot, 'agent');
 
@@ -133,7 +145,8 @@ function installAgents(_shared: SharedConfig, config: OpenCodeConfig, basePath: 
   }
 }
 
-function mergeHarnessConfig(_shared: SharedConfig, config: OpenCodeConfig, basePath: string): void {
+function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
+  const config = section as OpenCodeConfig;
   const opencodeJsonPath = join(basePath, 'opencode.json');
   const existing = readExistingOpenCodeJson(opencodeJsonPath);
   const isNew = Object.keys(existing).length === 0;
@@ -192,22 +205,42 @@ function fileList(basePath: string): FileEntry[] {
   return files;
 }
 
-function remove(_shared: SharedConfig, config: OpenCodeConfig, basePath: string): void {
+function remove(section: HarnessSection, basePath: string): void {
+  const config = section as OpenCodeConfig;
   const opencodeRoot = getOpencodeRoot(basePath);
 
+  removeAgentFiles(opencodeRoot, config);
+  removeLegacyFiles(opencodeRoot);
+  writeOrDeleteOpenCodeJson(basePath, config);
+}
+
+function removeAgentFiles(opencodeRoot: string, config: OpenCodeConfig): void {
+  const agentsDir = join(opencodeRoot, 'agent');
+
   for (const agent of config.agents) {
-    const file = join(opencodeRoot, 'agent', `${agent.name}.md`);
+    const file = join(agentsDir, `${agent.name}.md`);
     if (existsSync(file)) {
       rmSync(file, { force: true });
     }
   }
 
-  const agentsDir = join(opencodeRoot, 'agent');
-  if (existsSync(agentsDir)) {
-    rmSync(agentsDir, { recursive: true, force: true });
-  }
+  removeDirIfEmpty(agentsDir);
+}
 
-  // Legacy cleanup: remove plugin and command files from older installs.
+function removeDirIfEmpty(dir: string): void {
+  if (!existsSync(dir)) {
+    return;
+  }
+  try {
+    if (readdirSync(dir).length === 0) {
+      rmdirSync(dir);
+    }
+  } catch (err) {
+    throw new FileWriteError(dir, err instanceof Error ? err.message : String(err));
+  }
+}
+
+function removeLegacyFiles(opencodeRoot: string): void {
   const pluginPath = join(opencodeRoot, 'plugins', 'atelier.js');
   if (existsSync(pluginPath)) {
     rmSync(pluginPath, { force: true });
@@ -217,19 +250,43 @@ function remove(_shared: SharedConfig, config: OpenCodeConfig, basePath: string)
   if (existsSync(commandsDir)) {
     rmSync(commandsDir, { recursive: true, force: true });
   }
+}
 
+function writeOrDeleteOpenCodeJson(basePath: string, config: OpenCodeConfig): void {
   const opencodeJsonPath = join(basePath, 'opencode.json');
   if (!existsSync(opencodeJsonPath)) {
     return;
   }
 
-  let content: Record<string, unknown>;
+  const content = stripOpenCodeConfig(
+    readExistingOpenCodeJson(opencodeJsonPath),
+    config.provider,
+  );
+
   try {
-    content = JSON.parse(readFileSync(opencodeJsonPath, 'utf-8')) as Record<string, unknown>;
+    if (Object.keys(content).length === 0) {
+      rmSync(opencodeJsonPath, { force: true });
+    } else {
+      writeFileSync(opencodeJsonPath, JSON.stringify(content, null, 2) + '\n');
+    }
+  } catch (err) {
+    throw new FileWriteError(opencodeJsonPath, err instanceof Error ? err.message : String(err));
+  }
+}
+
+function readExistingOpenCodeJson(opencodeJsonPath: string): Record<string, unknown> {
+  if (!existsSync(opencodeJsonPath)) {
+    return {};
+  }
+  try {
+    const content = readFileSync(opencodeJsonPath, 'utf-8');
+    return JSON.parse(content) as Record<string, unknown>;
   } catch (err) {
     throw new HarnessConfigError(opencodeJsonPath, err instanceof Error ? err.message : String(err));
   }
+}
 
+function stripOpenCodeConfig(content: Record<string, unknown>, provider: OpenCodeProvider): Record<string, unknown> {
   if (content.agent && typeof content.agent === 'object' && !Array.isArray(content.agent)) {
     const agent = content.agent as Record<string, unknown>;
     delete agent.build;
@@ -239,32 +296,19 @@ function remove(_shared: SharedConfig, config: OpenCodeConfig, basePath: string)
     }
   }
 
-  if (config.provider === 'amazon-bedrock' && content.provider && typeof content.provider === 'object' && !Array.isArray(content.provider)) {
-    const provider = content.provider as Record<string, unknown>;
-    delete provider['amazon-bedrock'];
-    if (Object.keys(provider).length === 0) {
+  if (provider === 'amazon-bedrock' && content.provider && typeof content.provider === 'object' && !Array.isArray(content.provider)) {
+    const providerRecord = content.provider as Record<string, unknown>;
+    delete providerRecord['amazon-bedrock'];
+    if (Object.keys(providerRecord).length === 0) {
       delete content.provider;
     }
   }
 
-  if (Object.keys(content).length === 0) {
-    rmSync(opencodeJsonPath, { force: true });
-  } else {
-    writeFileSync(opencodeJsonPath, JSON.stringify(content, null, 2) + '\n');
-  }
+  return content;
 }
 
 export function getOpencodeRoot(basePath: string): string {
   return basePath === getGlobalOpencodeDir() ? basePath : join(basePath, '.opencode');
-}
-
-function readExistingOpenCodeJson(opencodeJsonPath: string): Record<string, unknown> {
-  try {
-    const content = readFileSync(opencodeJsonPath, 'utf-8');
-    return JSON.parse(content) as Record<string, unknown>;
-  } catch {
-    return {};
-  }
 }
 
 function deepMerge(target: Record<string, unknown>, source: Record<string, unknown>): Record<string, unknown> {

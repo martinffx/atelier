@@ -1,16 +1,11 @@
 import { describe, it, expect, beforeEach } from 'bun:test';
-import { mkdtempSync, writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
+import { mkdtempSync, writeFileSync, readFileSync, existsSync, mkdirSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { dirname, join } from 'path';
 import { opencodeAdapter, getOpencodeRoot } from './opencode.js';
 import { getGlobalOpencodeDir } from '../services/paths.js';
-import type { SharedConfig } from '../types.js';
 
-const shared: SharedConfig = {
-  version: '0.1.0',
-  skills_source: 'martinffx/atelier',
-  skills_path: '~/.agents/skills',
-};
+const section = (provider?: Parameters<typeof opencodeAdapter.defaultSection>[0]) => opencodeAdapter.defaultSection(provider);
 
 describe('opencode adapter', () => {
   let basePath: string;
@@ -32,7 +27,7 @@ describe('opencode adapter', () => {
   });
 
   it('mergeHarnessConfig writes opencode.json', () => {
-    opencodeAdapter.mergeHarnessConfig(shared, opencodeAdapter.defaultSection(), basePath);
+    opencodeAdapter.mergeHarnessConfig(section(), basePath);
     const path = join(basePath, 'opencode.json');
     expect(existsSync(path)).toBe(true);
     const content = JSON.parse(readFileSync(path, 'utf-8'));
@@ -43,14 +38,21 @@ describe('opencode adapter', () => {
   it('mergeHarnessConfig preserves user settings', () => {
     mkdirSync(basePath, { recursive: true });
     writeFileSync(join(basePath, 'opencode.json'), JSON.stringify({ custom: 'value' }, null, 2));
-    opencodeAdapter.mergeHarnessConfig(shared, opencodeAdapter.defaultSection(), basePath);
+    opencodeAdapter.mergeHarnessConfig(section(), basePath);
     const content = JSON.parse(readFileSync(join(basePath, 'opencode.json'), 'utf-8'));
     expect(content.custom).toBe('value');
     expect(content.agent.build.mode).toBe('primary');
   });
 
+  it('mergeHarnessConfig throws on malformed opencode.json', () => {
+    mkdirSync(basePath, { recursive: true });
+    writeFileSync(join(basePath, 'opencode.json'), 'not valid json');
+
+    expect(() => opencodeAdapter.mergeHarnessConfig(section(), basePath)).toThrow();
+  });
+
   it('installAgents writes agent files', () => {
-    opencodeAdapter.installAgents(shared, opencodeAdapter.defaultSection(), basePath);
+    opencodeAdapter.installAgents(section(), basePath);
     const agentsDir = join(getOpencodeRoot(basePath), 'agent');
     for (const name of ['recon', 'oracle', 'architect']) {
       const path = join(agentsDir, `${name}.md`);
@@ -62,8 +64,8 @@ describe('opencode adapter', () => {
   });
 
   it('fileList reports managed files', () => {
-    opencodeAdapter.mergeHarnessConfig(shared, opencodeAdapter.defaultSection(), basePath);
-    opencodeAdapter.installAgents(shared, opencodeAdapter.defaultSection(), basePath);
+    opencodeAdapter.mergeHarnessConfig(section(), basePath);
+    opencodeAdapter.installAgents(section(), basePath);
     const files = opencodeAdapter.fileList(basePath);
     expect(files.map(f => f.path)).toEqual([
       join(basePath, 'opencode.json'),
@@ -74,9 +76,9 @@ describe('opencode adapter', () => {
   });
 
   it('remove deletes agent files and strips opencode.json', () => {
-    const section = opencodeAdapter.defaultSection();
-    opencodeAdapter.mergeHarnessConfig(shared, section, basePath);
-    opencodeAdapter.installAgents(shared, section, basePath);
+    const s = section();
+    opencodeAdapter.mergeHarnessConfig(s, basePath);
+    opencodeAdapter.installAgents(s, basePath);
 
     // legacy files
     const root = getOpencodeRoot(basePath);
@@ -84,27 +86,49 @@ describe('opencode adapter', () => {
     mkdirSync(dirname(pluginPath), { recursive: true });
     writeFileSync(pluginPath, 'export default {};');
 
-    opencodeAdapter.remove(shared, section, basePath);
+    opencodeAdapter.remove(s, basePath);
 
+    expect(existsSync(join(root, 'agent', 'recon.md'))).toBe(false);
+    expect(existsSync(join(root, 'agent', 'oracle.md'))).toBe(false);
+    expect(existsSync(join(root, 'agent', 'architect.md'))).toBe(false);
     expect(existsSync(join(root, 'agent'))).toBe(false);
     expect(existsSync(pluginPath)).toBe(false);
     expect(existsSync(join(basePath, 'opencode.json'))).toBe(false);
   });
 
   it('remove preserves custom opencode.json keys', () => {
-    const section = opencodeAdapter.defaultSection();
-    opencodeAdapter.mergeHarnessConfig(shared, section, basePath);
+    const s = section();
+    opencodeAdapter.mergeHarnessConfig(s, basePath);
     const path = join(basePath, 'opencode.json');
     const content = JSON.parse(readFileSync(path, 'utf-8'));
     content.custom = 'value';
     writeFileSync(path, JSON.stringify(content, null, 2));
 
-    opencodeAdapter.remove(shared, section, basePath);
+    opencodeAdapter.remove(s, basePath);
 
     expect(existsSync(path)).toBe(true);
     const remaining = JSON.parse(readFileSync(path, 'utf-8'));
     expect(remaining.custom).toBe('value');
-    expect(remaining.agent).toBeUndefined();
+    expect(remaining.agent?.build).toBeUndefined();
+    expect(remaining.agent?.plan).toBeUndefined();
+  });
+
+  it('remove leaves user-created files in the agent directory', () => {
+    const s = section();
+    opencodeAdapter.mergeHarnessConfig(s, basePath);
+    opencodeAdapter.installAgents(s, basePath);
+
+    const agentsDir = join(getOpencodeRoot(basePath), 'agent');
+    const userAgent = join(agentsDir, 'user-agent.md');
+    writeFileSync(userAgent, '# user agent');
+
+    opencodeAdapter.remove(s, basePath);
+
+    expect(existsSync(userAgent)).toBe(true);
+    expect(existsSync(agentsDir)).toBe(true);
+    expect(existsSync(join(agentsDir, 'recon.md'))).toBe(false);
+
+    rmSync(agentsDir, { recursive: true, force: true });
   });
 
   it('getOpencodeRoot returns global dir for global base path', () => {
