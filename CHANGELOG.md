@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.4.0](https://github.com/martinffx/atelier/compare/v1.3.0...v1.4.0) (2026-07-18)
+
+
+### Features
+
+* **code-commit:** improve commit workflow ([a5e8973](https://github.com/martinffx/atelier/commit/a5e89735ec8623ea24effec326010136cb546735))
+* **codex:** add Codex harness support and refactor for multi-harness CLI ([#38](https://github.com/martinffx/atelier/issues/38)) ([ce381d2](https://github.com/martinffx/atelier/commit/ce381d25c8b91734bf84288e1c9522e1a914a5b9))
+* **opencode:** add OpenAI provider support ([3f956bd](https://github.com/martinffx/atelier/commit/3f956bd0fb371a00147d2a92c5503d0c853215e2))
+
+
+### Bug Fixes
+
+* **code-handoff:** write handoffs to project directory ([abd6ec9](https://github.com/martinffx/atelier/commit/abd6ec90cbe614cedff3b0a2059ca9c6743d35ba))
+
 ## [1.3.0](https://github.com/martinffx/atelier/compare/v1.2.2...v1.3.0) (2026-07-17)
 
 
