@@ -1,0 +1,519 @@
+{
+  "feature": "harness-registry",
+  "spec": "docs/specs/2026-07-18-harness-registry/design.md",
+  "goal": "Reshape the Atelier CLI from a harness-aware dispatch layer into a static registry of adapters",
+  "phases": [
+    {
+      "id": "P1",
+      "name": "Foundation",
+      "tasks": [
+        {
+          "id": "T1",
+          "name": "Define harness union and adapter interface",
+          "depends_on": [],
+          "inputs": [
+            "approved design.md",
+            "current src/types.ts"
+          ],
+          "description": "Replace the loose Harness type with a const array + union shared by CLI and registry. Define the HarnessAdapter interface with modelsForProvider, HarnessSection, SharedConfig, and supporting types. Remove hook/plugin-specific types.",
+          "files": {
+            "create": [],
+            "modify": [
+              "src/types.ts"
+            ]
+          },
+          "validation": {
+            "tests": [
+              "Harness union derives from HARNESS_NAMES",
+              "HarnessAdapter includes all required methods"
+            ],
+            "acceptance": [
+              "bun run typecheck passes"
+            ]
+          }
+        },
+        {
+          "id": "T2",
+          "name": "Create path service",
+          "depends_on": [
+            "T1"
+          ],
+          "inputs": [
+            "current src/harness.ts path helpers",
+            "design.md"
+          ],
+          "description": "Extract shortPath and global base-path resolution into src/services/paths.ts. Keep global-only behavior; harness-specific path logic stays in its adapter.",
+          "files": {
+            "create": [
+              "src/services/paths.ts"
+            ],
+            "modify": []
+          },
+          "validation": {
+            "tests": [
+              "shortPath('~') returns ~",
+              "resolveBasePath('claude') returns homedir()",
+              "resolveBasePath('opencode') returns global opencode dir"
+            ],
+            "acceptance": [
+              "bun run typecheck passes"
+            ]
+          }
+        },
+        {
+          "id": "T3",
+          "name": "Create prompt service",
+          "depends_on": [
+            "T1"
+          ],
+          "inputs": [
+            "current src/harness.ts prompting logic",
+            "inquirer usage",
+            "HarnessAdapter.modelsForProvider"
+          ],
+          "description": "Extract generic provider/model prompting into src/services/prompt.ts. It consumes providerChoices and modelsForProvider() from an adapter and returns a completed section.",
+          "files": {
+            "create": [
+              "src/services/prompt.ts"
+            ],
+            "modify": []
+          },
+          "validation": {
+            "tests": [
+              "Prompts for provider when providerChoices exist",
+              "Prompts for default model and each agent model using adapter.modelsForProvider()",
+              "Returns a valid HarnessSection"
+            ],
+            "acceptance": [
+              "bun run typecheck passes"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "name": "Registry",
+      "tasks": [
+        {
+          "id": "T4",
+          "name": "Create static registry",
+          "depends_on": [
+            "T1"
+          ],
+          "inputs": [
+            "design.md",
+            "HarnessAdapter interface"
+          ],
+          "description": "Create src/registry.ts with registerAdapter, getAdapter, and listAdapters. The registry is a plain map + accessor functions; real population happens in src/adapters/index.ts via self-registration.",
+          "files": {
+            "create": [
+              "src/registry.ts"
+            ],
+            "modify": []
+          },
+          "validation": {
+            "tests": [
+              "registerAdapter/getAdapter/listAdapters work with a stub adapter",
+              "Throws typed error for unknown harness"
+            ],
+            "acceptance": [
+              "Real population verified by T8",
+              "bun run typecheck passes"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P3",
+      "name": "Adapters",
+      "tasks": [
+        {
+          "id": "T5",
+          "name": "Create Claude adapter",
+          "depends_on": [
+            "T1",
+            "T2"
+          ],
+          "inputs": [
+            "src/generators/claude.ts",
+            "static agent list",
+            "src/services/paths.ts"
+          ],
+          "description": "Move Claude generator logic into src/adapters/claude.ts. Move the anthropic model metadata (providerModels/defaultModels slices) into the adapter. Implement mergeHarnessConfig (.claude/settings.json), installAgents (.claude/agents/*.md), modelsForProvider, fileList, and remove. Drop hook generation.",
+          "files": {
+            "create": [
+              "src/adapters/claude.ts",
+              "src/adapters/claude.test.ts"
+            ],
+            "modify": []
+          },
+          "validation": {
+            "tests": [
+              "Generates .claude/agents/{recon,oracle,architect}.md",
+              "Merges .claude/settings.json without hooks",
+              "modelsForProvider returns anthropic models",
+              "fileList reports all managed files",
+              "remove deletes agent files and strips Atelier settings"
+            ],
+            "acceptance": [
+              "bun test src/adapters/claude.test.ts passes"
+            ]
+          }
+        },
+        {
+          "id": "T6",
+          "name": "Create OpenCode adapter",
+          "depends_on": [
+            "T1",
+            "T2"
+          ],
+          "inputs": [
+            "src/generators/opencode.ts",
+            "src/services/paths.ts"
+          ],
+          "description": "Move OpenCode generator logic into src/adapters/opencode.ts. Move OpenCode provider model metadata into the adapter. Implement config merge for opencode.json, agent generation for .opencode/agent/*.md, modelsForProvider, fileList, and remove. Drop the plugin generator, the command/*.md skill-wrapper generator, and the skill metadata readers (readSkillMetadata, getUserInvocableSkillNames, resolveSkillsPath).",
+          "files": {
+            "create": [
+              "src/adapters/opencode.ts",
+              "src/adapters/opencode.test.ts"
+            ],
+            "modify": []
+          },
+          "validation": {
+            "tests": [
+              "Generates .opencode/agent/*.md",
+              "Merges opencode.json",
+              "modelsForProvider returns provider-scoped models",
+              "Does not write plugins/ or command/ files",
+              "fileList and remove work correctly"
+            ],
+            "acceptance": [
+              "bun test src/adapters/opencode.test.ts passes"
+            ]
+          }
+        },
+        {
+          "id": "T7",
+          "name": "Create Codex adapter",
+          "depends_on": [
+            "T1",
+            "T2"
+          ],
+          "inputs": [
+            "src/generators/codex.ts",
+            "src/services/paths.ts"
+          ],
+          "description": "Move Codex generator logic into src/adapters/codex.ts. Move the openai model metadata into the adapter. Implement config merge for .codex/config.toml, agent generation for .codex/agents/*.toml, modelsForProvider, fileList, and remove.",
+          "files": {
+            "create": [
+              "src/adapters/codex.ts",
+              "src/adapters/codex.test.ts"
+            ],
+            "modify": []
+          },
+          "validation": {
+            "tests": [
+              "Generates .codex/config.toml and .codex/agents/*.toml",
+              "modelsForProvider returns openai models",
+              "Merges preserve custom keys",
+              "fileList and remove work correctly"
+            ],
+            "acceptance": [
+              "bun test src/adapters/codex.test.ts passes"
+            ]
+          }
+        },
+        {
+          "id": "T8",
+          "name": "Create adapter index",
+          "depends_on": [
+            "T4",
+            "T5",
+            "T6",
+            "T7"
+          ],
+          "inputs": [
+            "T4",
+            "T5",
+            "T6",
+            "T7"
+          ],
+          "description": "Create src/adapters/index.ts that imports each adapter, calls registerAdapter, and re-exports the adapter objects. Importing this module side-loads all adapters into the registry.",
+          "files": {
+            "create": [
+              "src/adapters/index.ts"
+            ],
+            "modify": []
+          },
+          "validation": {
+            "tests": [
+              "listAdapters() returns claude, opencode, codex after importing the index",
+              "getAdapter('claude') returns the Claude adapter"
+            ],
+            "acceptance": [
+              "bun run typecheck passes"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P4",
+      "name": "Config",
+      "tasks": [
+        {
+          "id": "T9",
+          "name": "Compose config schema from adapters",
+          "depends_on": [
+            "T8"
+          ],
+          "inputs": [
+            "src/utils/config.ts",
+            "HarnessAdapter.configSchema",
+            "design.md"
+          ],
+          "description": "Refactor src/utils/config.ts so the top-level Zod schema is built by reducing over listAdapters(). Add optional provider to SimpleConfigSchema with harness defaults.",
+          "files": {
+            "create": [],
+            "modify": [
+              "src/utils/config.ts",
+              "src/utils/config.test.ts"
+            ]
+          },
+          "validation": {
+            "tests": [
+              "Validates multi-harness config correctly",
+              "Rejects old flat format with clear error",
+              "Applies default provider when missing"
+            ],
+            "acceptance": [
+              "bun test src/utils/config.test.ts passes"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P5",
+      "name": "Commands",
+      "tasks": [
+        {
+          "id": "T10",
+          "name": "Generic init command",
+          "depends_on": [
+            "T8",
+            "T9",
+            "T3"
+          ],
+          "inputs": [
+            "src/commands/init.ts",
+            "registry",
+            "prompt service"
+          ],
+          "description": "Rewrite init to use the registry and adapter. Single harness per invocation. Remove auto-detection, the --all flag, the npx skills add exec path, InitOptions.all, and any now-dead error types.",
+          "files": {
+            "create": [],
+            "modify": [
+              "src/commands/init.ts",
+              "src/commands/init.test.ts"
+            ]
+          },
+          "validation": {
+            "tests": [
+              "init --harness codex --yes works",
+              "init --yes without --harness errors",
+              "Adding a second harness preserves the first"
+            ],
+            "acceptance": [
+              "bun test src/commands/init.test.ts passes"
+            ]
+          }
+        },
+        {
+          "id": "T11",
+          "name": "Generic update command",
+          "depends_on": [
+            "T8",
+            "T9"
+          ],
+          "inputs": [
+            "src/commands/update.ts",
+            "registry"
+          ],
+          "description": "Rewrite update to select one configured harness and call adapter.mergeHarnessConfig + adapter.installAgents.",
+          "files": {
+            "create": [],
+            "modify": [
+              "src/commands/update.ts",
+              "src/commands/update-remove.test.ts"
+            ]
+          },
+          "validation": {
+            "tests": [
+              "update --harness codex regenerates only codex files",
+              "Prompts when no --harness and multiple harnesses configured"
+            ],
+            "acceptance": [
+              "bun test src/commands/update-remove.test.ts passes"
+            ]
+          }
+        },
+        {
+          "id": "T12",
+          "name": "Generic remove command",
+          "depends_on": [
+            "T8",
+            "T9"
+          ],
+          "inputs": [
+            "src/commands/remove.ts",
+            "registry"
+          ],
+          "description": "Rewrite remove to select one configured harness and call adapter.remove.",
+          "files": {
+            "create": [],
+            "modify": [
+              "src/commands/remove.ts",
+              "src/commands/update-remove.test.ts"
+            ]
+          },
+          "validation": {
+            "tests": [
+              "remove --harness codex removes only codex files",
+              "Preserves custom keys in .codex/config.toml",
+              "Removes harness section from .atelier/config.json"
+            ],
+            "acceptance": [
+              "bun test src/commands/update-remove.test.ts passes"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P6",
+      "name": "Entry and Cleanup",
+      "tasks": [
+        {
+          "id": "T13",
+          "name": "Update CLI entry",
+          "depends_on": [
+            "T10",
+            "T11",
+            "T12"
+          ],
+          "inputs": [
+            "src/atelier.ts",
+            "HARNESS_NAMES"
+          ],
+          "description": "Remove --all flag. Use HARNESS_NAMES for --harness validation/help.",
+          "files": {
+            "create": [],
+            "modify": [
+              "src/atelier.ts"
+            ]
+          },
+          "validation": {
+            "tests": [
+              "--help shows valid harness values"
+            ],
+            "acceptance": [
+              "bun run typecheck passes"
+            ]
+          }
+        },
+        {
+          "id": "T14",
+          "name": "Delete old files",
+          "depends_on": [
+            "T13"
+          ],
+          "inputs": [
+            "design.md files-to-delete list"
+          ],
+          "description": "Delete src/harness.ts, src/models.ts, and the src/generators/ directory. Remove the dead getModelsForProvider function and providerModels import from src/utils/templates.ts (template reading itself stays). Remove any hook/plugin code paths.",
+          "files": {
+            "create": [],
+            "modify": [
+              "src/utils/templates.ts"
+            ],
+            "delete": [
+              "src/harness.ts",
+              "src/models.ts",
+              "src/generators/"
+            ]
+          },
+          "validation": {
+            "tests": [
+              "No references to deleted files remain"
+            ],
+            "acceptance": [
+              "bun run typecheck passes"
+            ]
+          }
+        },
+        {
+          "id": "T15",
+          "name": "Update README",
+          "depends_on": [
+            "T13",
+            "T14"
+          ],
+          "inputs": [
+            "README.md",
+            "design.md"
+          ],
+          "description": "Remove references to --all, --project, session hooks, plugins, and skills being installed by the CLI. Update architecture description to mention the registry.",
+          "files": {
+            "create": [],
+            "modify": [
+              "README.md"
+            ]
+          },
+          "validation": {
+            "tests": [
+              "README accurately reflects current CLI behavior"
+            ],
+            "acceptance": [
+              "No stale flags or hooks mentioned"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P7",
+      "name": "Final Verification",
+      "tasks": [
+        {
+          "id": "T16",
+          "name": "Run typecheck and tests",
+          "depends_on": [
+            "T15"
+          ],
+          "inputs": [
+            "all previous tasks"
+          ],
+          "description": "Run bun run typecheck and bun test. Fix any remaining issues.",
+          "files": {
+            "create": [],
+            "modify": [
+              "any files needed to fix failures"
+            ]
+          },
+          "validation": {
+            "tests": [
+              "bun run typecheck passes",
+              "bun test passes"
+            ],
+            "acceptance": [
+              "All tests green"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

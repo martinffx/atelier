@@ -1,0 +1,27 @@
+{
+  "name": "atelier",
+  "version": "1.2.2",
+  "description": "Personal development toolkit - spec-driven development, code quality, deep thinking, and ecosystem patterns",
+  "author": {
+    "name": "Martin Richards"
+  },
+  "homepage": "https://github.com/martinffx/atelier",
+  "repository": "https://github.com/martinffx/atelier",
+  "license": "MIT",
+  "keywords": [
+    "spec-driven-development",
+    "code-quality",
+    "deep-thinking",
+    "typescript",
+    "python",
+    "codex"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Atelier",
+    "shortDescription": "Personal development toolkit - spec-driven development, code quality, deep thinking, and ecosystem patterns",
+    "developerName": "Martin Richards",
+    "category": "Developer Tools",
+    "capabilities": ["Read"]
+  }
+}

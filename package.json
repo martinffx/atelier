@@ -11,6 +11,7 @@
     "cli",
     "claude-code",
     "opencode",
+    "codex",
     "ai-agents",
     "spec-driven-development"
   ],
@@ -19,6 +20,7 @@
     "dist/",
     "skills/",
     "agents/",
+    ".codex-plugin/",
     "README.md",
     "LICENSE",
     "CHANGELOG.md"
@@ -28,6 +30,8 @@
   },
   "scripts": {
     "build": "bun build ./src/atelier.ts --outdir ./dist --target bun",
+    "clean": "rm -rf dist .agents .claude .codex .opencode hooks && rm -f *.log .DS_Store",
+    "cli": "bun src/atelier.ts",
     "typecheck": "tsgo --noEmit",
     "test": "bun test",
     "prepare": "simple-git-hooks"
@@ -39,6 +43,7 @@
     "commander": "^13.1.0",
     "gray-matter": "^4.0.3",
     "inquirer": "^12.5.2",
+    "smol-toml": "^1.7.0",
     "zod": "^3.25.0"
   },
   "devDependencies": {

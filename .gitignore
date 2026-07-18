@@ -16,3 +16,5 @@ dist/
 .agents/
 .claude/
 .codex/
+.opencode/
+hooks/

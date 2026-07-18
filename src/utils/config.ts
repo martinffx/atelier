@@ -1,89 +1,97 @@
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, rmSync } from 'fs';
 import { dirname, join } from 'path';
 import { homedir } from 'os';
 import { z } from 'zod';
-import type { AtelierConfig, Harness, Provider } from '../types.js';
-import { defaultModels, providers } from '../models.js';
+import type { AtelierConfig, Harness, SharedConfig, HarnessSection } from '../types.js';
+import { HARNESS_NAMES } from '../constants.js';
+import { listAdapters, getAdapter } from '../registry.js';
 import { InvalidConfigError } from './errors.js';
+import type { Result } from './result.js';
+import { ok, err } from './result.js';
 
+// Error-handling convention: readConfig returns Result<T,E> for expected I/O errors
+// (not found, invalid JSON, old format). All other config functions throw AtelierError
+// subclasses for logic/configuration errors.
 export const CONFIG_FILE = '.atelier/config.json';
 export const CONFIG_PATH = join(homedir(), CONFIG_FILE);
 const CURRENT_VERSION = '0.1.0';
 
-const AgentSchema = z.object({
-  template: z.string(),
-  name: z.string(),
-  model: z.string(),
-});
+export type ConfigError =
+  | { type: 'not-found' }
+  | { type: 'invalid'; message: string }
+  | { type: 'old-format'; message: string };
 
-const ConfigSchema = z.object({
-  version: z.string(),
-  harness: z.enum(['claude', 'opencode']),
-  provider: z.enum(['opencode-zen', 'opencode-go', 'amazon-bedrock']).optional(),
-  skills_source: z.string(),
-  skills_path: z.string().min(1),
-  agents: z.array(AgentSchema).min(1),
-  build_model: z.string().optional(),
-  plan_model: z.string().optional(),
-  default_model: z.string().optional(),
-});
+function buildConfigSchema() {
+  const adapters = listAdapters();
+  const harnessShape: Record<string, z.ZodTypeAny> = {};
+  for (const adapter of adapters) {
+    harnessShape[adapter.name] = adapter.configSchema.optional();
+  }
+
+  return z.object({
+    version: z.string(),
+    skills_source: z.string(),
+    skills_path: z.string().min(1),
+    ...harnessShape,
+  }).refine((data: Record<string, unknown>) => adapters.some(a => data[a.name] !== undefined), {
+    message: 'At least one harness must be configured',
+  });
+}
 
 export function validateConfig(config: unknown): AtelierConfig {
-  const result = ConfigSchema.safeParse(config);
+  const result = buildConfigSchema().safeParse(config);
   if (!result.success) {
     throw new InvalidConfigError(result.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join('; '));
   }
   return result.data as AtelierConfig;
 }
 
-export function readConfig(path: string = CONFIG_PATH): AtelierConfig | null {
+export function readConfig(path: string = CONFIG_PATH): Result<AtelierConfig, ConfigError> {
   if (!existsSync(path)) {
-    return null;
+    return err({ type: 'not-found' });
   }
 
   let content: string;
   try {
     content = readFileSync(path, 'utf-8');
-  } catch (err) {
-    throw new InvalidConfigError(`Failed to read ${path}: ${err instanceof Error ? err.message : String(err)}`);
+  } catch (readErr) {
+    return err({ type: 'invalid', message: `Failed to read ${path}: ${readErr instanceof Error ? readErr.message : String(readErr)}` });
   }
 
   let parsed: unknown;
   try {
     parsed = JSON.parse(content);
-  } catch (err) {
-    throw new InvalidConfigError(`Invalid JSON in ${path}: ${err instanceof Error ? err.message : String(err)}`);
+  } catch (parseErr) {
+    return err({ type: 'invalid', message: `Invalid JSON in ${path}: ${parseErr instanceof Error ? parseErr.message : String(parseErr)}` });
   }
 
-  const config = validateConfig(parsed);
-
-  // Migrate legacy skills_path from old default
-  if (config.skills_path === '~/.agents/skills/atelier') {
-    config.skills_path = '~/.agents/skills';
+  if (isOldFlatConfig(parsed)) {
+    return err({
+      type: 'old-format',
+      message: 'Config format has changed',
+    });
   }
 
-  const known = new Set(['recon', 'oracle', 'architect']);
-  config.agents = config.agents.filter(a => known.has(a.template));
-  for (const name of known) {
-    if (!config.agents.find(a => a.template === name)) {
-      config.agents.push({ template: name, name, model: '' });
-    }
+  try {
+    return ok(validateConfig(parsed));
+  } catch (validationErr) {
+    const message = validationErr instanceof Error ? validationErr.message : String(validationErr);
+    return err({ type: 'invalid', message });
   }
+}
 
-  // Validate provider/harness consistency
-  if (config.harness === 'opencode' && !config.provider) {
-    console.warn('Warning: OpenCode harness requires a provider. Defaulting to opencode-zen.');
-    config.provider = 'opencode-zen';
+function isOldFlatConfig(config: unknown): boolean {
+  if (typeof config !== 'object' || config === null) {
+    return false;
   }
-  if (config.harness === 'claude' && config.provider) {
-    console.warn('Warning: Claude harness does not use providers. Ignoring provider field.');
-    delete (config as AtelierConfig & { provider?: Provider }).provider;
-  }
-  if (config.provider && !providers[config.harness]?.includes(config.provider)) {
-    console.warn(`Warning: Provider ${config.provider} is not valid for ${config.harness} harness.`);
-  }
-
-  return config;
+  const record = config as Record<string, unknown>;
+  // Old flat config has a top-level harness field and no new-format harness sections.
+  return (
+    typeof record.harness === 'string' &&
+    record.claude == null &&
+    record.codex == null &&
+    record.opencode == null
+  );
 }
 
 export function writeConfig(config: AtelierConfig, path: string = CONFIG_PATH): void {
@@ -94,33 +102,32 @@ export function writeConfig(config: AtelierConfig, path: string = CONFIG_PATH): 
   writeFileSync(path, JSON.stringify(config, null, 2) + '\n');
 }
 
-export function getDefaultConfig(harness: Harness, provider?: Provider): AtelierConfig {
-  const providerKey: Provider = harness === 'claude' ? 'anthropic' : (provider || 'opencode-zen');
-  const defaults = defaultModels[providerKey];
+export function toSharedConfig(config: AtelierConfig): SharedConfig {
+  return {
+    version: config.version,
+    skills_source: config.skills_source,
+    skills_path: config.skills_path,
+  };
+}
 
-  const agents = (['recon', 'oracle', 'architect'] as const).map(name => ({
-    template: name,
-    name,
-    model: defaults[name],
-  }));
+export function getConfiguredHarnesses(config: AtelierConfig): Harness[] {
+  return HARNESS_NAMES.filter(harness => config[harness] !== undefined);
+}
 
-  const config: AtelierConfig = {
+export function removeConfigDir(path: string = CONFIG_PATH): void {
+  const dir = dirname(path);
+  if (existsSync(dir)) {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+export function getDefaultConfig(harness: Harness): AtelierConfig {
+  const section = getAdapter(harness).defaultSection();
+  const config: Record<string, unknown> = {
     version: CURRENT_VERSION,
-    harness,
     skills_source: 'martinffx/atelier',
     skills_path: '~/.agents/skills',
-    agents,
   };
-
-  if (harness === 'opencode') {
-    config.build_model = defaults.build;
-    config.plan_model = defaults.plan;
-    if (provider) {
-      config.provider = provider;
-    }
-  } else {
-    config.default_model = 'opusplan';
-  }
-
-  return config;
+  config[harness] = section;
+  return config as AtelierConfig;
 }

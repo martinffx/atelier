@@ -2,8 +2,7 @@ import { readFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
-import type { Harness, Provider } from '../types.js';
-import { providerModels, defaultModels, claudModels, opencodeModels } from '../models.js';
+import { AGENT_NAMES } from '../constants.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const AGENTS_DIR = existsSync(join(__dirname, '..', 'agents'))
@@ -28,18 +27,6 @@ export function readTemplate(name: string): AgentTemplate {
 }
 
 export function readAllTemplates(): AgentTemplate[] {
-  return ['recon', 'oracle', 'architect'].map(name => readTemplate(name));
+  return AGENT_NAMES.map(name => readTemplate(name));
 }
 
-export function getModelsForProvider(provider: Provider): readonly string[] {
-  return providerModels[provider];
-}
-
-export function getDefaultModel(provider: Provider, agentName: string): string {
-  return defaultModels[provider][agentName];
-}
-
-// Backward compatibility: keep old function for claude harness
-export function getModelsForHarness(harness: Harness): readonly string[] {
-  return harness === 'claude' ? claudModels : opencodeModels;
-}

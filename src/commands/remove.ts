@@ -1,111 +1,54 @@
-import { rmSync, existsSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
-import { readConfig, CONFIG_FILE } from '../utils/config.js';
-import { GLOBAL_OPENCODE_DIR } from '../generators/opencode.js';
-import { ConfigNotFoundError } from '../utils/errors.js';
+import { readConfig, writeConfig, removeConfigDir, getConfiguredHarnesses, CONFIG_FILE } from '../utils/config.js';
+import { getAdapter } from '../registry.js';
+import { resolveBasePath } from '../services/paths.js';
+import { ConfigNotFoundError, InvalidConfigError } from '../utils/errors.js';
+import { resolveHarness } from './utils.js';
+import type { Harness, AtelierConfig } from '../types.js';
 
-export function remove(basePath?: string): void {
-  const resolvedBasePath = basePath ?? process.cwd();
-  let config = readConfig(join(resolvedBasePath, CONFIG_FILE));
-  let harnessBasePath = resolvedBasePath;
-  let configBasePath = resolvedBasePath;
+export interface RemoveOptions {
+  harness?: string;
+}
 
-  // Only fall back to global config when called without an explicit path
-  if (!config && basePath === undefined) {
-    configBasePath = homedir();
-    config = readConfig(join(configBasePath, CONFIG_FILE));
-    if (config) {
-      harnessBasePath = config.harness === 'opencode'
-        ? GLOBAL_OPENCODE_DIR
-        : homedir();
+export async function remove(options?: RemoveOptions): Promise<void> {
+  const configPath = join(homedir(), CONFIG_FILE);
+
+  const configResult = readConfig(configPath);
+
+  if (!configResult.ok) {
+    if (configResult.error.type === 'not-found') {
+      throw new ConfigNotFoundError('remove');
     }
+    throw new InvalidConfigError(
+      configResult.error.message,
+      { suggestReinit: configResult.error.type === 'old-format' }
+    );
   }
 
-  if (!config) {
-    throw new ConfigNotFoundError('remove');
+  const config = configResult.value;
+  const harness = await resolveHarness(config, options?.harness, 'remove');
+
+  const basePath = resolveBasePath(harness);
+  const section = config[harness];
+
+  if (!section) {
+    throw new InvalidConfigError(`Harness '${harness}' is not configured.`);
   }
 
-  if (config.harness === 'claude') {
-    removeClaudeFiles(harnessBasePath);
+  const adapter = getAdapter(harness);
+  adapter.remove(section, basePath);
+
+  const updatedConfig = { ...config };
+  delete updatedConfig[harness];
+
+  const remainingHarnesses = getConfiguredHarnesses(updatedConfig);
+  if (remainingHarnesses.length === 0) {
+    removeConfigDir(configPath);
   } else {
-    removeOpenCodeFiles(harnessBasePath);
+    writeConfig(updatedConfig, configPath);
   }
 
-  rmSync(join(configBasePath, '.atelier'), { recursive: true, force: true });
-
-  console.log('Atelier removed.');
+  console.log(`Atelier removed for ${harness}.`);
   console.log('Skills remain installed. Run `npx skills remove martinffx/atelier` to remove skills.');
-}
-
-function removeClaudeFiles(basePath: string): void {
-  const files = [
-    join(basePath, '.claude/settings.json'),
-    join(basePath, '.claude/agents/recon.md'),
-    join(basePath, '.claude/agents/oracle.md'),
-    join(basePath, '.claude/agents/architect.md'),
-    join(basePath, 'hooks/atelier-session-start'),
-  ];
-
-  for (const file of files) {
-    if (existsSync(file)) {
-      rmSync(file, { force: true });
-    }
-  }
-
-  const agentsDir = join(basePath, '.claude/agents');
-  if (existsSync(agentsDir)) {
-    rmSync(agentsDir, { recursive: true, force: true });
-  }
-
-  const claudeDir = join(basePath, '.claude');
-  if (existsSync(claudeDir)) {
-    rmSync(claudeDir, { recursive: true, force: true });
-  }
-}
-
-function removeOpenCodeFiles(basePath: string): void {
-  const isGlobal = basePath === GLOBAL_OPENCODE_DIR;
-  const opencodeDir = isGlobal ? basePath : join(basePath, '.opencode');
-
-  const files = [
-    join(opencodeDir, 'plugins/atelier.js'),
-    join(opencodeDir, 'agent/recon.md'),
-    join(opencodeDir, 'agent/oracle.md'),
-    join(opencodeDir, 'agent/architect.md'),
-  ];
-
-  for (const file of files) {
-    if (existsSync(file)) {
-      rmSync(file, { force: true });
-    }
-  }
-
-  const agentsDir = join(opencodeDir, 'agent');
-  if (existsSync(agentsDir)) {
-    rmSync(agentsDir, { recursive: true, force: true });
-  }
-
-  const pluginsDir = join(opencodeDir, 'plugins');
-  if (existsSync(pluginsDir)) {
-    rmSync(pluginsDir, { recursive: true, force: true });
-  }
-
-  const commandsDir = join(opencodeDir, 'command');
-  if (existsSync(commandsDir)) {
-    rmSync(commandsDir, { recursive: true, force: true });
-  }
-
-  if (!isGlobal) {
-    const opencodeDirPath = join(basePath, '.opencode');
-    if (existsSync(opencodeDirPath)) {
-      rmSync(opencodeDirPath, { recursive: true, force: true });
-    }
-  }
-
-  // Also remove opencode.json
-  const opencodeJsonPath = join(basePath, 'opencode.json');
-  if (existsSync(opencodeJsonPath)) {
-    rmSync(opencodeJsonPath, { force: true });
-  }
 }
