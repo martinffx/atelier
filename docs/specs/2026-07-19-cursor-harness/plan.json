@@ -1,0 +1,121 @@
+{
+  "feature": "cursor-harness",
+  "spec": "docs/specs/2026-07-19-cursor-harness/design.md",
+  "goal": "Add Cursor as a fourth Atelier harness that manages global specialized subagents without reading or modifying Cursor native configuration.",
+  "phases": [
+    {
+      "id": "P1",
+      "name": "Cursor Contract",
+      "tasks": [
+        {
+          "id": "T1",
+          "name": "Define agent-only Cursor configuration",
+          "depends_on": [],
+          "inputs": ["src/constants.ts", "src/types.ts", "src/utils/schemas.ts", "docs/specs/2026-07-19-cursor-harness/design.md"],
+          "description": "Add cursor to the harness source of truth and define an agent-only Cursor config section.",
+          "files": {
+            "create": [],
+            "modify": ["src/constants.ts", "src/types.ts", "src/utils/schemas.ts"]
+          },
+          "validation": {
+            "tests": ["Harness union includes cursor", "Cursor section accepts only agent selections"],
+            "acceptance": ["bun run typecheck passes"]
+          }
+        },
+        {
+          "id": "T2",
+          "name": "Remove provisional native Cursor integration",
+          "depends_on": ["T1"],
+          "inputs": ["src/adapters/fixtures/cursor-composer-v1.json", "src/services/paths.ts", "src/services/paths.test.ts"],
+          "description": "Delete the provisional model fixture and remove Cursor native config path resolution. Cursor agents remain under the home-directory global location, but no Cursor native configuration path is resolved or used.",
+          "files": {
+            "create": [],
+            "modify": ["src/services/paths.ts", "src/services/paths.test.ts"]
+          },
+          "validation": {
+            "tests": ["Existing base-path behavior remains correct", "No Cursor native config path resolver remains"],
+            "acceptance": ["bun test src/services/paths.test.ts passes", "bun run typecheck passes"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "name": "Cursor Adapter",
+      "tasks": [
+        {
+          "id": "T3",
+          "name": "Implement Cursor subagent adapter",
+          "depends_on": ["T2"],
+          "inputs": ["src/adapters/claude.ts", "agents/{recon,oracle,architect}.md", "Cursor Markdown agent frontmatter conventions"],
+          "description": "Implement Cursor as an agent-only adapter. Generate global recon, oracle, and architect Markdown subagents under ~/.cursor/agents using the configured models. Keep native configuration untouched, report only generated agents, and remove only generated agents while preserving user-created agents.",
+          "files": {
+            "create": ["src/adapters/cursor.ts", "src/adapters/cursor.test.ts"],
+            "modify": []
+          },
+          "validation": {
+            "tests": ["Default agent models are Composer 2.5, Opus 4.8 High, and GPT-5.6 Sol Medium", "Focused picker includes Grok, Kimi, and GLM", "Generated agents use Cursor Markdown frontmatter", "Install, update, and remove never create or modify cli-config.json", "Remove preserves user-created agents"],
+            "acceptance": ["bun test src/adapters/cursor.test.ts passes"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P3",
+      "name": "Registry and Commands",
+      "tasks": [
+        {
+          "id": "T4",
+          "name": "Register Cursor and validate configuration",
+          "depends_on": ["T3"],
+          "inputs": ["src/adapters/index.ts", "src/registry.ts", "src/utils/config.ts", "Cursor adapter"],
+          "description": "Register Cursor and extend registry and configuration coverage from three harnesses to four. Cursor's Atelier section contains only agents. Preserve old flat config detection.",
+          "files": {
+            "create": [],
+            "modify": ["src/adapters/index.ts", "src/adapters/index.test.ts", "src/registry.test.ts", "src/utils/config.ts", "src/utils/config.test.ts"]
+          },
+          "validation": {
+            "tests": ["Registry lists claude, opencode, codex, and cursor", "Agent-only Cursor config round-trips", "Multi-harness configuration including Cursor validates", "Old flat config detection remains correct"],
+            "acceptance": ["bun test src/adapters/index.test.ts src/registry.test.ts src/utils/config.test.ts passes", "bun run typecheck passes"]
+          }
+        },
+        {
+          "id": "T5",
+          "name": "Integrate Cursor command workflows",
+          "depends_on": ["T4"],
+          "inputs": ["src/commands/{init,update,remove}.ts", "Cursor adapter", "existing command layer tests"],
+          "description": "Extend generic command coverage and messages for Cursor. Init and update generate configured agents; remove deletes only generated agents and the Cursor Atelier section. Existing Cursor native configuration must remain untouched.",
+          "files": {
+            "create": [],
+            "modify": ["src/commands/init.test.ts", "src/commands/update-remove.test.ts", "src/utils/errors.ts", "src/atelier.ts"]
+          },
+          "validation": {
+            "tests": ["atelier init --harness cursor --yes succeeds without a Cursor native config", "Interactive Cursor init exposes focused agent-model choices", "Update regenerates agents and persists changed selections", "Remove preserves cli-config.json", "CLI help and invalid-harness errors list cursor"],
+            "acceptance": ["bun test src/commands passes"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P4",
+      "name": "Documentation and Verification",
+      "tasks": [
+        {
+          "id": "T6",
+          "name": "Document Cursor support and run quality gates",
+          "depends_on": ["T5"],
+          "inputs": ["Final Cursor adapter behavior", "README.md", "package.json", "docs/specs/2026-07-19-cursor-harness/design.md"],
+          "description": "Document Cursor support, global agent files, subagent defaults, and that Cursor's primary model is user-managed. Update package discovery metadata and run complete quality gates.",
+          "files": {
+            "create": [],
+            "modify": ["README.md", "package.json", "docs/specs/2026-07-19-cursor-harness/design.md"]
+          },
+          "validation": {
+            "tests": ["Documentation reflects agent-only behavior", "Built distribution contains Cursor adapter"],
+            "acceptance": ["bun test passes", "bun run typecheck passes", "bun run build passes"]
+          }
+        }
+      ]
+    }
+  ]
+}
