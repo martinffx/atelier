@@ -70,6 +70,12 @@ A harness's native configuration file (e.g. `opencode.json`, `.claude/settings.j
 
 _Avoid_: client config, IDE config
 
+**Default Model**
+
+The single global model Cursor CLI applies across its native Agent, Plan, Ask, and Debug modes. It is distinct from a Cursor subagent's independently configured model.
+
+_Avoid_: mode model, build model (for Cursor)
+
 ## Resolutions
 
 - **Provider** was previously overloaded to mean both the model family for simple harnesses and the OpenCode provider selection. Provider is now always the model-hosting service. It is persisted explicitly in `OpenCodeConfig` and optionally in `SimpleConfig` with harness defaults (`anthropic` for Claude, `openai` for Codex).
@@ -78,6 +84,7 @@ _Avoid_: client config, IDE config
 - **Agent discovery** was previously proposed as dynamic scanning of `agents/*.md`. The CLI uses a static list of agent templates; dynamic scanning is not needed for this refactor.
 - **AtelierConfig vs HarnessConfig** is now explicit: `AtelierConfig` is the CLI's persisted state; `HarnessConfig` is the harness's native file, written only by the adapter.
 - **fileList and remove** use the same canonical list of Atelier-managed files. `fileList` reports existence; `remove` deletes those files.
+- **Cursor Default Model** is user-owned. Atelier configures Cursor subagent models only; it does not read, write, or model Cursor's primary model or native configuration.
 
 ## Example dialogue
 
