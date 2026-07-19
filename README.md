@@ -12,14 +12,14 @@ Atelier ships as a set of skills installed via `npx skills` plus a small CLI tha
 
 ## Quick Start
 
-Install Atelier with a single command. It configures agents and harness-native settings for Claude Code, OpenCode, or Codex:
+Install Atelier with a single command. It configures agents and harness-native settings for Claude Code, OpenCode, Codex, or Cursor:
 
 ```bash
 # Initialize atelier for your harness
-npx @martinffx/atelier@latest init --harness <claude|opencode|codex>
+npx @martinffx/atelier@latest init --harness <claude|opencode|codex|cursor>
 
 # Non-interactive mode (CI/CD)
-npx @martinffx/atelier@latest init --harness <claude|opencode|codex> --yes
+npx @martinffx/atelier@latest init --harness <claude|opencode|codex|cursor> --yes
 ```
 
 That's it. Your project is now configured for spec-driven development.
@@ -40,13 +40,13 @@ npx skills add martinffx/atelier
 
 Harness-agnostic agent definitions configured with appropriate models:
 
-| Agent | Role | Claude | OpenCode | Codex |
-|-------|------|--------|----------|-------|
-| **Recon** | Fast codebase reconnaissance | haiku | deepseek-v4-flash | gpt-5.6-luna |
-| **Oracle** | Strategic thinking, requirements, analysis | opus | kimi-k2.6 | gpt-5.6-sol |
-| **Architect** | DDD, system design, architecture | opus | deepseek-v4-pro | gpt-5.6-sol |
+| Agent | Role | Claude | OpenCode | Codex | Cursor |
+|-------|------|--------|----------|-------|--------|
+| **Recon** | Fast codebase reconnaissance | haiku | deepseek-v4-flash | gpt-5.6-luna | composer-2.5 |
+| **Oracle** | Strategic thinking, requirements, analysis | opus | kimi-k2.6 | gpt-5.6-sol | claude-opus-4-8-high |
+| **Architect** | DDD, system design, architecture | opus | deepseek-v4-pro | gpt-5.6-sol | gpt-5.6-sol-medium |
 
-Agents are generated into harness-specific locations (`.claude/agents/`, `.opencode/agent/`, `.codex/agents/`) with harness-native model identifiers.
+Agents are generated into harness-specific locations (`.claude/agents/`, `.opencode/agent/`, `.codex/agents/`, `~/.cursor/agents/`) with harness-native model identifiers. Cursor's primary model and `~/.cursor/cli-config.json` remain user-managed; Atelier only generates its three global subagents.
 
 ### 3. Task Tracking (optional)
 
@@ -89,11 +89,11 @@ Single source of truth in `.atelier/config.json`:
 Initialize atelier for a single harness. Each invocation configures one harness; run it multiple times to configure several.
 
 ```bash
-npx @martinffx/atelier@latest init --harness <claude|opencode|codex> [options]
+npx @martinffx/atelier@latest init --harness <claude|opencode|codex|cursor> [options]
 ```
 
 **Options:**
-- `--harness <type>` - Harness type (`claude`, `opencode`, or `codex`)
+- `--harness <type>` - Harness type (`claude`, `opencode`, `codex`, or `cursor`)
 - `--yes` - Non-interactive mode with default models
 
 **Idempotent**: Re-running `init` for the same harness is safe. It regenerates files without deleting anything unless you switch harnesses.
@@ -103,7 +103,7 @@ npx @martinffx/atelier@latest init --harness <claude|opencode|codex> [options]
 Refresh agents and harness-native config for one harness without touching skills:
 
 ```bash
-npx @martinffx/atelier@latest update --harness <claude|opencode|codex>
+npx @martinffx/atelier@latest update --harness <claude|opencode|codex|cursor>
 ```
 
 ### `remove`
@@ -111,7 +111,7 @@ npx @martinffx/atelier@latest update --harness <claude|opencode|codex>
 Remove all atelier-generated files for one harness:
 
 ```bash
-npx @martinffx/atelier@latest remove --harness <claude|opencode|codex>
+npx @martinffx/atelier@latest remove --harness <claude|opencode|codex|cursor>
 ```
 
 Skills remain installed. Run `npx skills remove martinffx/atelier` to remove them separately.

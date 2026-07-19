@@ -3,7 +3,7 @@ import { dirname, join } from 'path';
 import { homedir } from 'os';
 import { z } from 'zod';
 import type { AtelierConfig, Harness, SharedConfig, HarnessSection } from '../types.js';
-import { HARNESS_NAMES } from '../constants.js';
+import { Harness as Harnesses } from '../constants.js';
 import { listAdapters, getAdapter } from '../registry.js';
 import { InvalidConfigError } from './errors.js';
 import type { Result } from './result.js';
@@ -88,9 +88,7 @@ function isOldFlatConfig(config: unknown): boolean {
   // Old flat config has a top-level harness field and no new-format harness sections.
   return (
     typeof record.harness === 'string' &&
-    record.claude == null &&
-    record.codex == null &&
-    record.opencode == null
+    Harnesses.every(harness => record[harness] == null)
   );
 }
 
@@ -111,7 +109,7 @@ export function toSharedConfig(config: AtelierConfig): SharedConfig {
 }
 
 export function getConfiguredHarnesses(config: AtelierConfig): Harness[] {
-  return HARNESS_NAMES.filter(harness => config[harness] !== undefined);
+  return Harnesses.filter(harness => config[harness] !== undefined);
 }
 
 export function removeConfigDir(path: string = CONFIG_PATH): void {

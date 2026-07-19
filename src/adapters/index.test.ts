@@ -3,8 +3,8 @@ import '../adapters/index.js';
 import { getAdapter, listAdapters, listHarnessNames } from '../registry.js';
 
 describe('adapters/index', () => {
-  it('registers all three harness adapters', () => {
-    expect(listHarnessNames()).toEqual(['claude', 'opencode', 'codex']);
+  it('registers all four harness adapters', () => {
+    expect(listHarnessNames()).toEqual(['claude', 'opencode', 'codex', 'cursor']);
   });
 
   it('each adapter has the required interface', () => {
@@ -25,5 +25,6 @@ describe('adapters/index', () => {
     expect(getAdapter('claude').name).toBe('claude');
     expect(getAdapter('opencode').name).toBe('opencode');
     expect(getAdapter('codex').name).toBe('codex');
+    expect(getAdapter('cursor').name).toBe('cursor');
   });
 });

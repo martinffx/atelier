@@ -4,16 +4,16 @@ import { init } from './commands/init.js';
 import { update } from './commands/update.js';
 import { remove } from './commands/remove.js';
 import { handleError } from './utils/errors.js';
-import { HARNESS_NAMES } from './constants.js';
+import { Harness } from './constants.js';
 import './adapters/index.js';
 
-const harnessChoices = HARNESS_NAMES.join(', ');
+const harnessChoices = Harness.join(', ');
 
 const program = new Command();
 
 program
   .name('atelier')
-  .description('Atelier CLI - configure Claude Code, OpenCode, and Codex for spec-driven development')
+  .description('Atelier CLI - configure Claude Code, OpenCode, Codex, and Cursor for spec-driven development')
   .version('0.1.0');
 
 program

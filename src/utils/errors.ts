@@ -1,3 +1,7 @@
+import { Harness } from '../constants.js';
+
+const harnessChoices = `${Harness.slice(0, -1).join(', ')}, or ${Harness.at(-1)}`;
+
 export class AtelierError extends Error {
   constructor(
     message: string,
@@ -12,7 +16,7 @@ export class AtelierError extends Error {
 export class ConfigNotFoundError extends AtelierError {
   constructor(command: string) {
     super(
-      `.atelier/config.json not found. Run \`atelier ${command} --harness <claude|opencode|codex>\` first.`,
+      `.atelier/config.json not found. Run \`atelier ${command} --harness <${Harness.join('|')}>\` first.`,
       'CONFIG_NOT_FOUND',
       1
     );
@@ -22,7 +26,7 @@ export class ConfigNotFoundError extends AtelierError {
 export class HarnessRequiredError extends AtelierError {
   constructor() {
     super(
-      '`--yes` requires `--harness` (claude, opencode, or codex).',
+      `\`--yes\` requires \`--harness\` (${harnessChoices}).`,
       'HARNESS_REQUIRED',
       1
     );
@@ -32,7 +36,7 @@ export class HarnessRequiredError extends AtelierError {
 export class InvalidHarnessError extends AtelierError {
   constructor(value: string) {
     super(
-      `Invalid harness "${value}". Must be claude, opencode, or codex.`,
+      `Invalid harness "${value}". Must be ${harnessChoices}.`,
       'INVALID_HARNESS',
       1
     );
@@ -82,7 +86,7 @@ export class TemplateReadError extends AtelierError {
 export class InvalidConfigError extends AtelierError {
   constructor(cause: string, { suggestReinit = false }: { suggestReinit?: boolean } = {}) {
     const suffix = suggestReinit
-      ? ' Run `atelier init --harness <claude|opencode|codex>` to reconfigure.'
+      ? ` Run \`atelier init --harness <${Harness.join('|')}>\` to reconfigure.`
       : '';
     super(
       `Invalid configuration: ${cause}.${suffix}`,

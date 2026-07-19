@@ -3,6 +3,7 @@ import { mkdtempSync, rmSync, readFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import '../adapters/index.js';
+import { cursorAdapter } from '../adapters/cursor.js';
 import { opencodeAdapter } from '../adapters/opencode.js';
 
 let tempDir: string;
@@ -125,6 +126,7 @@ describe('config', () => {
         claude: null,
         codex: null,
         opencode: null,
+        cursor: null,
       })
     );
 
@@ -226,6 +228,25 @@ describe('config', () => {
     expect(recon?.model).toBe('opencode/minimax-m2.7');
   });
 
+  test('cursor config accepts only agent selections', async () => {
+    const { validateConfig } = await import('./config.js');
+    const cursor = cursorAdapter.defaultSection();
+
+    expect(validateConfig({
+      version: '1.0.0',
+      skills_source: 'martinffx/atelier',
+      skills_path: '~/.agents/skills',
+      cursor,
+    }).cursor).toEqual(cursor);
+
+    expect(() => validateConfig({
+      version: '1.0.0',
+      skills_source: 'martinffx/atelier',
+      skills_path: '~/.agents/skills',
+      cursor: { default_model: 'composer-2.5', agents: [] },
+    })).toThrow();
+  });
+
   test('writeConfig then readConfig returns matching multi-harness config', async () => {
     const { writeConfig, readConfig } = await import('./config.js');
 
@@ -249,6 +270,13 @@ describe('config', () => {
           { template: 'architect', name: 'architect', model: 'gpt-5.6-sol' },
         ],
       },
+      cursor: {
+        agents: [
+          { template: 'recon', name: 'recon', model: 'composer-2.5' },
+          { template: 'oracle', name: 'oracle', model: 'claude-opus-4-8-high' },
+          { template: 'architect', name: 'architect', model: 'gpt-5.6-sol-medium' },
+        ],
+      },
     };
 
     const configPath = join(tempDir, '.atelier/config.json');
@@ -261,6 +289,7 @@ describe('config', () => {
       expect(result.value.claude).toBeDefined();
       expect(result.value.codex).toBeDefined();
       expect(result.value.opencode).toBeUndefined();
+      expect(result.value.cursor).toEqual(config.cursor);
     }
   });
 
