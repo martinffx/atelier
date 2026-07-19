@@ -73,15 +73,16 @@ function installAgents(section: HarnessSection, basePath: string): void {
 
   try {
     mkdirSync(agentsDir, { recursive: true });
-    for (const agent of config.agents) {
-      const template = readTemplate(agent.template);
-      const content = `---\nname: ${agent.name}\ndescription: ${template.description}\nmodel: ${agent.model}\n---\n${template.body}`;
-      const agentPath = join(agentsDir, `${agent.name}.md`);
-      writeFileSync(agentPath, content);
-      console.log(`Created ${shortPath(agentPath)}`);
-    }
   } catch (err) {
     throw new FileWriteError(agentsDir, err instanceof Error ? err.message : String(err));
+  }
+
+  for (const agent of config.agents) {
+    const template = readTemplate(agent.template);
+    const content = `---\nname: ${agent.name}\ndescription: ${template.description}\nmodel: ${agent.model}\n---\n${template.body}`;
+    const agentPath = join(agentsDir, `${agent.name}.md`);
+    writeFileSync(agentPath, content);
+    console.log(`Created ${shortPath(agentPath)}`);
   }
 }
 

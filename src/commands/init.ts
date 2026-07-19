@@ -7,7 +7,7 @@ import { resolveBasePath } from '../services/paths.js';
 import { promptForSection, formatFileList } from '../services/prompt.js';
 import { HarnessRequiredError, InvalidConfigError, InvalidHarnessError } from '../utils/errors.js';
 import type { Harness, AtelierConfig, HarnessSection } from '../types.js';
-import { HARNESS_NAMES } from '../constants.js';
+import { Harness as Harnesses } from '../constants.js';
 
 export interface InitOptions {
   harness?: string;
@@ -22,7 +22,7 @@ export async function init(options: InitOptions): Promise<void> {
 
   let harness: Harness;
   if (harnessOption) {
-    if (!HARNESS_NAMES.includes(harnessOption as Harness)) {
+    if (!Harnesses.includes(harnessOption as Harness)) {
       throw new InvalidHarnessError(harnessOption);
     }
     harness = harnessOption as Harness;
@@ -32,7 +32,7 @@ export async function init(options: InitOptions): Promise<void> {
         type: 'list',
         name: 'harness',
         message: 'Which harness are you using?',
-        choices: HARNESS_NAMES,
+        choices: Harnesses,
       },
     ]);
     harness = answer.harness as Harness;

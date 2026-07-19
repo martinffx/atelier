@@ -43,7 +43,7 @@ describe('update', () => {
   test('throws when invalid --harness is provided', async () => {
     await init({ yes: true, harness: 'claude' });
     await expect(update({ harness: 'foobar' })).rejects.toThrow(
-      'Invalid harness "foobar". Must be claude, opencode, or codex.'
+       'Invalid harness "foobar". Must be claude, opencode, codex, or cursor.'
     );
   });
 
@@ -122,6 +122,29 @@ describe('update', () => {
 
     expect(existsSync(join(tempDir, '.codex/agents/recon.toml'))).toBe(true);
   });
+
+  test('regenerates Cursor agents and persists selected models', async () => {
+    await init({ yes: true, harness: 'cursor' });
+    const nativeConfig = join(tempDir, '.cursor/cli-config.json');
+    writeFileSync(nativeConfig, '{"model":"user-managed"}\n');
+    inquirerAnswers = {
+      recon: 'cursor-grok-4.5-high',
+      oracle: 'kimi-k2.7-code',
+      architect: 'glm-5.2-high',
+      confirm: true,
+    };
+
+    await update({ harness: 'cursor' });
+
+    const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
+    expect(config.cursor.agents).toEqual([
+      { template: 'recon', name: 'recon', model: 'cursor-grok-4.5-high' },
+      { template: 'oracle', name: 'oracle', model: 'kimi-k2.7-code' },
+      { template: 'architect', name: 'architect', model: 'glm-5.2-high' },
+    ]);
+    expect(readFileSync(join(tempDir, '.cursor/agents/recon.md'), 'utf-8')).toContain('model: cursor-grok-4.5-high');
+    expect(readFileSync(nativeConfig, 'utf-8')).toBe('{"model":"user-managed"}\n');
+  });
 });
 
 describe('remove', () => {
@@ -132,7 +155,7 @@ describe('remove', () => {
   test('throws when invalid --harness is provided', async () => {
     await init({ yes: true, harness: 'claude' });
     await expect(remove({ harness: 'foobar' })).rejects.toThrow(
-      'Invalid harness "foobar". Must be claude, opencode, or codex.'
+       'Invalid harness "foobar". Must be claude, opencode, codex, or cursor.'
     );
   });
 
@@ -250,6 +273,19 @@ describe('remove', () => {
 
     expect(existsSync(join(tempDir, '.codex/agents/recon.toml'))).toBe(false);
     expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(true);
+  });
+
+  test('removes Cursor agents while preserving native Cursor configuration', async () => {
+    await init({ yes: true, harness: 'cursor' });
+    const nativeConfig = join(tempDir, '.cursor/cli-config.json');
+    mkdirSync(join(tempDir, '.cursor'), { recursive: true });
+    writeFileSync(nativeConfig, '{"model":"user-managed"}\n');
+
+    await remove({ harness: 'cursor' });
+
+    expect(existsSync(join(tempDir, '.cursor/agents/recon.md'))).toBe(false);
+    expect(readFileSync(nativeConfig, 'utf-8')).toBe('{"model":"user-managed"}\n');
+    expect(existsSync(join(tempDir, '.atelier/config.json'))).toBe(false);
   });
 
 });

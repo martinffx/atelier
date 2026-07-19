@@ -1,9 +1,9 @@
 import type { z } from 'zod';
 import type inquirer from 'inquirer';
-import { AGENT_NAMES, HARNESS_NAMES } from './constants.js';
+import { AGENT_NAMES, Harness } from './constants.js';
 import { AgentSchema, SimpleConfigSchema, OpenCodeConfigSchema, CursorConfigSchema } from './utils/schemas.js';
 
-export type Harness = typeof HARNESS_NAMES[number];
+export type Harness = typeof Harness[number];
 export type AgentName = typeof AGENT_NAMES[number];
 
 export type Provider = 'anthropic' | 'opencode-zen' | 'opencode-go' | 'amazon-bedrock' | 'openai';

@@ -1,7 +1,7 @@
 import inquirer from 'inquirer';
 import { getConfiguredHarnesses } from '../utils/config.js';
 import { InvalidConfigError, InvalidHarnessError } from '../utils/errors.js';
-import { HARNESS_NAMES } from '../constants.js';
+import { Harness as Harnesses } from '../constants.js';
 import type { AtelierConfig, Harness } from '../types.js';
 
 export async function resolveHarness(
@@ -10,7 +10,7 @@ export async function resolveHarness(
   command: string,
 ): Promise<Harness> {
   if (harnessOption) {
-    if (!HARNESS_NAMES.includes(harnessOption as Harness)) {
+    if (!Harnesses.includes(harnessOption as Harness)) {
       throw new InvalidHarnessError(harnessOption);
     }
     const configured = getConfiguredHarnesses(config);
