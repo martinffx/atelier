@@ -13,6 +13,10 @@ export const SimpleConfigSchema = z.object({
   agents: z.array(AgentSchema).min(1),
 });
 
+export const CursorConfigSchema = z.object({
+  agents: z.array(AgentSchema).min(1),
+}).strict();
+
 export const OPENCODE_PROVIDERS = ['opencode-zen', 'opencode-go', 'amazon-bedrock', 'openai'] as const;
 
 export const OpenCodeConfigSchema = z.object({
