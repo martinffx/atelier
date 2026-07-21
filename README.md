@@ -6,13 +6,13 @@
 >
 > [Wikipedia](https://en.wikipedia.org/wiki/Atelier)
 
-A personal development toolkit for AI agents - spec-driven development, code quality, deep thinking, and ecosystem patterns.
+A personal development toolkit for AI agents. It covers spec-driven development, code quality, deep thinking, and ecosystem patterns.
 
-Atelier ships as a set of skills installed via `npx skills` plus a small CLI that generates harness-native agent definitions and configuration.
+Atelier includes skills installed with `npx skills` and a small CLI for generating agent definitions and configuration for supported harnesses.
 
-## Quick Start
+## Quick start
 
-Install Atelier with a single command. It configures agents and harness-native settings for Claude Code, OpenCode, Codex, or Cursor:
+Install Atelier, then choose the harness you use. The CLI configures agents and harness-native settings for Claude Code, OpenCode, Codex, and Cursor.
 
 ```bash
 # Initialize atelier for your harness
@@ -22,23 +22,56 @@ npx @martinffx/atelier@latest init --harness <claude|opencode|codex|cursor>
 npx @martinffx/atelier@latest init --harness <claude|opencode|codex|cursor> --yes
 ```
 
-That's it. Your project is now configured for spec-driven development.
+Your project is ready to use the spec workflow.
 
-## What Gets Installed
+## Rationale and inspiration
 
-Atelier sets up two things:
+Coding agents are more useful when they know a project's conventions, patterns, preferences, and quality bar. Atelier is my way of recording that context as reusable skills and workflows. Models remain unpredictable, but a deliberate method makes good results more repeatable. [Building Your Own Agent Harness](https://www.martinrichards.me/post/building_your_own_agent_harness/) explains the thinking behind it.
 
-### 1. Skills (28 available)
+The name is literal. An atelier is a workshop where a principal works with assistants. Here, the developer is the principal, agents are the assistants, the codebase is the workshop, and skills record how the work happens.
 
-Specialized knowledge modules that auto-invoke based on context. Install them separately:
+Atelier draws on spec-driven development and several projects that informed its approach to agent collaboration:
+
+- [Agent OS](https://github.com/buildermethods/agent-os) for discovering project standards and shaping lightweight specs.
+- [OpenSpec](https://github.com/Fission-AI/OpenSpec) for fluid, artifact-guided workflows that support iteration and brownfield development.
+- [GitHub Spec Kit](https://github.com/github/spec-kit) for making specifications central to a structured specify, plan, tasks, and implement workflow.
+- [Superpowers](https://github.com/obra/superpowers) for composable skills, mandatory engineering workflows, TDD, and evidence-based verification.
+- [Matt Pocock's Skills](https://github.com/mattpocock/skills) for small, adaptable skills grounded in practical engineering and developer control.
+
+Some Atelier skills have more direct lineage:
+
+| Atelier skill | Source skill | Relationship |
+|---------------|--------------|--------------|
+| [`spec-orchestrator`](skills/spec-orchestrator/SKILL.md) | Superpowers [`using-superpowers`](https://github.com/obra/superpowers/tree/main/skills/using-superpowers) | Adapted from its mandatory skill-routing discipline. |
+| [`spec-brainstorm`](skills/spec-brainstorm/SKILL.md) | Superpowers [`brainstorming`](https://github.com/obra/superpowers/tree/main/skills/brainstorming) | Adapted from its conversational discovery and section-by-section design approval. |
+| [`spec-plan`](skills/spec-plan/SKILL.md) | Superpowers [`writing-plans`](https://github.com/obra/superpowers/tree/main/skills/writing-plans) | Inspired by its explicit, verifiable implementation plans. |
+| [`spec-implement`](skills/spec-implement/SKILL.md) | Superpowers [`executing-plans`](https://github.com/obra/superpowers/tree/main/skills/executing-plans) and [`test-driven-development`](https://github.com/obra/superpowers/tree/main/skills/test-driven-development) | Inspired by plan-driven execution and test-first feedback loops. |
+| [`spec-finish`](skills/spec-finish/SKILL.md) | Superpowers [`finishing-a-development-branch`](https://github.com/obra/superpowers/tree/main/skills/finishing-a-development-branch) and [`verification-before-completion`](https://github.com/obra/superpowers/tree/main/skills/verification-before-completion) | Inspired by its validation and completion workflow. |
+| [`code-subagents`](skills/code-subagents/SKILL.md) | Superpowers [`subagent-driven-development`](https://github.com/obra/superpowers/tree/main/skills/subagent-driven-development) and [`dispatching-parallel-agents`](https://github.com/obra/superpowers/tree/main/skills/dispatching-parallel-agents) | Inspired by fresh subagents, parallel dispatch, and two-stage review. |
+| [`code-handoff`](skills/code-handoff/SKILL.md) | Matt Pocock's [`handoff`](https://github.com/mattpocock/skills/tree/main/skills/productivity/handoff) | Adapted from its context-preserving handoff format. |
+| [`oracle-grill-me`](skills/oracle-grill-me/SKILL.md) | Matt Pocock's [`grilling`](https://github.com/mattpocock/skills/tree/main/skills/productivity/grilling) and [`grill-with-docs`](https://github.com/mattpocock/skills/tree/main/skills/engineering/grill-with-docs) | Adapted from its rigorous interview loop and integration with living domain documentation. |
+| [`oracle-domain-modelling`](skills/oracle-domain-modelling/SKILL.md) | Matt Pocock's [`domain-modeling`](https://github.com/mattpocock/skills/tree/main/skills/engineering/domain-modeling) | Adapted from its active domain-modelling discipline, `CONTEXT.md`, and lightweight ADRs. |
+| [`oracle-debug`](skills/oracle-debug/SKILL.md) | Superpowers [`systematic-debugging`](https://github.com/obra/superpowers/tree/main/skills/systematic-debugging) and Matt Pocock's [`diagnosing-bugs`](https://github.com/mattpocock/skills/tree/main/skills/engineering/diagnosing-bugs) | Adapted from their root-cause-first debugging workflows. |
+
+Elsewhere, [`typescript-functional-patterns`](skills/typescript-functional-patterns/SKILL.md) draws on Rastrian's [Why Reliability Demands Functional Programming, ADTs, Safety and Critical Infrastructure](https://blog.rastrian.dev/post/why-reliability-demands-functional-programming-adts-safety-and-critical-infrastructure), and [`code-commit`](skills/code-commit/SKILL.md) follows the [Conventional Commits](https://www.conventionalcommits.org/) specification.
+
+Atelier adapts these ideas into an opinionated toolkit that works across harnesses. It does not claim to have invented the practices it uses.
+
+## What gets installed
+
+Atelier sets up the following:
+
+### 1. Skills (29 available)
+
+Skills are specialized knowledge modules that load when their context applies. Install them separately:
 
 ```bash
 npx skills add martinffx/atelier
 ```
 
-### 2. Agent Personas (3 subagents)
+### 2. Agent personas (3 subagents)
 
-Harness-agnostic agent definitions configured with appropriate models:
+Agent definitions are generated for each supported harness with appropriate models:
 
 | Agent | Role | Claude | OpenCode | Codex | Cursor |
 |-------|------|--------|----------|-------|--------|
@@ -46,20 +79,20 @@ Harness-agnostic agent definitions configured with appropriate models:
 | **Oracle** | Strategic thinking, requirements, analysis | opus | kimi-k2.6 | gpt-5.6-sol | claude-opus-4-8-high |
 | **Architect** | DDD, system design, architecture | opus | deepseek-v4-pro | gpt-5.6-sol | gpt-5.6-sol-medium |
 
-Agents are generated into harness-specific locations (`.claude/agents/`, `.opencode/agent/`, `.codex/agents/`, `~/.cursor/agents/`) with harness-native model identifiers. Cursor's primary model and `~/.cursor/cli-config.json` remain user-managed; Atelier only generates its three global subagents.
+The CLI writes agents to harness-specific locations: `.claude/agents/`, `.opencode/agent/`, `.codex/agents/`, or `~/.cursor/agents/`. It uses each harness's model identifiers. Cursor's primary model and `~/.cursor/cli-config.json` remain user-managed. Atelier only creates its three global subagents.
 
-### 3. Task Tracking (optional)
+### 3. Task tracking (optional)
 
-The spec workflow skills support **beads** for dependency-aware task tracking:
+The spec workflow can use **beads** for dependency-aware task tracking:
 
 ```bash
 # Install beads (optional but recommended)
 npm install -g beads
 ```
 
-**Why beads?** It provides `bd ready` (finds next unblocked task), `bd dep add` (dependency management), and `bd list` (progress tracking) that harness-native todos can't match.
+Beads provides `bd ready` to find unblocked tasks, `bd dep add` to manage dependencies, and `bd list` to show progress. Harness-native todo systems do not provide the same dependency support.
 
-**Fallback:** If beads isn't installed, skills fall back to the harness's native todo system (TodoWrite for Claude Code, built-in todos for OpenCode).
+If beads is unavailable, skills use the harness's native todo system: TodoWrite for Claude Code or built-in todos for OpenCode.
 
 ### 4. Configuration
 
@@ -82,21 +115,21 @@ Single source of truth in `.atelier/config.json`:
 }
 ```
 
-## CLI Commands
+## CLI commands
 
 ### `init` (default)
 
-Initialize atelier for a single harness. Each invocation configures one harness; run it multiple times to configure several.
+Initialize Atelier for one harness. Run the command again for each additional harness.
 
 ```bash
 npx @martinffx/atelier@latest init --harness <claude|opencode|codex|cursor> [options]
 ```
 
-**Options:**
+Options:
 - `--harness <type>` - Harness type (`claude`, `opencode`, `codex`, or `cursor`)
 - `--yes` - Non-interactive mode with default models
 
-**Idempotent**: Re-running `init` for the same harness is safe. It regenerates files without deleting anything unless you switch harnesses.
+You can safely re-run `init` for the same harness. It regenerates its files and does not delete existing files unless you switch harnesses.
 
 ### `update`
 
@@ -118,9 +151,9 @@ Skills remain installed. Run `npx skills remove martinffx/atelier` to remove the
 
 ## Skills
 
-This repository includes 28 skills that enhance AI agents with specialized knowledge and workflows.
+This repository includes 29 skills for agent workflows and stack-specific guidance.
 
-### Installing Skills
+### Installing skills
 
 Install skills manually:
 
@@ -134,71 +167,71 @@ npx skills add martinffx/atelier --skill python-fastapi
 npx skills add martinffx/atelier --skill spec-brainstorm
 ```
 
-### Skill Types
+### Skill types
 
-Skills fall into four categories based on what they do:
+Skills fall into four groups:
 
-#### Workflow Skills (`spec:*`)
+#### Workflow skills (`spec:*`)
 
-Process-oriented skills that guide you through structured development workflows. These produce artifacts and should be followed step-by-step.
+These skills guide structured development work. They produce artifacts and should be used in order.
 
-- `spec-brainstorm` → `design.md` — Discovery, requirements, architecture
-- `spec-plan` → `plan.json` — Break spec into implementable tasks
-- `spec-implement` — Execute tasks with TDD
-- `spec-finish` — Validate, review, prepare for PR
-- `spec-orchestrator` — Route to the right skill based on context
+- `spec-brainstorm` → `design.md`: discovery, requirements, and architecture
+- `spec-plan` → `plan.json`: break the design into implementable tasks
+- `spec-implement`: execute tasks with TDD
+- `spec-finish`: validate, review, and prepare for a PR
+- `spec-orchestrator`: route work to the right skill
 
-#### Thinking Skills (`oracle:*`)
+#### Thinking skills (`oracle:*`)
 
-Analytical skills that provide patterns, principles, and deep reasoning. These adapt to your specific situation.
+These skills provide analytical methods and reasoning patterns that adapt to the problem at hand.
 
-- `oracle-debug` — Systematic debugging, root cause before fixes
-- `oracle-grill-me` — Socratic interrogation of plans against domain model
-- `oracle-domain-modelling` — Build and sharpen the project's domain model
+- `oracle-debug`: systematic debugging that finds the root cause before a fix
+- `oracle-grill-me`: Socratic review of plans against the domain model
+- `oracle-domain-modelling`: build and refine the project's domain model
 
-#### Domain Knowledge (`python:*`, `typescript:*`)
+#### Domain knowledge (`python:*`, `typescript:*`)
 
-Technology-specific patterns and best practices. These are like having a senior engineer for that stack.
+These skills cover technology-specific patterns and practices.
 
 **TypeScript (8 skills)**
-- `typescript-api-design` — REST conventions, error responses, pagination
-- `typescript-fastify` — Fastify + TypeBox route handlers
-- `typescript-drizzle-orm` — Type-safe SQL schemas and queries
-- `typescript-dynamodb-toolbox` — Single-table design, GSIs
-- `typescript-functional-patterns` — ADTs, branded types, Option/Result
-- `typescript-effect-ts` — Functional effects, error handling, resources
-- `typescript-build-tools` — Bun, Vitest, Biome, Turborepo
-- `typescript-testing` — Mocking, MSW, snapshot testing
+- `typescript-api-design`: REST conventions, error responses, and pagination
+- `typescript-fastify`: Fastify and TypeBox route handlers
+- `typescript-drizzle-orm`: type-safe SQL schemas and queries
+- `typescript-dynamodb-toolbox`: single-table design and GSIs
+- `typescript-functional-patterns`: ADTs, branded types, and Option/Result
+- `typescript-effect-ts`: functional effects, error handling, and resources
+- `typescript-build-tools`: Bun, Vitest, Biome, and Turborepo
+- `typescript-testing`: mocking, MSW, and snapshot testing
 
 **Python (8 skills)**
-- `python-architecture` — Functional core/shell, DDD, layered architecture
-- `python-fastapi` — Pydantic validation, dependency injection, OpenAPI
-- `python-sqlalchemy` — ORM patterns, queries, async, upserts
-- `python-temporal` — Workflow orchestration, activities, error handling
-- `python-modern-python` — Type hints, generics, pattern matching
-- `python-monorepo` — uv workspaces, mise task orchestration
-- `python-testing` — Stub-driven TDD, pytest patterns
-- `python-build-tools` — uv, ruff, basedpyright, pytest config
+- `python-architecture`: functional core/shell, DDD, and layered architecture
+- `python-fastapi`: Pydantic validation, dependency injection, and OpenAPI
+- `python-sqlalchemy`: ORM patterns, queries, async, and upserts
+- `python-temporal`: workflow orchestration, activities, and error handling
+- `python-modern-python`: type hints, generics, and pattern matching
+- `python-monorepo`: uv workspaces and mise task orchestration
+- `python-testing`: stub-driven TDD and pytest patterns
+- `python-build-tools`: uv, ruff, basedpyright, and pytest configuration
 
-#### Utility Skills (`code:*`)
+#### Utility skills (`code:*`)
 
-Task-specific tools you invoke when you need them.
+These skills handle discrete tasks when you invoke them.
 
-- `code-commit` — Generate and validate conventional commits
-- `code-handoff` — Compact conversation into handoff document
-- `code-pull-request` — Create, comment on, and merge GitHub pull requests or GitLab merge requests
-- `code-review` — Multi-agent code review with specialized reviewers
-- `code-subagents` — Dispatch patterns for parallel implementation
+- `code-commit`: generate and validate conventional commits
+- `code-handoff`: turn a conversation into a handoff document
+- `code-pull-request`: create, comment on, and merge GitHub pull requests or GitLab merge requests
+- `code-review`: multi-agent code review with specialized reviewers
+- `code-subagents`: dispatch patterns for parallel implementation
 
-Skills are auto-invoked based on their description when you work with relevant technologies. No commands needed—just install and AI agents will use them when appropriate.
+Skills load based on their descriptions when the work calls for them. Install them once, then agents can use them as needed.
 
-## How Skills Work
+## How skills work
 
-Skills are auto-invoked based on context. When you say "create a spec for user auth", the AI matches this to `spec-brainstorm` and loads it automatically.
+Skills load from context. For example, "create a spec for user auth" matches `spec-brainstorm`.
 
-### Namespace Philosophy
+### Namespace philosophy
 
-Skills are organized into four categories based on their role:
+Skills are grouped by role:
 
 | Category | Prefix | Type | Invocation | Output | Flexibility |
 |----------|--------|------|------------|--------|-------------|
@@ -207,12 +240,12 @@ Skills are organized into four categories based on their role:
 | **Domain Knowledge** | `python:`, `typescript:` | Technology | Context-driven | Patterns | Adapt to context |
 | **Utility** | `code:` | Task-specific | User command | Result | Use as needed |
 
-- **Workflow** (`spec:`) — Sequential steps that produce artifacts. Follow them in order.
-- **Thinking** (`oracle:`) — Analytical capabilities that reason about your specific problem.
-- **Domain Knowledge** (`python-*`, `typescript-*`) — Stack-specific patterns and best practices. Like having a senior engineer for that technology.
-- **Utility** (`code:`) — Task-specific tools you invoke directly when needed.
+- **Workflow** (`spec:`): sequential steps that produce artifacts. Use them in order.
+- **Thinking** (`oracle:`): analytical methods for the problem in front of you.
+- **Domain Knowledge** (`python-*`, `typescript-*`): stack-specific patterns and practices.
+- **Utility** (`code:`): tools for tasks you invoke directly.
 
-### The Spec Workflow
+### The spec workflow
 
 ```mermaid
 graph LR
@@ -227,18 +260,18 @@ graph LR
     D -.->|bugs found| C
 ```
 
-**Standard flow:**
-1. **Research** - Discovery + research + architecture → `design.md`
-2. **Plan** - Break into tasks → `plan.json`
-3. **Implement** - Execute with TDD
-4. **Finish** - Validate, review, and open the PR
+Standard flow:
+1. **Research**: discovery, research, and architecture produce `design.md`.
+2. **Plan**: break the design into tasks in `plan.json`.
+3. **Implement**: execute the tasks with TDD.
+4. **Finish**: validate the work, review it, and open the PR.
 
-**Iteration is normal** - Backflows (dotted lines) are expected when:
-- Planning reveals design flaws → back to research
-- Implementation finds missing tasks → update plan
-- Validation finds bugs → back to implement
+The dotted lines show expected backflows:
+- Planning may expose a design flaw, so return to research.
+- Implementation may uncover missing tasks, so update the plan.
+- Validation may find bugs, so return to implementation.
 
-### When to Use Which Skill
+### When to use which skill
 
 | User says | Skill invoked |
 |------------|---------------|
@@ -255,7 +288,7 @@ graph LR
 
 ## Development
 
-For local development with Claude Code, use the `--plugin-dir` flag to load skills directly:
+For local development with Claude Code, load skills directly with `--plugin-dir`:
 
 ```bash
 claude --plugin-dir ./atelier
