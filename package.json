@@ -1,6 +1,6 @@
 {
   "name": "@martinffx/atelier",
-  "version": "1.4.0",
+  "version": "2.0.0",
   "description": "Personal development toolkit - spec-driven development, code quality, deep thinking, and ecosystem patterns",
   "type": "module",
   "bin": {

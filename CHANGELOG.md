@@ -4,6 +4,19 @@
 
 - **breaking:** rename the `recon` agent to `sentinel`. Existing Atelier configuration is migrated automatically and legacy generated files are removed during the next command.
 
+## [2.0.0](https://github.com/martinffx/atelier/compare/v1.4.0...v2.0.0) (2026-07-22)
+
+
+### ⚠ BREAKING CHANGES
+
+* **agents:** rename recon to sentinel
+
+### Features
+
+* **agents:** rename recon to sentinel ([bf69c50](https://github.com/martinffx/atelier/commit/bf69c50d7f69d0c1f7fc36d1d384914d99def81d))
+* **cursor:** add Cursor harness support ([c0ed4e3](https://github.com/martinffx/atelier/commit/c0ed4e356d3a34a085ca5f11344876bdf59ae618))
+* **cursor:** add subagent adapter foundation ([7b17972](https://github.com/martinffx/atelier/commit/7b1797267b96b502cb8002cdb1a7bac707978a7d))
+
 ## [1.4.0](https://github.com/martinffx/atelier/compare/v1.3.0...v1.4.0) (2026-07-18)
 
 
