@@ -75,13 +75,13 @@ Agent definitions are generated for each supported harness with appropriate mode
 
 | Agent | Role | Claude | OpenCode | Codex | Cursor |
 |-------|------|--------|----------|-------|--------|
-| **Recon** | Fast codebase reconnaissance | haiku | deepseek-v4-flash | gpt-5.6-luna | composer-2.5 |
+| **Sentinel** | Fast codebase reconnaissance | haiku | deepseek-v4-flash | gpt-5.6-luna | composer-2.5 |
 | **Oracle** | Strategic thinking, requirements, analysis | opus | kimi-k2.6 | gpt-5.6-sol | claude-opus-4-8-high |
 | **Architect** | DDD, system design, architecture | opus | deepseek-v4-pro | gpt-5.6-sol | gpt-5.6-sol-medium |
 
 The CLI writes agents to harness-specific locations: `.claude/agents/`, `.opencode/agent/`, `.codex/agents/`, or `~/.cursor/agents/`. It uses each harness's model identifiers. Cursor's primary model and `~/.cursor/cli-config.json` remain user-managed. Atelier only creates its three global subagents.
 
-The agent personas carry a light *Matrix* theme. Recon takes after the Sentinels: it moves quickly through the codebase, locating what matters and reporting back. Oracle clarifies human needs and choices under uncertainty. Architect turns those requirements into structured technical designs.
+The agent personas carry a light *Matrix* theme. Sentinel takes after the Sentinels: it moves quickly through the codebase, locating what matters and reporting back. Oracle clarifies human needs and choices under uncertainty. Architect turns those requirements into structured technical designs.
 
 ### 3. Task tracking (optional)
 
@@ -109,7 +109,7 @@ Single source of truth in `.atelier/config.json`:
     "provider": "anthropic",
     "default_model": "opusplan",
     "agents": [
-      { "template": "recon", "name": "recon", "model": "haiku" },
+      { "template": "sentinel", "name": "sentinel", "model": "haiku" },
       { "template": "oracle", "name": "oracle", "model": "opus" },
       { "template": "architect", "name": "architect", "model": "opus" }
     ]

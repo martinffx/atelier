@@ -60,7 +60,7 @@ describe('claude adapter', () => {
 
   it('installAgents writes agent files', () => {
     claudeAdapter.installAgents(section(), basePath);
-    for (const name of ['recon', 'oracle', 'architect']) {
+    for (const name of ['sentinel', 'oracle', 'architect']) {
       const path = join(basePath, '.claude', 'agents', `${name}.md`);
       expect(existsSync(path)).toBe(true);
       const content = readFileSync(path, 'utf-8');
@@ -75,7 +75,7 @@ describe('claude adapter', () => {
     const files = claudeAdapter.fileList(basePath);
     expect(files.map(f => f.path)).toEqual([
       join(basePath, '.claude', 'settings.json'),
-      join(basePath, '.claude', 'agents', 'recon.md'),
+      join(basePath, '.claude', 'agents', 'sentinel.md'),
       join(basePath, '.claude', 'agents', 'oracle.md'),
       join(basePath, '.claude', 'agents', 'architect.md'),
     ]);
@@ -88,7 +88,7 @@ describe('claude adapter', () => {
 
     claudeAdapter.remove(s, basePath);
 
-    expect(existsSync(join(basePath, '.claude', 'agents', 'recon.md'))).toBe(false);
+    expect(existsSync(join(basePath, '.claude', 'agents', 'sentinel.md'))).toBe(false);
     expect(existsSync(join(basePath, '.claude', 'agents', 'oracle.md'))).toBe(false);
     expect(existsSync(join(basePath, '.claude', 'agents', 'architect.md'))).toBe(false);
     expect(existsSync(join(basePath, '.claude', 'agents'))).toBe(false);
@@ -126,6 +126,6 @@ describe('claude adapter', () => {
 
     expect(existsSync(userAgent)).toBe(true);
     expect(existsSync(agentsDir)).toBe(true);
-    expect(existsSync(join(agentsDir, 'recon.md'))).toBe(false);
+    expect(existsSync(join(agentsDir, 'sentinel.md'))).toBe(false);
   });
 });

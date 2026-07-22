@@ -5,7 +5,7 @@ describe('CursorConfigSchema', () => {
   it('accepts only configured Cursor agents', () => {
     const config = {
       agents: [
-        { template: 'recon', name: 'recon', model: 'composer-2.5' },
+        { template: 'sentinel', name: 'sentinel', model: 'composer-2.5' },
         { template: 'oracle', name: 'oracle', model: 'claude-opus-4-8-high' },
         { template: 'architect', name: 'architect', model: 'gpt-5.6-sol-medium' },
       ],

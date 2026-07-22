@@ -14,7 +14,7 @@
       "agents": [
         "./agents/oracle",
         "./agents/architect",
-        "./agents/recon"
+        "./agents/sentinel"
       ],
       "skills": [
         "./skills/spec-brainstorm",

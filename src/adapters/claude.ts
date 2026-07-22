@@ -7,13 +7,13 @@ import { FileWriteError, HarnessConfigError } from '../utils/errors.js';
 import { shortPath } from '../services/paths.js';
 import { SimpleConfigSchema } from '../utils/schemas.js';
 import { promptForSimpleModels } from '../services/prompt.js';
-import { AGENT_NAMES } from '../constants.js';
+import { AGENT_NAMES, LEGACY_AGENT_NAME } from '../constants.js';
 
 const ANTHROPIC_MODELS = ['haiku', 'sonnet', 'opus', 'opusplan'] as const;
 
 const DEFAULT_MODELS = {
   default_model: 'opusplan',
-  recon: 'haiku',
+  sentinel: 'haiku',
   oracle: 'opus',
   architect: 'opus',
 } as const;
@@ -59,6 +59,7 @@ function installAgents(section: HarnessSection, basePath: string): void {
   } catch (err) {
     throw new FileWriteError(agentsDir, err instanceof Error ? err.message : String(err));
   }
+  rmSync(join(agentsDir, `${LEGACY_AGENT_NAME}.md`), { force: true });
 
   for (const agent of config.agents) {
     const template = readTemplate(agent.template);
@@ -115,6 +116,7 @@ function remove(section: HarnessSection, basePath: string): void {
       rmSync(file, { force: true });
     }
   }
+  rmSync(join(agentsDir, `${LEGACY_AGENT_NAME}.md`), { force: true });
 
   removeDirIfEmpty(agentsDir);
   removeAtelierSettings(claudeDir);

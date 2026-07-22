@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readdirSync, rmSync, rmdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import inquirer from 'inquirer';
-import { AGENT_NAMES } from '../constants.js';
+import { AGENT_NAMES, LEGACY_AGENT_NAME } from '../constants.js';
 import { shortPath } from '../services/paths.js';
 import type { CursorConfig, FileEntry, HarnessAdapter, HarnessSection, Provider } from '../types.js';
 import { CursorConfigSchema } from '../utils/schemas.js';
@@ -21,7 +21,7 @@ const CURSOR_MODELS = [
 ] as const;
 
 const DEFAULT_MODELS = {
-  recon: 'composer-2.5',
+  sentinel: 'composer-2.5',
   oracle: 'claude-opus-4-8-high',
   architect: 'gpt-5.6-sol-medium',
 } as const;
@@ -76,6 +76,7 @@ function installAgents(section: HarnessSection, basePath: string): void {
   } catch (err) {
     throw new FileWriteError(agentsDir, err instanceof Error ? err.message : String(err));
   }
+  rmSync(join(agentsDir, `${LEGACY_AGENT_NAME}.md`), { force: true });
 
   for (const agent of config.agents) {
     const template = readTemplate(agent.template);
@@ -105,6 +106,7 @@ function remove(section: HarnessSection, basePath: string): void {
     for (const agent of config.agents) {
       rmSync(join(agentsDir, `${agent.name}.md`), { force: true });
     }
+    rmSync(join(agentsDir, `${LEGACY_AGENT_NAME}.md`), { force: true });
     if (existsSync(agentsDir) && readdirSync(agentsDir).length === 0) {
       rmdirSync(agentsDir);
     }

@@ -34,9 +34,9 @@ describe('cursor adapter', () => {
     cursorAdapter.mergeHarnessConfig(cursorAdapter.defaultSection(), basePath);
     cursorAdapter.installAgents(cursorAdapter.defaultSection(), basePath);
 
-    const agentPath = join(basePath, '.cursor', 'agents', 'recon.md');
+    const agentPath = join(basePath, '.cursor', 'agents', 'sentinel.md');
     expect(readFileSync(agentPath, 'utf-8')).toContain('model: composer-2.5');
-    expect(readFileSync(agentPath, 'utf-8')).toContain('name: recon');
+    expect(readFileSync(agentPath, 'utf-8')).toContain('name: sentinel');
     expect(readFileSync(nativeConfigPath, 'utf-8')).toBe('{"user":"config"}\n');
   });
 
@@ -51,7 +51,7 @@ describe('cursor adapter', () => {
     writeFileSync(userAgentPath, '---\nname: user\n---\n');
     cursorAdapter.remove(section, basePath);
 
-    expect(existsSync(join(basePath, '.cursor', 'agents', 'recon.md'))).toBe(false);
+    expect(existsSync(join(basePath, '.cursor', 'agents', 'sentinel.md'))).toBe(false);
     expect(existsSync(userAgentPath)).toBe(true);
     expect(readFileSync(nativeConfigPath, 'utf-8')).toBe('{"user":"config"}\n');
   });

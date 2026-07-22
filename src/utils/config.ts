@@ -3,7 +3,7 @@ import { dirname, join } from 'path';
 import { homedir } from 'os';
 import { z } from 'zod';
 import type { AtelierConfig, Harness, SharedConfig, HarnessSection } from '../types.js';
-import { Harness as Harnesses } from '../constants.js';
+import { Harness as Harnesses, LEGACY_AGENT_NAME } from '../constants.js';
 import { listAdapters, getAdapter } from '../registry.js';
 import { InvalidConfigError } from './errors.js';
 import type { Result } from './result.js';
@@ -73,11 +73,42 @@ export function readConfig(path: string = CONFIG_PATH): Result<AtelierConfig, Co
   }
 
   try {
-    return ok(validateConfig(parsed));
+    return ok(validateConfig(migrateLegacyAgentName(parsed)));
   } catch (validationErr) {
     const message = validationErr instanceof Error ? validationErr.message : String(validationErr);
     return err({ type: 'invalid', message });
   }
+}
+
+function migrateLegacyAgentName(config: unknown): unknown {
+  if (typeof config !== 'object' || config === null) {
+    return config;
+  }
+
+  const migrated = { ...(config as Record<string, unknown>) };
+  for (const harness of Harnesses) {
+    const section = migrated[harness];
+    if (typeof section !== 'object' || section === null || !Array.isArray((section as Record<string, unknown>).agents)) {
+      continue;
+    }
+
+    const agents = (section as Record<string, unknown>).agents as unknown[];
+    migrated[harness] = {
+      ...(section as Record<string, unknown>),
+      agents: agents.map(agent => {
+        if (typeof agent !== 'object' || agent === null) {
+          return agent;
+        }
+        const entry = agent as Record<string, unknown>;
+        return {
+          ...entry,
+          template: entry.template === LEGACY_AGENT_NAME ? 'sentinel' : entry.template,
+          name: entry.name === LEGACY_AGENT_NAME ? 'sentinel' : entry.name,
+        };
+      }),
+    };
+  }
+  return migrated;
 }
 
 function isOldFlatConfig(config: unknown): boolean {

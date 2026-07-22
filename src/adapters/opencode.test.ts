@@ -34,7 +34,7 @@ describe('opencode adapter', () => {
     expect(openAiSection.build_model).toBe('openai/gpt-5.6-terra');
     expect(openAiSection.plan_model).toBe('openai/gpt-5.6-sol');
     expect(openAiSection.agents).toEqual([
-      { template: 'recon', name: 'recon', model: 'openai/gpt-5.6-luna' },
+      { template: 'sentinel', name: 'sentinel', model: 'openai/gpt-5.6-luna' },
       { template: 'oracle', name: 'oracle', model: 'openai/gpt-5.6-sol' },
       { template: 'architect', name: 'architect', model: 'openai/gpt-5.6-sol' },
     ]);
@@ -69,7 +69,7 @@ describe('opencode adapter', () => {
   it('installAgents writes agent files', () => {
     opencodeAdapter.installAgents(section(), basePath);
     const agentsDir = join(getOpencodeRoot(basePath), 'agent');
-    for (const name of ['recon', 'oracle', 'architect']) {
+    for (const name of ['sentinel', 'oracle', 'architect']) {
       const path = join(agentsDir, `${name}.md`);
       expect(existsSync(path)).toBe(true);
       const content = readFileSync(path, 'utf-8');
@@ -84,7 +84,7 @@ describe('opencode adapter', () => {
     const files = opencodeAdapter.fileList(basePath);
     expect(files.map(f => f.path)).toEqual([
       join(basePath, 'opencode.json'),
-      join(getOpencodeRoot(basePath), 'agent', 'recon.md'),
+      join(getOpencodeRoot(basePath), 'agent', 'sentinel.md'),
       join(getOpencodeRoot(basePath), 'agent', 'oracle.md'),
       join(getOpencodeRoot(basePath), 'agent', 'architect.md'),
     ]);
@@ -103,7 +103,7 @@ describe('opencode adapter', () => {
 
     opencodeAdapter.remove(s, basePath);
 
-    expect(existsSync(join(root, 'agent', 'recon.md'))).toBe(false);
+    expect(existsSync(join(root, 'agent', 'sentinel.md'))).toBe(false);
     expect(existsSync(join(root, 'agent', 'oracle.md'))).toBe(false);
     expect(existsSync(join(root, 'agent', 'architect.md'))).toBe(false);
     expect(existsSync(join(root, 'agent'))).toBe(false);
@@ -141,7 +141,7 @@ describe('opencode adapter', () => {
 
     expect(existsSync(userAgent)).toBe(true);
     expect(existsSync(agentsDir)).toBe(true);
-    expect(existsSync(join(agentsDir, 'recon.md'))).toBe(false);
+    expect(existsSync(join(agentsDir, 'sentinel.md'))).toBe(false);
 
     rmSync(agentsDir, { recursive: true, force: true });
   });

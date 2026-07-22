@@ -27,7 +27,7 @@ describe('config', () => {
       claude: {
         default_model: 'opus',
         agents: [
-          { template: 'recon', name: 'recon', model: 'haiku' },
+          { template: 'sentinel', name: 'sentinel', model: 'haiku' },
           { template: 'oracle', name: 'oracle', model: 'opus' },
           { template: 'architect', name: 'architect', model: 'sonnet' },
         ],
@@ -137,6 +137,30 @@ describe('config', () => {
     }
   });
 
+  test('readConfig migrates legacy recon entries without changing models', async () => {
+    const { writeFileSync, mkdirSync } = await import('fs');
+    const { readConfig } = await import('./config.js');
+    const configPath = join(tempDir, '.atelier/config.json');
+    mkdirSync(join(tempDir, '.atelier'), { recursive: true });
+    writeFileSync(configPath, JSON.stringify({
+      version: '1.0.0',
+      skills_source: 'martinffx/atelier',
+      skills_path: '~/.agents/skills',
+      claude: {
+        default_model: 'opus',
+        agents: [{ template: 'recon', name: 'recon', model: 'custom-model' }],
+      },
+    }));
+
+    const result = readConfig(configPath);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.claude?.agents).toEqual([
+        { template: 'sentinel', name: 'sentinel', model: 'custom-model' },
+      ]);
+    }
+  });
+
   test('getDefaultConfig returns valid config with default models for claude', async () => {
     const { getDefaultConfig } = await import('./config.js');
 
@@ -148,8 +172,8 @@ describe('config', () => {
     expect(config.claude?.default_model).toBe('opusplan');
     expect(config.claude?.agents).toHaveLength(3);
 
-    const recon = config.claude?.agents.find(a => a.name === 'recon');
-    expect(recon?.model).toBe('haiku');
+    const sentinel = config.claude?.agents.find(a => a.name === 'sentinel');
+    expect(sentinel?.model).toBe('haiku');
 
     const oracle = config.claude?.agents.find(a => a.name === 'oracle');
     expect(oracle?.model).toBe('opus');
@@ -167,8 +191,8 @@ describe('config', () => {
     expect(config.codex?.default_model).toBe('gpt-5.6-terra');
     expect(config.codex?.agents).toHaveLength(3);
 
-    const recon = config.codex?.agents.find(a => a.name === 'recon');
-    expect(recon?.model).toBe('gpt-5.6-luna');
+    const sentinel = config.codex?.agents.find(a => a.name === 'sentinel');
+    expect(sentinel?.model).toBe('gpt-5.6-luna');
 
     const oracle = config.codex?.agents.find(a => a.name === 'oracle');
     expect(oracle?.model).toBe('gpt-5.6-sol');
@@ -182,8 +206,8 @@ describe('config', () => {
 
     expect(section.provider).toBe('opencode-zen');
 
-    const recon = section.agents.find(a => a.name === 'recon');
-    expect(recon?.model).toBe('opencode/minimax-m2.7');
+    const sentinel = section.agents.find(a => a.name === 'sentinel');
+    expect(sentinel?.model).toBe('opencode/minimax-m2.7');
 
     const oracle = section.agents.find(a => a.name === 'oracle');
     expect(oracle?.model).toBe('opencode/kimi-k2.6');
@@ -197,8 +221,8 @@ describe('config', () => {
 
     expect(section.provider).toBe('opencode-go');
 
-    const recon = section.agents.find(a => a.name === 'recon');
-    expect(recon?.model).toBe('opencode-go/minimax-m2.7');
+    const sentinel = section.agents.find(a => a.name === 'sentinel');
+    expect(sentinel?.model).toBe('opencode-go/minimax-m2.7');
 
     const oracle = section.agents.find(a => a.name === 'oracle');
     expect(oracle?.model).toBe('opencode-go/kimi-k2.6');
@@ -224,8 +248,8 @@ describe('config', () => {
 
     expect(section.provider).toBe('opencode-zen');
 
-    const recon = section.agents.find(a => a.name === 'recon');
-    expect(recon?.model).toBe('opencode/minimax-m2.7');
+    const sentinel = section.agents.find(a => a.name === 'sentinel');
+    expect(sentinel?.model).toBe('opencode/minimax-m2.7');
   });
 
   test('cursor config accepts only agent selections', async () => {
@@ -257,7 +281,7 @@ describe('config', () => {
       claude: {
         default_model: 'opus',
         agents: [
-          { template: 'recon', name: 'recon', model: 'haiku' },
+          { template: 'sentinel', name: 'sentinel', model: 'haiku' },
           { template: 'oracle', name: 'oracle', model: 'opus' },
           { template: 'architect', name: 'architect', model: 'sonnet' },
         ],
@@ -265,14 +289,14 @@ describe('config', () => {
       codex: {
         default_model: 'gpt-5.6-terra',
         agents: [
-          { template: 'recon', name: 'recon', model: 'gpt-5.6-luna' },
+          { template: 'sentinel', name: 'sentinel', model: 'gpt-5.6-luna' },
           { template: 'oracle', name: 'oracle', model: 'gpt-5.6-sol' },
           { template: 'architect', name: 'architect', model: 'gpt-5.6-sol' },
         ],
       },
       cursor: {
         agents: [
-          { template: 'recon', name: 'recon', model: 'composer-2.5' },
+          { template: 'sentinel', name: 'sentinel', model: 'composer-2.5' },
           { template: 'oracle', name: 'oracle', model: 'claude-opus-4-8-high' },
           { template: 'architect', name: 'architect', model: 'gpt-5.6-sol-medium' },
         ],
@@ -302,7 +326,7 @@ describe('config', () => {
       skills_path: '~/.agents/skills',
       claude: {
         default_model: 'opus',
-        agents: [{ template: 'recon', name: 'recon', model: 'haiku' }],
+        agents: [{ template: 'sentinel', name: 'sentinel', model: 'haiku' }],
       },
     };
 
