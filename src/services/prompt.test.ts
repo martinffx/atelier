@@ -63,13 +63,13 @@ describe('prompt', () => {
   it('prompts for default model and agent models for simple config', async () => {
     mockAnswers.push(
       { default_model: 'sonnet' },
-      { recon: 'haiku', oracle: 'opus', architect: 'opus' }
+      { sentinel: 'haiku', oracle: 'opus', architect: 'opus' }
     );
 
     const section = await promptForSection(simpleAdapter, {
       default_model: 'haiku',
       agents: [
-        { template: 'recon', name: 'recon', model: 'haiku' },
+        { template: 'sentinel', name: 'sentinel', model: 'haiku' },
         { template: 'oracle', name: 'oracle', model: 'opus' },
         { template: 'architect', name: 'architect', model: 'opus' },
       ],
@@ -77,7 +77,7 @@ describe('prompt', () => {
 
     expect(section.default_model).toBe('sonnet');
     expect(section.agents).toEqual([
-      { template: 'recon', name: 'recon', model: 'haiku' },
+      { template: 'sentinel', name: 'sentinel', model: 'haiku' },
       { template: 'oracle', name: 'oracle', model: 'opus' },
       { template: 'architect', name: 'architect', model: 'opus' },
     ]);
@@ -87,7 +87,7 @@ describe('prompt', () => {
     mockAnswers.push(
       { provider: 'opencode-go' },
       { build_model: 'b', plan_model: 'c' },
-      { recon: 'a', oracle: 'b', architect: 'c' }
+      { sentinel: 'a', oracle: 'b', architect: 'c' }
     );
 
     const section = await promptForSection(openCodeAdapter, {
@@ -95,7 +95,7 @@ describe('prompt', () => {
       build_model: 'a',
       plan_model: 'b',
       agents: [
-        { template: 'recon', name: 'recon', model: 'a' },
+        { template: 'sentinel', name: 'sentinel', model: 'a' },
         { template: 'oracle', name: 'oracle', model: 'b' },
         { template: 'architect', name: 'architect', model: 'c' },
       ],
@@ -105,7 +105,7 @@ describe('prompt', () => {
     expect(section.build_model).toBe('b');
     expect(section.plan_model).toBe('c');
     expect(section.agents).toEqual([
-      { template: 'recon', name: 'recon', model: 'a' },
+      { template: 'sentinel', name: 'sentinel', model: 'a' },
       { template: 'oracle', name: 'oracle', model: 'b' },
       { template: 'architect', name: 'architect', model: 'c' },
     ]);
@@ -123,8 +123,8 @@ describe('prompt', () => {
   it('formatFileList renders exists marker', () => {
     const files = [
       { path: '~/.claude/settings.json', exists: true },
-      { path: '~/.claude/agents/recon.md', exists: false },
+      { path: '~/.claude/agents/sentinel.md', exists: false },
     ];
-    expect(formatFileList(files)).toBe('  ~ ~/.claude/settings.json\n  + ~/.claude/agents/recon.md');
+    expect(formatFileList(files)).toBe('  ~ ~/.claude/settings.json\n  + ~/.claude/agents/sentinel.md');
   });
 });

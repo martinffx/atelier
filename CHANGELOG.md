@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **breaking:** rename the `recon` agent to `sentinel`. Existing Atelier configuration is migrated automatically and legacy generated files are removed during the next command.
+
 ## [1.4.0](https://github.com/martinffx/atelier/compare/v1.3.0...v1.4.0) (2026-07-18)
 
 

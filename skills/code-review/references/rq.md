@@ -34,12 +34,12 @@ Capture the list of changed files and the full diff.
 
 **Purpose:** Analyze diff to determine context, select reviewers, identify relevant skills to look for.
 
-**Uses:** `recon` agent.
+**Uses:** `sentinel` agent.
 
 ### Subagent Invocation
 
 ```yaml
-subagent_type: recon
+subagent_type: sentinel
 description: "Triage diff for code review"
 prompt: |
   Analyze this code diff to determine review needs.
@@ -364,7 +364,7 @@ Display findings in terminal per [output.md](./output.md).
 | Step | Subagent | Uses | Parallel? | Purpose |
 |------|----------|------|----------|---------|
 | 1 | Get Diff | inline | — | `git diff <branch>` |
-| 2 | Triage | `recon` agent | No | Detect context, select reviewers, identify relevant skills to look for |
+| 2 | Triage | `sentinel` agent | No | Detect context, select reviewers, identify relevant skills to look for |
 | 3 | Reviewers | `oracle` agent | Yes (per reviewer) | Specialty analysis |
 | 4 | Synthesis | inline | No | Deduplicate and group |
 | 5 | Architect | `architect` agent | No | Architecture review |

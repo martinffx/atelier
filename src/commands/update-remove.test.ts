@@ -60,24 +60,24 @@ describe('update', () => {
 
     expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(true);
     expect(existsSync(join(tempDir, '.codex/config.toml'))).toBe(true);
-    expect(existsSync(join(tempDir, '.codex/agents/recon.toml'))).toBe(true);
+    expect(existsSync(join(tempDir, '.codex/agents/sentinel.toml'))).toBe(true);
 
     const claudeSettingsBefore = readFileSync(join(tempDir, '.claude/settings.json'), 'utf-8');
 
     // Delete a codex file to prove regeneration
-    rmSync(join(tempDir, '.codex/agents/recon.toml'));
-    expect(existsSync(join(tempDir, '.codex/agents/recon.toml'))).toBe(false);
+    rmSync(join(tempDir, '.codex/agents/sentinel.toml'));
+    expect(existsSync(join(tempDir, '.codex/agents/sentinel.toml'))).toBe(false);
 
     inquirerAnswers = {
       default_model: 'gpt-5.6-terra',
-      recon: 'gpt-5.6-luna',
+      sentinel: 'gpt-5.6-luna',
       oracle: 'gpt-5.6-sol',
       architect: 'gpt-5.6-sol',
       confirm: true,
     };
     await update({ harness: 'codex' });
 
-    expect(existsSync(join(tempDir, '.codex/agents/recon.toml'))).toBe(true);
+    expect(existsSync(join(tempDir, '.codex/agents/sentinel.toml'))).toBe(true);
     expect(existsSync(join(tempDir, '.codex/agents/oracle.toml'))).toBe(true);
     expect(existsSync(join(tempDir, '.codex/agents/architect.toml'))).toBe(true);
     expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(true);
@@ -93,7 +93,7 @@ describe('update', () => {
 
     inquirerAnswers = {
       default_model: 'gpt-5.6-luna',
-      recon: 'gpt-5.6-luna',
+      sentinel: 'gpt-5.6-luna',
       oracle: 'gpt-5.6-luna',
       architect: 'gpt-5.6-luna',
       confirm: false,
@@ -108,19 +108,19 @@ describe('update', () => {
     await init({ yes: true, harness: 'claude' });
     await init({ yes: true, harness: 'codex' });
 
-    rmSync(join(tempDir, '.codex/agents/recon.toml'));
+    rmSync(join(tempDir, '.codex/agents/sentinel.toml'));
 
     inquirerAnswers = {
       harness: 'codex',
       default_model: 'gpt-5.6-terra',
-      recon: 'gpt-5.6-luna',
+      sentinel: 'gpt-5.6-luna',
       oracle: 'gpt-5.6-sol',
       architect: 'gpt-5.6-sol',
       confirm: true,
     };
     await update({});
 
-    expect(existsSync(join(tempDir, '.codex/agents/recon.toml'))).toBe(true);
+    expect(existsSync(join(tempDir, '.codex/agents/sentinel.toml'))).toBe(true);
   });
 
   test('regenerates Cursor agents and persists selected models', async () => {
@@ -128,7 +128,7 @@ describe('update', () => {
     const nativeConfig = join(tempDir, '.cursor/cli-config.json');
     writeFileSync(nativeConfig, '{"model":"user-managed"}\n');
     inquirerAnswers = {
-      recon: 'cursor-grok-4.5-high',
+      sentinel: 'cursor-grok-4.5-high',
       oracle: 'kimi-k2.7-code',
       architect: 'glm-5.2-high',
       confirm: true,
@@ -138,11 +138,11 @@ describe('update', () => {
 
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
     expect(config.cursor.agents).toEqual([
-      { template: 'recon', name: 'recon', model: 'cursor-grok-4.5-high' },
+      { template: 'sentinel', name: 'sentinel', model: 'cursor-grok-4.5-high' },
       { template: 'oracle', name: 'oracle', model: 'kimi-k2.7-code' },
       { template: 'architect', name: 'architect', model: 'glm-5.2-high' },
     ]);
-    expect(readFileSync(join(tempDir, '.cursor/agents/recon.md'), 'utf-8')).toContain('model: cursor-grok-4.5-high');
+    expect(readFileSync(join(tempDir, '.cursor/agents/sentinel.md'), 'utf-8')).toContain('model: cursor-grok-4.5-high');
     expect(readFileSync(nativeConfig, 'utf-8')).toBe('{"model":"user-managed"}\n');
   });
 });
@@ -171,18 +171,18 @@ describe('remove', () => {
     await init({ yes: true, harness: 'codex' });
 
     expect(existsSync(join(tempDir, '.claude'))).toBe(true);
-    expect(existsSync(join(tempDir, '.codex/agents/recon.toml'))).toBe(true);
+    expect(existsSync(join(tempDir, '.codex/agents/sentinel.toml'))).toBe(true);
 
     await remove({ harness: 'codex' });
 
     // Codex agent files removed
-    expect(existsSync(join(tempDir, '.codex/agents/recon.toml'))).toBe(false);
+    expect(existsSync(join(tempDir, '.codex/agents/sentinel.toml'))).toBe(false);
     expect(existsSync(join(tempDir, '.codex/agents/oracle.toml'))).toBe(false);
     expect(existsSync(join(tempDir, '.codex/agents/architect.toml'))).toBe(false);
 
     // Claude files untouched
     expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(true);
-    expect(existsSync(join(tempDir, '.claude/agents/recon.md'))).toBe(true);
+    expect(existsSync(join(tempDir, '.claude/agents/sentinel.md'))).toBe(true);
 
     // Config: claude section preserved, codex section removed
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
@@ -271,7 +271,7 @@ describe('remove', () => {
     inquirerAnswers = { harness: 'codex' };
     await remove({});
 
-    expect(existsSync(join(tempDir, '.codex/agents/recon.toml'))).toBe(false);
+    expect(existsSync(join(tempDir, '.codex/agents/sentinel.toml'))).toBe(false);
     expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(true);
   });
 
@@ -283,7 +283,7 @@ describe('remove', () => {
 
     await remove({ harness: 'cursor' });
 
-    expect(existsSync(join(tempDir, '.cursor/agents/recon.md'))).toBe(false);
+    expect(existsSync(join(tempDir, '.cursor/agents/sentinel.md'))).toBe(false);
     expect(readFileSync(nativeConfig, 'utf-8')).toBe('{"model":"user-managed"}\n');
     expect(existsSync(join(tempDir, '.atelier/config.json'))).toBe(false);
   });

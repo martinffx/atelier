@@ -54,7 +54,7 @@ describe('codex adapter', () => {
 
   it('installAgents writes agent toml files', () => {
     codexAdapter.installAgents(section(), basePath);
-    for (const name of ['recon', 'oracle', 'architect']) {
+    for (const name of ['sentinel', 'oracle', 'architect']) {
       const path = join(basePath, '.codex', 'agents', `${name}.toml`);
       expect(existsSync(path)).toBe(true);
       const content = TOML.parse(readFileSync(path, 'utf-8')) as Record<string, unknown>;
@@ -69,7 +69,7 @@ describe('codex adapter', () => {
     const files = codexAdapter.fileList(basePath);
     expect(files.map(f => f.path)).toEqual([
       join(basePath, '.codex', 'config.toml'),
-      join(basePath, '.codex', 'agents', 'recon.toml'),
+      join(basePath, '.codex', 'agents', 'sentinel.toml'),
       join(basePath, '.codex', 'agents', 'oracle.toml'),
       join(basePath, '.codex', 'agents', 'architect.toml'),
     ]);
@@ -81,7 +81,7 @@ describe('codex adapter', () => {
     codexAdapter.installAgents(s, basePath);
     codexAdapter.remove(s, basePath);
 
-    expect(existsSync(join(basePath, '.codex', 'agents', 'recon.toml'))).toBe(false);
+    expect(existsSync(join(basePath, '.codex', 'agents', 'sentinel.toml'))).toBe(false);
     expect(existsSync(join(basePath, '.codex', 'agents', 'oracle.toml'))).toBe(false);
     expect(existsSync(join(basePath, '.codex', 'agents', 'architect.toml'))).toBe(false);
     expect(existsSync(join(basePath, '.codex', 'agents'))).toBe(false);
@@ -118,7 +118,7 @@ describe('codex adapter', () => {
 
     expect(existsSync(userAgent)).toBe(true);
     expect(existsSync(agentsDir)).toBe(true);
-    expect(existsSync(join(agentsDir, 'recon.toml'))).toBe(false);
+    expect(existsSync(join(agentsDir, 'sentinel.toml'))).toBe(false);
 
     // Cleanup so the empty-dir removal does not affect other assertions
     rmSync(agentsDir, { recursive: true, force: true });

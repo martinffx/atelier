@@ -35,4 +35,4 @@ Before finishing, confirm you have:
 - DO apply architectural patterns and load relevant skills
 - DON'T write implementation code (that's for `spec-implement`)
 - DON'T conduct discovery interviews (that's `oracle`)
-- DON'T handle file operations or template application (that's `recon`)
+- DON'T handle file operations or template application (that's `sentinel`)

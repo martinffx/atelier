@@ -34,7 +34,7 @@ Use these concrete harness subagent types. If an exact match is unavailable, use
 
 | `subagent_type` | Purpose |
 |-----------------|---------|
-| `recon` | Triage only: changed-file analysis, context retrieval, reviewer selection |
+| `sentinel` | Triage only: changed-file analysis, context retrieval, reviewer selection |
 | `oracle` | Parallel reviewer personas, evidence-based critique, failure-mode analysis, challenge validation |
 | `architect` | Architecture, design-boundary, data-model, and API-contract review |
 
@@ -67,7 +67,7 @@ Follows [code-subagents](../code-subagents/SKILL.md) patterns:
 
 | Agent | Used In Step |
 |-------|--------------|
-| `recon` | Triage only (context retrieval, file analysis) |
+| `sentinel` | Triage only (context retrieval, file analysis) |
 | `oracle` | Reviewers and challenge validation |
 | `architect` | Architect (architecture review) |
 

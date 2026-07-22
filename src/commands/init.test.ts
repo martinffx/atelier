@@ -40,7 +40,7 @@ describe('init', () => {
 
     expect(existsSync(join(tempDir, '.atelier/config.json'))).toBe(true);
     expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(true);
-    expect(existsSync(join(tempDir, '.claude/agents/recon.md'))).toBe(true);
+    expect(existsSync(join(tempDir, '.claude/agents/sentinel.md'))).toBe(true);
     expect(existsSync(join(tempDir, '.claude/agents/oracle.md'))).toBe(true);
     expect(existsSync(join(tempDir, '.claude/agents/architect.md'))).toBe(true);
 
@@ -59,7 +59,7 @@ describe('init', () => {
 
     expect(existsSync(join(tempDir, '.atelier/config.json'))).toBe(true);
     expect(existsSync(join(opencodeDir, 'opencode.json'))).toBe(true);
-    expect(existsSync(join(opencodeDir, 'agent/recon.md'))).toBe(true);
+    expect(existsSync(join(opencodeDir, 'agent/sentinel.md'))).toBe(true);
     expect(existsSync(join(opencodeDir, 'plugins/atelier.js'))).toBe(false);
 
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
@@ -72,7 +72,7 @@ describe('init', () => {
 
     expect(existsSync(join(tempDir, '.atelier/config.json'))).toBe(true);
     expect(existsSync(join(tempDir, '.codex/config.toml'))).toBe(true);
-    expect(existsSync(join(tempDir, '.codex/agents/recon.toml'))).toBe(true);
+    expect(existsSync(join(tempDir, '.codex/agents/sentinel.toml'))).toBe(true);
     expect(existsSync(join(tempDir, '.codex/agents/oracle.toml'))).toBe(true);
     expect(existsSync(join(tempDir, '.codex/agents/architect.toml'))).toBe(true);
 
@@ -111,7 +111,7 @@ describe('init', () => {
       provider: 'opencode-go',
       build_model: 'opencode-go/deepseek-v4-flash',
       plan_model: 'opencode-go/deepseek-v4-pro',
-      recon: 'opencode-go/deepseek-v4-flash',
+      sentinel: 'opencode-go/deepseek-v4-flash',
       oracle: 'opencode-go/kimi-k2.6',
       architect: 'opencode-go/deepseek-v4-pro',
       confirm: true,
@@ -124,7 +124,7 @@ describe('init', () => {
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
     expect(config.opencode).toBeDefined();
     expect(config.opencode.provider).toBe('opencode-go');
-    expect(existsSync(join(opencodeDir, 'agent/recon.md'))).toBe(true);
+    expect(existsSync(join(opencodeDir, 'agent/sentinel.md'))).toBe(true);
   });
 
   test('prints the OpenAI authentication command after initialization', async () => {
@@ -132,7 +132,7 @@ describe('init', () => {
       provider: 'openai',
       build_model: 'openai/gpt-5.6-terra',
       plan_model: 'openai/gpt-5.6-sol',
-      recon: 'openai/gpt-5.6-luna',
+      sentinel: 'openai/gpt-5.6-luna',
       oracle: 'openai/gpt-5.6-sol',
       architect: 'openai/gpt-5.6-sol',
       confirm: true,
@@ -166,7 +166,7 @@ describe('init', () => {
     inquirerAnswers = {
       harness: 'codex',
       default_model: 'gpt-5.6-terra',
-      recon: 'gpt-5.6-luna',
+      sentinel: 'gpt-5.6-luna',
       oracle: 'gpt-5.6-sol',
       architect: 'gpt-5.6-sol',
       confirm: true,
@@ -189,7 +189,7 @@ describe('init', () => {
     await init({ yes: true, harness: 'cursor' });
 
     expect(readFileSync(nativeConfig, 'utf-8')).toBe('{"model":"user-managed"}\n');
-    expect(existsSync(join(tempDir, '.cursor/agents/recon.md'))).toBe(true);
+    expect(existsSync(join(tempDir, '.cursor/agents/sentinel.md'))).toBe(true);
     expect(existsSync(join(tempDir, '.cursor/agents/oracle.md'))).toBe(true);
     expect(existsSync(join(tempDir, '.cursor/agents/architect.md'))).toBe(true);
 
@@ -201,7 +201,7 @@ describe('init', () => {
     inquirerAnswers = {
       harness: 'claude',
       default_model: 'opusplan',
-      recon: 'haiku',
+      sentinel: 'haiku',
       oracle: 'opus',
       architect: 'opus',
       confirm: false,
@@ -211,7 +211,7 @@ describe('init', () => {
 
     expect(existsSync(join(tempDir, '.atelier/config.json'))).toBe(false);
     expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(false);
-    expect(existsSync(join(tempDir, '.claude/agents/recon.md'))).toBe(false);
+    expect(existsSync(join(tempDir, '.claude/agents/sentinel.md'))).toBe(false);
   });
 });
 
@@ -232,7 +232,7 @@ describe('update', () => {
 
     inquirerAnswers = {
       default_model: 'opusplan',
-      recon: 'haiku',
+      sentinel: 'haiku',
       oracle: 'opus',
       architect: 'sonnet',
       confirm: true,
@@ -254,7 +254,7 @@ describe('update', () => {
       provider: 'opencode-zen',
       build_model: 'opencode/deepseek-v4-flash',
       plan_model: 'opencode/deepseek-v4-pro',
-      recon: 'opencode/minimax-m2.7',
+      sentinel: 'opencode/minimax-m2.7',
       oracle: 'opencode/kimi-k2.6',
       architect: 'opencode/deepseek-v4-pro',
       confirm: true,
@@ -278,7 +278,7 @@ describe('remove', () => {
 
     await remove({ harness: 'claude' });
 
-    expect(existsSync(join(tempDir, '.claude/agents/recon.md'))).toBe(false);
+    expect(existsSync(join(tempDir, '.claude/agents/sentinel.md'))).toBe(false);
     expect(existsSync(join(tempDir, '.claude/agents/oracle.md'))).toBe(false);
     expect(existsSync(join(tempDir, '.claude/agents/architect.md'))).toBe(false);
     expect(existsSync(join(tempDir, '.atelier'))).toBe(false);
@@ -293,7 +293,7 @@ describe('remove', () => {
 
     await remove({ harness: 'opencode' });
 
-    expect(existsSync(join(opencodeDir, 'agent/recon.md'))).toBe(false);
+    expect(existsSync(join(opencodeDir, 'agent/sentinel.md'))).toBe(false);
     expect(existsSync(join(opencodeDir, 'plugins/atelier.js'))).toBe(false);
     expect(existsSync(join(opencodeDir, 'opencode.json'))).toBe(false);
     expect(existsSync(join(tempDir, '.atelier'))).toBe(false);
@@ -306,7 +306,7 @@ describe('remove', () => {
 
     await remove({ harness: 'codex' });
 
-    expect(existsSync(join(tempDir, '.codex/agents/recon.toml'))).toBe(false);
+    expect(existsSync(join(tempDir, '.codex/agents/sentinel.toml'))).toBe(false);
     expect(existsSync(join(tempDir, '.codex/agents/oracle.toml'))).toBe(false);
     expect(existsSync(join(tempDir, '.codex/agents/architect.toml'))).toBe(false);
     expect(existsSync(join(tempDir, '.codex/config.toml'))).toBe(false);

@@ -4,7 +4,7 @@ import inquirer from 'inquirer';
 import * as TOML from 'smol-toml';
 import { readTemplate } from '../utils/templates.js';
 import type { CodexConfig, HarnessAdapter, FileEntry, Provider, HarnessSection } from '../types.js';
-import { AGENT_NAMES } from '../constants.js';
+import { AGENT_NAMES, LEGACY_AGENT_NAME } from '../constants.js';
 import { FileWriteError, HarnessConfigError } from '../utils/errors.js';
 import { shortPath } from '../services/paths.js';
 import { SimpleConfigSchema } from '../utils/schemas.js';
@@ -23,7 +23,7 @@ const OPENAI_MODELS = [
 
 const DEFAULT_MODELS = {
   default_model: 'gpt-5.6-terra',
-  recon: 'gpt-5.6-luna',
+  sentinel: 'gpt-5.6-luna',
   oracle: 'gpt-5.6-sol',
   architect: 'gpt-5.6-sol',
 } as const;
@@ -83,6 +83,7 @@ function installAgents(section: HarnessSection, basePath: string): void {
   } catch (err) {
     throw new FileWriteError(agentsDir, err instanceof Error ? err.message : String(err));
   }
+  rmSync(join(agentsDir, `${LEGACY_AGENT_NAME}.toml`), { force: true });
 
   for (const agent of config.agents) {
     const template = readTemplate(agent.template);
@@ -161,6 +162,7 @@ function remove(section: HarnessSection, basePath: string): void {
       rmSync(file, { force: true });
     }
   }
+  rmSync(join(agentsDir, `${LEGACY_AGENT_NAME}.toml`), { force: true });
 
   removeDirIfEmpty(agentsDir);
   cleanCodexConfig(codexDir);

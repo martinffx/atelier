@@ -3,7 +3,7 @@ import { join } from 'path';
 import inquirer from 'inquirer';
 import { readTemplate } from '../utils/templates.js';
 import type { OpenCodeConfig, HarnessAdapter, FileEntry, Provider, OpenCodeProvider, HarnessSection } from '../types.js';
-import { AGENT_NAMES } from '../constants.js';
+import { AGENT_NAMES, LEGACY_AGENT_NAME } from '../constants.js';
 import { FileWriteError, HarnessConfigError } from '../utils/errors.js';
 import { shortPath, getGlobalOpencodeDir } from '../services/paths.js';
 import { OpenCodeConfigSchema } from '../utils/schemas.js';
@@ -68,30 +68,30 @@ const PROVIDER_MODELS: Record<OpenCodeProvider, readonly string[]> = {
   ],
 };
 
-const DEFAULT_MODELS: Record<OpenCodeProvider, { build: string; plan: string; recon: string; oracle: string; architect: string }> = {
+const DEFAULT_MODELS: Record<OpenCodeProvider, { build: string; plan: string; sentinel: string; oracle: string; architect: string }> = {
   'opencode-zen': {
-    recon: 'opencode/minimax-m2.7',
+    sentinel: 'opencode/minimax-m2.7',
     oracle: 'opencode/kimi-k2.6',
     architect: 'opencode/deepseek-v4-pro',
     build: 'opencode/deepseek-v4-flash',
     plan: 'opencode/deepseek-v4-pro',
   },
   'opencode-go': {
-    recon: 'opencode-go/minimax-m2.7',
+    sentinel: 'opencode-go/minimax-m2.7',
     oracle: 'opencode-go/kimi-k2.6',
     architect: 'opencode-go/deepseek-v4-pro',
     build: 'opencode-go/deepseek-v4-flash',
     plan: 'opencode-go/deepseek-v4-pro',
   },
   'amazon-bedrock': {
-    recon: 'amazon-bedrock/anthropic-claude-haiku-4-5',
+    sentinel: 'amazon-bedrock/anthropic-claude-haiku-4-5',
     oracle: 'amazon-bedrock/anthropic-claude-opus-4-7',
     architect: 'amazon-bedrock/anthropic-claude-opus-4-7',
     build: 'amazon-bedrock/anthropic-claude-sonnet-4-5',
     plan: 'amazon-bedrock/anthropic-claude-haiku-4-5',
   },
   openai: {
-    recon: 'openai/gpt-5.6-luna',
+    sentinel: 'openai/gpt-5.6-luna',
     oracle: 'openai/gpt-5.6-sol',
     architect: 'openai/gpt-5.6-sol',
     build: 'openai/gpt-5.6-terra',
@@ -151,6 +151,7 @@ function installAgents(section: HarnessSection, basePath: string): void {
   } catch (err) {
     throw new FileWriteError(agentsDir, err instanceof Error ? err.message : String(err));
   }
+  rmSync(join(agentsDir, `${LEGACY_AGENT_NAME}.md`), { force: true });
 
   for (const agent of config.agents) {
     const template = readTemplate(agent.template);
@@ -175,14 +176,14 @@ function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
     throw new FileWriteError(basePath, err instanceof Error ? err.message : String(err));
   }
 
-  const recon = config.agents.find(a => a.name === 'recon');
+  const sentinel = config.agents.find(a => a.name === 'sentinel');
   const architect = config.agents.find(a => a.name === 'architect');
 
   const atelierFields: Record<string, unknown> = {
     agent: {
       build: {
         mode: 'primary',
-        model: config.build_model || recon?.model || DEFAULT_MODELS[config.provider].build,
+        model: config.build_model || sentinel?.model || DEFAULT_MODELS[config.provider].build,
       },
       plan: {
         mode: 'primary',
@@ -241,6 +242,7 @@ function removeAgentFiles(opencodeRoot: string, config: OpenCodeConfig): void {
       rmSync(file, { force: true });
     }
   }
+  rmSync(join(agentsDir, `${LEGACY_AGENT_NAME}.md`), { force: true });
 
   removeDirIfEmpty(agentsDir);
 }
