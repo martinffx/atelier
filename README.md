@@ -26,7 +26,7 @@ Your project is ready to use the spec workflow.
 
 ## Rationale and inspiration
 
-Coding agents are more useful when they know a project's conventions, patterns, preferences, and quality bar. Atelier is my way of recording that context as reusable skills and workflows. Models remain unpredictable, but a deliberate method makes good results more repeatable. [Building Your Own Agent Harness](https://www.martinrichards.me/post/building_your_own_agent_harness/) explains the thinking behind it.
+Better models alone do not produce better software. Coding agents, like human teams, are shaped by the systems they work within. Good outcomes depend on more than individual ability. They depend on the processes, constraints, shared context, and feedback surrounding the work. If that system does little to encourage quality or catch weak results, agents will simply produce unreliable code faster. Atelier is an attempt to build a better system around the agent, making robust output more repeatable. [Building Your Own Agent Harness](https://www.martinrichards.me/post/building_your_own_agent_harness/) explains the thinking behind it.
 
 The name is literal. An atelier is a workshop where a principal works with assistants. Here, the developer is the principal, agents are the assistants, the codebase is the workshop, and skills record how the work happens.
 
