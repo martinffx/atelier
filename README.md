@@ -194,7 +194,7 @@ These skills guide structured development work. They produce artifacts and shoul
 These skills provide analytical methods and reasoning patterns that adapt to the problem at hand.
 
 - `oracle-debug`: systematic debugging that finds the root cause before a fix
-- `oracle-grill-me`: Socratic review of plans against the domain model
+- `oracle-grill-me`: Socratic review of plans, specs, decisions, and ideas until ambiguity is resolved, shared understanding is reached, and the resulting domain language and decisions are recorded
 - `oracle-domain-modelling`: build and refine the project's domain model
 
 #### Utilities (`code:*`)

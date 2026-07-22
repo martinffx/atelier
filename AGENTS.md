@@ -161,7 +161,7 @@ Process skills come first. Knowledge skills get invoked by process skills when n
 
 **Deep Thinking** (3 skills)
 - `oracle-debug` - Systematic debugging, root cause before fixes
-- `oracle-grill-me` - Socratic interrogation of plans against domain model and documented decisions
+- `oracle-grill-me` - Socratic review of plans, specs, decisions, and ideas until ambiguity is resolved, shared understanding is reached, and the resulting domain language and decisions are recorded
 - `oracle-domain-modelling` - Build and sharpen the project's domain model
 
 **TypeScript Patterns** (8 skills)
