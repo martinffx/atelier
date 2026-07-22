@@ -81,6 +81,8 @@ Agent definitions are generated for each supported harness with appropriate mode
 
 The CLI writes agents to harness-specific locations: `.claude/agents/`, `.opencode/agent/`, `.codex/agents/`, or `~/.cursor/agents/`. It uses each harness's model identifiers. Cursor's primary model and `~/.cursor/cli-config.json` remain user-managed. Atelier only creates its three global subagents.
 
+The agent personas carry a light *Matrix* theme. Recon takes after the Sentinels: it moves quickly through the codebase, locating what matters and reporting back. Oracle clarifies human needs and choices under uncertainty. Architect turns those requirements into structured technical designs.
+
 ### 3. Task tracking (optional)
 
 The spec workflow can use **beads** for dependency-aware task tracking:
@@ -167,11 +169,17 @@ npx skills add martinffx/atelier --skill python-fastapi
 npx skills add martinffx/atelier --skill spec-brainstorm
 ```
 
-### Skill types
+### Skill organization
 
-Skills fall into four groups:
+Atelier has three core skill namespaces:
 
-#### Workflow skills (`spec:*`)
+| Namespace | Type | Invocation | Output | Flexibility |
+|-----------|------|------------|--------|-------------|
+| `spec:` | Process | User or previous skill | Artifact | Follow exactly |
+| `oracle:` | Analytical | Context-driven | Guidance | Adapt to context |
+| `code:` | Utility | User | Result | Use as needed |
+
+#### Workflow (`spec:*`)
 
 These skills guide structured development work. They produce artifacts and should be used in order.
 
@@ -181,7 +189,7 @@ These skills guide structured development work. They produce artifacts and shoul
 - `spec-finish`: validate, review, and prepare for a PR
 - `spec-orchestrator`: route work to the right skill
 
-#### Thinking skills (`oracle:*`)
+#### Thinking (`oracle:*`)
 
 These skills provide analytical methods and reasoning patterns that adapt to the problem at hand.
 
@@ -189,9 +197,19 @@ These skills provide analytical methods and reasoning patterns that adapt to the
 - `oracle-grill-me`: Socratic review of plans against the domain model
 - `oracle-domain-modelling`: build and refine the project's domain model
 
-#### Domain knowledge (`python:*`, `typescript:*`)
+#### Utilities (`code:*`)
 
-These skills cover technology-specific patterns and practices.
+These skills handle discrete tasks when you invoke them.
+
+- `code-commit`: generate and validate conventional commits
+- `code-handoff`: turn a conversation into a handoff document
+- `code-pull-request`: create, comment on, and merge GitHub pull requests or GitLab merge requests
+- `code-review`: multi-agent code review with specialized reviewers
+- `code-subagents`: dispatch patterns for parallel implementation
+
+#### Stack-specific knowledge
+
+Python and TypeScript skills provide technology-specific patterns and practices. They support work across the `spec`, `oracle`, and `code` namespaces.
 
 **TypeScript (8 skills)**
 - `typescript-api-design`: REST conventions, error responses, and pagination
@@ -213,37 +231,11 @@ These skills cover technology-specific patterns and practices.
 - `python-testing`: stub-driven TDD and pytest patterns
 - `python-build-tools`: uv, ruff, basedpyright, and pytest configuration
 
-#### Utility skills (`code:*`)
-
-These skills handle discrete tasks when you invoke them.
-
-- `code-commit`: generate and validate conventional commits
-- `code-handoff`: turn a conversation into a handoff document
-- `code-pull-request`: create, comment on, and merge GitHub pull requests or GitLab merge requests
-- `code-review`: multi-agent code review with specialized reviewers
-- `code-subagents`: dispatch patterns for parallel implementation
-
 Skills load based on their descriptions when the work calls for them. Install them once, then agents can use them as needed.
 
 ## How skills work
 
 Skills load from context. For example, "create a spec for user auth" matches `spec-brainstorm`.
-
-### Namespace philosophy
-
-Skills are grouped by role:
-
-| Category | Prefix | Type | Invocation | Output | Flexibility |
-|----------|--------|------|------------|--------|-------------|
-| **Workflow** | `spec:` | Process | User/previous skill | Artifact | Follow exactly |
-| **Thinking** | `oracle:` | Analytical | Context-driven | Guidance | Adapt to context |
-| **Domain Knowledge** | `python:`, `typescript:` | Technology | Context-driven | Patterns | Adapt to context |
-| **Utility** | `code:` | Task-specific | User command | Result | Use as needed |
-
-- **Workflow** (`spec:`): sequential steps that produce artifacts. Use them in order.
-- **Thinking** (`oracle:`): analytical methods for the problem in front of you.
-- **Domain Knowledge** (`python-*`, `typescript-*`): stack-specific patterns and practices.
-- **Utility** (`code:`): tools for tasks you invoke directly.
 
 ### The spec workflow
 
