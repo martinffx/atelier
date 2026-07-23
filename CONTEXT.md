@@ -1,6 +1,6 @@
-# Atelier CLI Context
+# Atelier Context
 
-The domain language for the Atelier CLI, which installs agent definitions and harness-native configuration into AI-harness directories.
+The domain language for Atelier's development workflow and CLI, which installs agent definitions and harness-native configuration into AI-harness directories.
 
 ## Language
 
@@ -45,6 +45,18 @@ _Avoid_: factory, dispatcher, locator
 A specialized knowledge module installed by the separate `npx skills` toolchain into `~/.agents/skills`. The Atelier CLI does not install or generate skill files.
 
 _Avoid_: plugin, capability, prompt
+
+**Inline Plan**
+
+A concise implementation plan reviewed in conversation for bounded, well-understood work. It records context, scope, changes, files, and validation without creating a persisted spec, structured plan, or tracked tasks.
+
+_Avoid_: mini spec, informal spec, quick spec
+
+**Spec-backed Plan**
+
+A persisted implementation plan for substantial work that benefits from durable design decisions, dependency ordering, or coordination. It is derived from an approved `design.md` and recorded in `plan.json` with structured tasks.
+
+_Avoid_: full plan, formal plan, big plan
 
 **Agent Template**
 

@@ -1,9 +1,10 @@
 ---
 name: code-subagents
 description: >
-  Subagent dispatch patterns for implementation tasks. Use when spec-implement has multiple
-  tasks to execute and subagents are available. Covers parallel dispatch for independent work,
-  the two-stage review cycle (spec compliance then code quality), focused prompt construction,
+  Subagent dispatch patterns for approved Inline Plans and Spec-backed Plans. Use when
+  spec-implement has independent work to dispatch and subagents are available. Covers
+  parallel dispatch for independent work,
+  the two-stage review cycle (plan compliance then code quality), focused prompt construction,
   and integration of results. Trigger when executing plan tasks with subagent support, when
   facing 2+ independent problems, or when the user asks to use subagents for implementation.
 user-invocable: false
@@ -17,7 +18,8 @@ when dependent.
 ## When to Use Subagents
 
 **Use when:**
-- Executing tasks from plan.json with subagent support available
+- Executing plan.json tasks with subagent support available
+- Executing independent Inline Plan changes when each subagent receives the full approved plan
 - 2+ independent tasks that don't share state or files
 - Each problem can be understood without context from others
 
@@ -60,15 +62,15 @@ If no to both, dispatch in parallel.
 Use these templates when dispatching subagents. Each template is battle-tested — don't
 improvise, use them as-is and fill in the variables.
 
-- **[references/implementer-prompt.md](references/implementer-prompt.md)** — Dispatch an implementer. Includes self-review checklist.
-- **[references/spec-reviewer-prompt.md](references/spec-reviewer-prompt.md)** — Spec compliance review. "Do not trust the report."
+- **[references/implementor-prompt.md](references/implementor-prompt.md)** — Dispatch an implementer. Includes self-review checklist.
+- **[references/spec-reviewer-prompt.md](references/spec-reviewer-prompt.md)** — Plan compliance review. "Do not trust the report."
 - **[references/code-quality-reviewer-prompt.md](references/code-quality-reviewer-prompt.md)** — Code quality review. Critical/Important/Minor severity.
 
 ### Prompt quality rules
 
 - **Focused** — one task, one problem domain
-- **Self-contained** — all context needed is in the prompt. Don't make the subagent
-  read the plan file; provide the full task text
+- **Self-contained** — all context needed is in the prompt. Provide the full plan.json task
+  or the complete approved Inline Plan; do not make the subagent recover planning context
 - **Specific about files** — exact paths, not "the relevant files"
 - **Specific about output** — what should the subagent return?
 - **Constrained** — what should they NOT touch?
@@ -86,18 +88,19 @@ improvise, use them as-is and fill in the variables.
 
 ## Two-Stage Review
 
-Every completed task gets two reviews in order. Do not skip either. Do not reverse the order.
+Every completed task or coherent inline change gets two reviews in order. Do not skip either.
+Do not reverse the order.
 
-### Stage 1: Spec Compliance
+### Stage 1: Plan Compliance
 
 Does the implementation match what was specified?
 
 ```markdown
-## Spec Review
+## Plan Review
 
 Review the implementation against the task specification:
 
-**Task spec:** [paste task from plan.json]
+**Approved requirements:** [paste the plan.json task or complete Inline Plan]
 
 **Files changed:** [list from subagent output]
 
@@ -105,12 +108,12 @@ Check:
 1. Are all requirements from the task spec implemented?
 2. Is anything implemented that wasn't specified? (over-building)
 3. Do tests cover the specified acceptance criteria?
-4. Does the implementation match the design in design.md?
+4. For spec-backed work, does the implementation match design.md?
 
 Report: List any gaps or extras. Mark ✅ if compliant, ❌ if not.
 ```
 
-If the spec reviewer finds issues → the implementer subagent fixes them → spec reviewer
+If the plan reviewer finds issues → the implementer subagent fixes them → plan reviewer
 reviews again. Repeat until ✅.
 
 ### Stage 2: Code Quality
@@ -139,7 +142,7 @@ reviews again. Minor issues can be noted and moved past.
 
 ### Why this order matters
 
-Spec compliance first because there's no point polishing code that doesn't meet the spec.
+Plan compliance first because there's no point polishing code that doesn't meet the approved plan.
 Quality second because compliant code still needs to be well-built.
 
 ---
@@ -163,7 +166,8 @@ After subagents complete (especially parallel dispatch):
 1. **Read each summary** — understand what changed
 2. **Check for conflicts** — did any agents edit the same code?
 3. **Run full test suite** — verify all changes work together
-4. **Update task tracking** — mark tasks complete: beads `bd close <id>`, or harness todo list
+4. **Update task tracking** — for spec-backed work with a tracker, mark tasks complete;
+   Inline Plans create no tracker entries
 
 If there are conflicts between parallel results, resolve them manually. Don't dispatch
 another subagent to merge — that requires too much context.
@@ -178,7 +182,10 @@ If a subagent fails a task:
 - **Dispatch a fix subagent** with specific instructions about what went wrong
 - **If it fails twice**, stop and escalate to the human. The plan may need revision.
 
-If failure reveals a design problem:
+If failure reveals a Spec-backed Plan design problem:
 
 > "This task is failing because [reason]. The design in design.md may need to change.
 > Want me to go back to spec-brainstorm?"
+
+If Inline Plan work develops substantial design or coordination needs, return to
+`spec-orchestrator` and propose promotion to a Spec-backed Plan.

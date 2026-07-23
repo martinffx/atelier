@@ -1,4 +1,4 @@
-# Spec Compliance Reviewer Prompt Template
+# Plan Compliance Reviewer Prompt Template
 
 Dispatch after the implementer completes a task. Verifies the implementation matches what
 was specified — nothing more, nothing less.
@@ -8,11 +8,11 @@ was specified — nothing more, nothing less.
 ## Template
 
 ```
-You are reviewing whether an implementation matches its specification.
+You are reviewing whether an implementation matches its approved plan.
 
 ## What Was Requested
 
-{FULL TEXT of task requirements from plan.json}
+{FULL TEXT of the plan.json task or complete approved Inline Plan}
 
 ## What Implementer Claims They Built
 
@@ -57,6 +57,6 @@ Read the implementation code and verify:
 
 ## Report
 
-- ✅ Spec compliant (if everything matches after code inspection)
+- ✅ Plan compliant (if everything matches after code inspection)
 - ❌ Issues found: [list specifically what's missing or extra, with file:line references]
 ```

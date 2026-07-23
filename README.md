@@ -175,19 +175,20 @@ Atelier has three core skill namespaces:
 
 | Namespace | Type | Invocation | Output | Flexibility |
 |-----------|------|------------|--------|-------------|
-| `spec:` | Process | User or previous skill | Artifact | Follow exactly |
+| `spec:` | Process | User or previous skill | Plan or artifact | Follow exactly |
 | `oracle:` | Analytical | Context-driven | Guidance | Adapt to context |
 | `code:` | Utility | User | Result | Use as needed |
 
 #### Workflow (`spec:*`)
 
-These skills guide structured development work. They produce artifacts and should be used in order.
+These skills guide plan-first development. Inline Plans stay in the conversation; substantial
+work uses persisted spec artifacts.
 
-- `spec-brainstorm` → `design.md`: discovery, requirements, and architecture
-- `spec-plan` → `plan.json`: break the design into implementable tasks
-- `spec-implement`: execute tasks with TDD
+- `spec-orchestrator`: select Inline Plan or Spec-backed Plan and route the workflow
+- `spec-brainstorm` → `design.md`: discovery, requirements, and architecture for substantial work
+- `spec-plan`: produce a conversational Inline Plan or persisted `plan.json`
+- `spec-implement`: execute either approved plan with TDD
 - `spec-finish`: validate, review, and prepare for a PR
-- `spec-orchestrator`: route work to the right skill
 
 #### Thinking (`oracle:*`)
 
@@ -235,41 +236,46 @@ Skills load based on their descriptions when the work calls for them. Install th
 
 ## How skills work
 
-Skills load from context. For example, "create a spec for user auth" matches `spec-brainstorm`.
+Skills load from context. For example, "create a spec for user auth" makes
+`spec-orchestrator` select the spec-backed route and invoke `spec-brainstorm`.
 
-### The spec workflow
+### The planning workflow
 
 ```mermaid
-graph LR
-    A[spec-brainstorm] -->|design.md| B[spec-plan]
-    B -->|plan.json| C[spec-implement]
-    C --> D[spec-finish]
-    D -.->|invokes| E[code-pull-request]
-    
-    B -.->|design flaw| A
-    C -.->|missing tasks| B
-    C -.->|fundamental issue| A
-    D -.->|bugs found| C
+graph TB
+    O[spec-orchestrator] -->|bounded/default| PI[spec-plan: Inline Plan]
+    O -->|substantial| B[spec-brainstorm]
+    B --> D[design.md]
+    D --> PS[spec-plan: Spec-backed Plan]
+    PS --> J[plan.json]
+    PI --> A[Human approval]
+    J --> A
+    A --> I[spec-implement]
+    I --> F[spec-finish]
+    F -.->|invokes| PR[code-pull-request]
+    I -.->|revise Inline Plan| PI
+    I -.->|revise Spec-backed Plan| PS
+    I -.->|spec design issue| B
 ```
 
-Standard flow:
-1. **Research**: discovery, research, and architecture produce `design.md`.
-2. **Plan**: break the design into tasks in `plan.json`.
-3. **Implement**: execute the tasks with TDD.
-4. **Finish**: validate the work, review it, and open the PR.
+The orchestrator chooses one route and states why:
 
-The dotted lines show expected backflows:
-- Planning may expose a design flaw, so return to research.
-- Implementation may uncover missing tasks, so update the plan.
-- Validation may find bugs, so return to implementation.
+- **Inline Plan (default):** bounded, well-understood work. The plan uses `context`, `scope`,
+  `changes`, `files`, and `validation` in conversation. It creates no spec or tracker artifacts.
+- **Spec-backed Plan:** substantial work that needs discovery, architectural decisions,
+  dependency tracking, durable handoff, or explicit spec artifacts. It uses `design.md` and
+  `plan.json`.
+
+Both routes require human approval before implementation. File count and estimated duration
+alone do not make work spec-worthy, and the human can override the selected route.
 
 ### When to use which skill
 
 | User says | Skill invoked |
 |------------|---------------|
-| "Create a spec for X" | spec-brainstorm |
-| "What should we build" | spec-brainstorm |
-| "Write a plan" | spec-plan |
+| "Create a spec for X" | spec-orchestrator → spec-brainstorm |
+| "What should we build" | spec-orchestrator selects the planning route |
+| "Write a plan" | spec-orchestrator → spec-plan (Inline by default) |
 | "Implement this" | spec-implement |
 | "Review this code" | code-review |
 | "Open a PR" | code-pull-request |

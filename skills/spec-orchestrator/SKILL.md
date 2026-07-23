@@ -1,9 +1,9 @@
 ---
 name: spec-orchestrator
 description: >
-  Skill routing and workflow orchestration. Routes to correct spec skill based on task type.
-  Establishes discipline and manages transitions between workflow phases. Use when starting
-  any conversation or task to determine which spec skill applies.
+  Skill routing and workflow orchestration. Selects Inline Plan or Spec-backed Plan, routes
+  to the correct workflow skill, and manages transitions between phases. Use when starting
+  any conversation or task to determine which planning mode and skill apply.
 user-invocable: false
 ---
 
@@ -16,7 +16,7 @@ IF A SKILL APPLIES TO YOUR TASK, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.
 This is not negotiable. This is not optional. You cannot rationalize your way out of this.
 </EXTREMELY-IMPORTANT>
 
-# Spec Workflow
+# Planning Workflow
 
 You have skills. You MUST use them. Not "should." Not "when convenient." MUST.
 
@@ -28,56 +28,80 @@ need to follow it. But you must check.
 
 **Never write code until the human has reviewed and approved a written plan.**
 
-Every project goes through this process. A todo list, a single-function utility, a config
-change — all of them. "Simple" projects are where unexamined assumptions cause the most
-wasted work. The spec can be short, the plan can be brief, but you MUST present them
-and get approval.
+The plan may be inline in the conversation or backed by persisted spec artifacts. Select
+the mode before invoking an artifact-producing skill, state the choice with one brief
+reason, and let the human override it.
 
-## Artifacts
+## Planning Modes
 
-Every feature produces two artifacts in `docs/specs/YYYY-MM-DD-<feature>/`:
+### Inline Plan (default)
+
+Use for bounded, well-understood work, including ordinary features, bug fixes, refactors,
+configuration changes, and multi-file changes. Route directly to **spec-plan**. It presents
+a concise plan in conversation, creates no planning artifacts or tracker entries, and stops
+for approval.
+
+When in doubt, choose Inline Plan. File count and estimated duration alone do not make work
+spec-worthy.
+
+### Spec-backed Plan
+
+Use when at least one concrete signal exists:
+
+- The human explicitly requests a spec or durable planning artifacts
+- Requirements or boundaries need discovery before planning
+- The work materially changes architecture, public contracts, data models, or cross-system behavior
+- Multiple dependent subsystems need decomposition and dependency tracking
+- The plan must survive the conversation for handoff, audit, or multi-person coordination
+
+Route through **spec-brainstorm**. This mode produces:
 
 ```
 design.md    ← spec-brainstorm (requirements + research + architecture)
 plan.json    ← spec-plan (tasks, dependencies)
 ```
 
+Do not infer substantial work from size alone. If no concrete signal applies, use Inline Plan.
+
 ## Skill Routing
 
 ```
-spec-brainstorm → Discovery + design + architecture → design.md
-spec-plan        → Implementation plan + tasks → plan.json
-spec-implement   → Execute tasks, track progress, report
+spec-orchestrator → Select and announce planning mode
+spec-brainstorm   → Spec-backed discovery + design → design.md
+spec-plan         → Inline Plan or Spec-backed Plan → approval
+spec-implement    → Execute the approved plan; track spec-backed tasks
 spec-finish      → Post-implementation validation
 code-subagents   → Parallel dispatch, two-stage review
 ```
 
-### "Create a spec for X" / Build / Add Feature
+### Ordinary bounded work
 
 ```
-spec-brainstorm → spec-plan → spec-implement → spec-finish
+spec-plan (Inline Plan) → approval → spec-implement → spec-finish
 ```
 
-### Fix Complex Bug / Refactor
+### Substantial work or explicit spec request
 
 ```
-spec-brainstorm (research-heavy) → spec-plan (targeted) → spec-implement
+spec-brainstorm → spec-plan (Spec-backed Plan) → approval → spec-implement → spec-finish
 ```
 
-### Quick Fix / Trivial Change
+### Truly mechanical change
 
-If genuinely trivial (typo, single-line config, variable rename) — skip the pipeline.
-But be honest. If there's any doubt, plan it.
+A typo or exact single-line replacement may skip planning when there is no implementation
+choice to review. If any choice exists, use an Inline Plan.
 
 ## Hard Transitions
 
-| After completing... | The ONLY next step is... |
-|---------------------|--------------------------|
-| spec-brainstorm | spec-plan |
-| spec-plan | spec-implement |
+| After completing... | Next step |
+|---------------------|-----------|
+| spec-brainstorm | spec-plan in Spec-backed mode |
+| approved Inline Plan | spec-implement in Inline mode |
+| approved Spec-backed Plan | spec-implement in Spec-backed mode |
 | spec-implement | spec-finish |
 
-Do NOT jump from requirements to code. Do NOT jump from research to implementation.
+Do not begin implementation without an approved written plan. Spec-backed work must not
+jump from research to implementation.
 
 ## Iteration Patterns
 
@@ -92,12 +116,12 @@ The workflow is not purely linear. Expect backflows:
 - Tasks can't be decomposed without more context → back to brainstorm
 
 ### Implement → Plan (missing tasks)
-- Implementation reveals missing tasks → update plan.json
-- Blocked on dependency not in plan → back to plan
+- Implementation reveals missing work → revise the active plan and get approval
+- Spec-backed work is blocked on an unplanned dependency → update plan.json
 
 ### Implement → Research (fundamental issue)
-- Implementation reveals design is fundamentally wrong → back to brainstorm
-- "This can't work as designed" → back to brainstorm
+- Inline work develops durable design or coordination needs → return here and promote it
+- Implementation reveals spec-backed design is fundamentally wrong → back to brainstorm
 
 ### Finish → Implement (bugs found)
 - Validation finds bugs → back to implement
@@ -112,17 +136,17 @@ If you loop 2+ times on the same issue, stop and ask the human:
 
 | What you're thinking | Why it's wrong |
 |----------------------|----------------|
-| "This is too simple for a plan" | Simple tasks have the most unexamined assumptions |
+| "This is too simple for a persisted spec" | Use an Inline Plan instead |
 | "I already know how to do this" | Knowing how ≠ having the human's approval for how |
 | "The human seems impatient" | Wasting time on wrong code is worse than planning |
 | "I'll just do a quick prototype" | Prototypes become production. Plan it. |
-| "I need to explore the code first" | That's the brainstorm phase. Write it in design.md. |
+| "I need to explore the code first" | Gather enough context for an Inline Plan; use brainstorm only when discovery is substantial |
 | "Let me just fix this one thing" | One thing becomes three. Plan it. |
 | "I can plan in my head" | Plans in your head can't be reviewed or annotated |
-| "This is just a refactor" | Refactors touch more code than features. Plan it. |
+| "This is just a refactor" | Refactors still need at least an Inline Plan |
 | "I'll write the plan after" | Post-hoc plans are fiction. Plan before. |
 | "I need more context first" | Skills tell you HOW to gather context. Check first. |
-| "The skill is overkill" | Simple things become complex. Use it. |
+| "The spec workflow is overkill" | It may be. Default to an Inline Plan unless substantial-work signals exist. |
 | "I know what that skill says" | Skills evolve. Read current version. Invoke it. |
 | "This feels productive" | Undisciplined action wastes time. Skills prevent this. |
 

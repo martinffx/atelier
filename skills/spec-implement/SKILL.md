@@ -1,32 +1,41 @@
 ---
 name: spec-implement
 description: >
-  Execute implementation tasks from an approved plan.json. Use when spec-plan has produced
-  approved tasks and the human is ready to start coding. Tracks progress via beads
-  (preferred) or harness-native todos, enforces TDD, reports between batches. Trigger when the user says "implement", "go", "start",
-  "do it", or after spec-plan completes task creation. Do NOT use without an approved plan —
-  invoke spec-plan first.
+  Execute an approved Inline Plan or Spec-backed Plan. Uses the conversational plan directly
+  for inline work and plan.json plus useful task tracking for spec-backed work. Enforces TDD
+  and reports between batches. Trigger when the user says "implement", "go", "start", or
+  "do it" after approving a written plan. Do NOT use without an approved plan.
 user-invocable: true
 ---
 
 # Spec Implement
 
-Pick up tasks. Execute them. Track progress. Report. Stop when blocked.
+Execute the approved plan. Track progress when the selected planning mode uses tracked
+tasks. Report. Stop when blocked.
 
 **Announce at start:** "I'm using the spec-implement skill to execute this plan."
 
 This skill does not make design decisions or modify the plan. If the plan is wrong, go
-back to spec-plan. If the design is wrong, go back to spec-brainstorm.
+back to spec-plan. If inline work develops substantial design or coordination needs, return
+to spec-orchestrator for promotion. If a spec-backed design is wrong, go back to
+spec-brainstorm.
 
 ## Prerequisites
 
-Before starting, verify these exist:
+Before starting, verify the prerequisites for the selected planning mode:
 
-1. **Approved spec** — `docs/specs/YYYY-MM-DD-<feature>/design.md`
-2. **Approved plan** — `docs/specs/YYYY-MM-DD-<feature>/plan.json`
-3. **Tasks created** — In beads, harness todo list, or plan.json task list
-4. **Not on main/master** — Never start implementation on main/master without explicit
-   user consent. Create a branch or use a git worktree first.
+**Inline Plan:**
+1. The complete five-section plan is present in the active conversation
+2. The human explicitly approved it
+3. No planning artifact or tracker is required
+
+**Spec-backed Plan:**
+1. Approved `docs/specs/YYYY-MM-DD-<feature>/design.md`
+2. Approved `docs/specs/YYYY-MM-DD-<feature>/plan.json`
+3. Any tracker entries selected during planning are available
+
+**Both modes:** Never start implementation on main/master without explicit user consent.
+Create a branch or use a git worktree first.
 
 If anything is missing, do not proceed. Tell the human what's needed.
 
@@ -34,7 +43,7 @@ If anything is missing, do not proceed. Tell the human what's needed.
 
 ## Step 1: Load and Review the Plan
 
-Read plan.json critically before writing code. Look for:
+Read the approved conversational plan or plan.json critically before writing code. Look for:
 
 - Unclear or ambiguous tasks
 - Missing file paths or incomplete validation criteria
@@ -44,20 +53,22 @@ Read plan.json critically before writing code. Look for:
 If you find concerns, **raise them with the human before starting**. Don't guess. Don't
 assume. Don't force through blockers.
 
-If no concerns, create task tracking and proceed.
+If no concerns, proceed. Use existing tracker entries for spec-backed work; do not create
+tracking for Inline Plans.
 
 ---
 
-## Step 2: Choose Execution Mode
+## Step 2: Choose Execution Style
 
-If the human hasn't specified a mode, ask.
+Planning mode and execution style are separate. If the human has not specified an execution
+style, ask.
 
 ### Autonomous Mode
 
 > "Implement it all. Don't stop until you're done."
 
-- Execute all tasks in dependency order
-- Track progress: beads `bd update <id> --status in_progress` → `bd close <id>`, or harness todo list
+- Execute all planned work in order
+- Track progress only when the Spec-backed Plan has tracker entries
 - Run type checking / linting continuously
 - Only stop if blocked
 
@@ -82,19 +93,31 @@ Default to batched if the human hasn't expressed a preference.
 
 ---
 
-## Step 3: Execute Tasks
+## Step 3: Execute the Plan
 
-For each task, follow the plan exactly. Find the next ready task:
+Follow the approved plan exactly.
+
+### Inline Plan
+
+Execute the `changes` in order while respecting `scope`, `files`, and `validation`. Do not
+manufacture task IDs, dependencies, Beads issues, or harness todos. Treat each coherent
+change as the unit for TDD, validation, and review.
+
+### Spec-backed Plan
+
+For each task, find the next ready task:
 
 **With beads (preferred):**
 ```bash
 bd ready --label <feature> --json
 ```
 
-**With harness todos:**
-Check the todo list for the next unblocked task (respecting `depends_on` from plan.json).
+**With harness todos:** Check the todo list for the next unblocked task, respecting
+`depends_on` from plan.json.
 
-Mark it in progress:
+**Without a tracker:** Read the next unblocked task directly from plan.json.
+
+When a tracker exists, mark it in progress:
 
 **With beads:**
 ```bash
@@ -104,9 +127,10 @@ bd update <task-id> --status in_progress
 **With harness todos:**
 Update the todo status to in_progress.
 
-### For each task
-Read the task's **inputs** first — understand what context you need.
-Then read the **description** — know what to build and the constraints.
+### For each task or coherent inline change
+
+For spec-backed work, read the task's **inputs** and **description** first. For inline work,
+read the complete plan before each change so its scope and constraints remain visible.
 
 Write tests that cover the validation criteria before writing implementation.
 Invoke `typescript-testing` or `python-testing` (whichever matches the project)
@@ -124,17 +148,17 @@ for test design patterns when needed.
 Do NOT write implementation before tests. Do NOT skip "verify it fails." Do NOT write
 more code than needed to pass the test.
 
-Verify the task against its **validation** — run the tests listed in the task and check
-all acceptance criteria are met.
+Verify the work against the active plan's validation section. For spec-backed work, also
+check the task's acceptance criteria.
 
 ### After each task: Review
 
-Invoke **code-review** to review the implementation before moving to the next task.
+Invoke **code-review** before moving to the next tracked task or coherent inline change.
 This catches issues early rather than accumulating debt across multiple tasks.
 
 ### On completion
 
-Mark the task done:
+For spec-backed work with a tracker, mark the task done:
 
 **With beads:**
 ```bash
@@ -157,10 +181,8 @@ all implicit requirements without spelling them out.
 After each batch:
 
 ```
-Completed: Tasks T1-T3
-- T1: UserEntity with validation ✓
-- T2: UserEntity tests (6 passing) ✓
-- T3: UserRepository ✓
+Completed: [tasks or inline changes]
+- [completed work]
 
 Test output: 6 passed, 0 failed
 Type check: clean
@@ -223,9 +245,14 @@ If the plan needs to change:
 
 > "This needs a plan revision. Want me to go back to spec-plan?"
 
-If the design was wrong:
+If a Spec-backed Plan's design was wrong:
 
 > "This changes design assumptions. Want me to go back to spec-brainstorm?"
+
+If Inline Plan work now needs durable design or coordination:
+
+> "This work now has substantial planning needs. Want me to return to spec-orchestrator
+> and promote it to a Spec-backed Plan?"
 
 ---
 
@@ -236,21 +263,26 @@ If the design was wrong:
 - Tasks can't be completed as specified
 
 **Return to spec-brainstorm when:**
-- Fundamental approach needs rethinking
-- Implementation reveals design is wrong
+- A Spec-backed Plan's fundamental approach needs rethinking
+- Spec-backed implementation reveals design is wrong
+
+**Return to spec-orchestrator when:**
+- Inline work develops substantial unresolved design decisions
+- Inline work now needs durable handoff, audit, or dependency coordination
 
 ---
 
 ## Completion
 
-When all tasks are done, verify and present the work.
+When all planned work is done, verify and present it.
 
 ### Verification checklist
 
 1. **Run full test suite** — all tests must pass, not just the new ones
 2. **Run type check / lint** — clean output, no new warnings
 3. **Invoke code-review** — full review of all changes
-4. **Verify tasks closed** — `bd list --label <feature> --json` (beads) or check harness todo list — all tasks must be done
+4. **Verify completion** — for spec-backed work, close every tracker entry; for inline work,
+   verify every planned change and validation item is complete
 5. **Diff review** — review the full diff against main/master. Look for:
    - Files that changed but shouldn't have
    - Debug code or temporary hacks left behind
@@ -263,7 +295,9 @@ Present to the human:
 ```
 ## Feature Complete: {feature name}
 
-**Tasks:** {completed} / {total}
+**Plan:** {Inline Plan | Spec-backed Plan}
+**Changes:** {completed} (Inline Plan only)
+**Tasks:** {completed} / {total} (Spec-backed Plan only)
 **Tests:** {new tests added}, {total passing}
 **Files:** {created}, {modified}
 
@@ -279,9 +313,11 @@ Present to the human:
 ### Ready for review
 ```
 
+Include only the progress line that matches the active planning mode.
+
 ### Next steps
 
-After all tasks complete and verified, the next step is **spec-finish**.
+After all planned work is complete and verified, the next step is **spec-finish**.
 
 > "Implementation complete. Ready to validate, review, and prepare for PR?"
 

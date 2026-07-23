@@ -38,11 +38,11 @@ Skills are organized into three namespaces based on their role:
 
 ### spec: - Workflow Skills
 
-Sequential, state-transforming steps that produce artifacts.
+Sequential, state-transforming steps that produce an approved plan and may produce artifacts.
 
 - **Process-oriented**: Each skill is a step in a workflow
 - **User-invoked**: Called explicitly by user or previous skill
-- **Artifact-producing**: Each produces a concrete output
+- **Output-producing**: Each produces conversational or persisted output
 - **Disciplined**: Must be followed exactly, not adapted
 
 ### oracle: - Thinking Skills
@@ -66,7 +66,7 @@ Tools and helpers for specific tasks.
 
 | Namespace | Type | Invocation | Output | Flexibility |
 |-----------|------|------------|--------|-------------|
-| spec: | Process | User/previous skill | Artifact | Follow exactly |
+| spec: | Process | User/previous skill | Plan/artifact | Follow exactly |
 | oracle: | Knowledge | Context-driven | Guidance | Adapt to context |
 | code: | Utility | User | Result | Use as needed |
 
@@ -74,63 +74,42 @@ Tools and helpers for specific tasks.
 
 ```mermaid
 graph TB
-    subgraph "spec-orchestrator"
-        O[Route to skill]
-    end
-    
-    O --> R
-    
-    subgraph "spec-brainstorm"
-        R1[Discovery] --> R2[Research]
-        R2 --> R3[Design]
-        R3 --> R4[design.md]
-    end
-    
-    R4 --> P
-    
-    subgraph "spec-plan"
-        P1[Draft] --> P2[Annotate]
-        P2 --> P3[plan.json]
-    end
-    
-    P3 --> I
-    
-    subgraph "spec-implement"
-        I1[TDD] --> I2[Track]
-        I2 --> I3[Report]
-    end
-    
-    I3 --> F
-    
-    subgraph "spec-finish"
-        F1[Validate] --> F2[Review]
-        F2 --> F3[Open PR]
-        F3 -.->|invokes| U1[code-pull-request]
-    end
-    
-    P -.->|design flaw| R
-    I -.->|missing tasks| P
-    I -.->|fundamental issue| R
-    F -.->|bugs found| I
+    O[spec-orchestrator] -->|bounded/default| PI[spec-plan: Inline Plan]
+    O -->|substantial| B[spec-brainstorm]
+    B --> D[design.md]
+    D --> PS[spec-plan: Spec-backed Plan]
+    PS --> J[plan.json]
+    PI --> A[Human approval]
+    J --> A
+    A --> I[spec-implement]
+    I --> F[spec-finish]
+    F -.->|invokes| PR[code-pull-request]
+    I -.->|revise Inline Plan| PI
+    I -.->|revise Spec-backed Plan| PS
+    I -.->|spec design issue| B
 ```
 
 ### Hard Transitions
 
-| After completing... | The ONLY next step is... |
-|---------------------|--------------------------|
-| spec-brainstorm | spec-plan |
-| spec-plan | spec-implement |
+| After completing... | Next step |
+|---------------------|-----------|
+| spec-brainstorm | spec-plan in Spec-backed mode |
+| approved Inline Plan | spec-implement in Inline mode |
+| approved Spec-backed Plan | spec-implement in Spec-backed mode |
 | spec-implement | spec-finish |
 
-Do NOT jump from requirements to code. Do NOT jump from research to implementation.
+Never write code before the human approves a written plan. Inline Plan is the default for
+bounded work. Reserve `design.md` and `plan.json` for substantial work selected by
+`spec-orchestrator` or explicitly requested by the human.
 
 ### Iteration Patterns
 
 The workflow is not purely linear. Expect backflows:
 
-- **Plan → Research**: Planning reveals design assumptions are wrong
-- **Implement → Plan**: Implementation reveals missing tasks
-- **Implement → Research**: Implementation reveals fundamental design issue
+- **Plan → Research**: Spec-backed planning reveals design assumptions are wrong
+- **Implement → Plan**: Implementation requires an approved plan revision
+- **Inline → Spec-backed**: Inline work develops durable design or coordination needs
+- **Implement → Research**: Spec-backed implementation reveals a fundamental design issue
 - **Finish → Implement**: Validation finds bugs
 
 If you loop 2+ times on the same issue, stop and ask the human:
@@ -154,10 +133,10 @@ Process skills come first. Knowledge skills get invoked by process skills when n
 
 **Spec-Driven Development** (5 skills)
 - `spec-finish` - Post-implementation validation
-- `spec-implement` - Execute tasks from plan.json
-- `spec-plan` - Implementation plan + tasks → plan.json
-- `spec-brainstorm` - Discovery + research + architecture → design.md
-- `spec-orchestrator` - Skill routing and workflow orchestration
+- `spec-implement` - Execute an approved Inline Plan or Spec-backed Plan
+- `spec-plan` - Produce a conversational Inline Plan or persisted plan.json
+- `spec-brainstorm` - Discovery + research + architecture for substantial work
+- `spec-orchestrator` - Select planning mode and route the workflow
 
 **Deep Thinking** (3 skills)
 - `oracle-debug` - Systematic debugging, root cause before fixes
@@ -227,7 +206,8 @@ bd close <id>         # Complete work
 
 ### Rules
 
-- Use `bd` for ALL task tracking — do NOT use TodoWrite, TaskCreate, or markdown TODO lists
+- When task tracking is useful, use `bd` instead of TodoWrite, TaskCreate, or markdown TODO lists
+- Inline Plans do not create tracker entries
 - Run `bd prime` for detailed command reference and session close protocol
 - Use `bd remember` for persistent knowledge — do NOT use MEMORY.md files
 
