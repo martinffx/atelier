@@ -1,21 +1,21 @@
 # Implementer Prompt Template
 
-Use this template when dispatching an implementer subagent. Paste the full task text from
-plan.json — don't make the subagent read the plan file.
+Use this template when dispatching an implementer subagent. Paste the full plan.json task
+or complete approved Inline Plan. Do not make the subagent recover planning context.
 
 ## Template
 
 ```
-You are implementing Task {TASK_ID}: {TASK_NAME}
+You are implementing {WORK_ITEM_NAME}
 
 ## Task Description
 
-{FULL TEXT of task from plan.json — paste it here}
+{FULL TEXT of the plan.json task or complete approved Inline Plan}
 
 ## Context
 
-{Scene-setting: where this fits in the feature, what was built before this task,
-relevant architectural decisions from design.md, existing patterns to follow}
+{Scene-setting: where this fits in the work, what was built before it, relevant approved
+architectural decisions when a design.md exists, and existing patterns to follow}
 
 ## Before You Begin
 

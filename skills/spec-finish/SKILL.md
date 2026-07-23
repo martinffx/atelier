@@ -1,10 +1,10 @@
 ---
 name: spec-finish
 description: >
-  Post-implementation completion workflow. Use after spec-implement completes to validate,
-  review, create stacked commits, and open a PR via code-pull-request. Triggers when
-  implementation is done, when the user says "finish", "done", "complete", or after
-  implementation tasks are finished.
+  Post-implementation completion workflow for Inline Plans and Spec-backed Plans. Use after
+  spec-implement completes to validate, review, create stacked commits, and open a PR via
+  code-pull-request. Triggers when implementation is done or the user says "finish", "done",
+  or "complete".
 user-invocable: true
 ---
 
@@ -15,11 +15,11 @@ Post-implementation workflow: validate → review → stack commits → prepare 
 ## Prerequisites
 
 Before starting, verify:
-1. All implementation tasks complete
+1. All Inline Plan changes and validation items are complete, or all Spec-backed Plan tasks are complete
 2. Working directory is clean (committed or staged)
 3. Tests pass
 
-If not complete → go back to spec-implement.
+If not complete, go back to `spec-implement` in the active planning mode.
 
 ---
 
@@ -61,7 +61,7 @@ npm run build
 go build ./...
 ```
 
-**If any fail:** Return to spec-implement to fix.
+**If any fail:** Return to `spec-implement` in the active planning mode to fix.
 
 **If all pass:** Proceed.
 
@@ -114,8 +114,8 @@ Use the Skill tool to invoke code-review skill for comprehensive code review.
 ## Step 5: Open the PR
 
 Steps 1-4 (validate, review, stack commits, update docs) must all be complete
-before proceeding. **If code-review found blocking issues, stop — return to
-spec-implement to fix them. Do not proceed to Step 5b.**
+before proceeding. **If code-review found blocking issues, stop and return to
+spec-implement in the active planning mode to fix them. Do not proceed to Step 5b.**
 
 ### Step 5a: Present Completion Summary
 
@@ -157,6 +157,6 @@ This skill orchestrates other skills:
 
 ## When NOT to Use
 
-- If implementation still in progress → use spec-implement
-- If tests failing → go back to spec-implement
-- If review found blocking issues → go back to spec-implement
+- If implementation still in progress, use spec-implement in the active planning mode
+- If tests are failing, go back to spec-implement in the active planning mode
+- If review found blocking issues, go back to spec-implement in the active planning mode

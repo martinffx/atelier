@@ -1,22 +1,70 @@
 ---
 name: spec-plan
 description: >
-  Write implementation plans, iterate with human annotations, create structured tasks. Use
-  when there's an approved spec (design.md) and the next step is breaking it into implementable
-  work. Trigger when the user says "write a plan", "plan this out", "break this down",
-  "I added notes" (annotation cycle), or after spec-brainstorm completes. Also trigger for
-  "create tasks" or "add to beads". Do NOT use for research (use spec-brainstorm) or
-  execution (use spec-implement).
+  Write approved implementation plans in one of two modes. Inline Plan is the default for
+  bounded work and stays in the conversation. Spec-backed Plan converts an approved design.md
+  into plan.json and optional tracked tasks. Trigger after spec-orchestrator selects a mode,
+  when the user asks to plan work, or after spec-brainstorm completes. Do NOT use for research
+  or execution.
 user-invocable: true
 ---
 
 # Spec Plan
 
-Write a plan so clear that any engineer can follow it. Let the human tear it apart
-through annotation cycles until it's right. Then create structured tasks. This skill does
-not write code.
+Write a proportional plan so clear that any engineer can follow it. The selected planning
+mode determines whether the plan stays in the conversation or becomes a persisted structured
+artifact. This skill does not write code.
 
-## Artifacts
+Do not choose or reconsider the planning mode here. `spec-orchestrator` owns automatic
+classification and the human may override it.
+
+## Outputs
+
+### Inline Plan (default for bounded work)
+
+No repository artifact and no task tracker entry. Present the plan in conversation using:
+
+```markdown
+# context
+
+## scope
+
+# changes
+
+## files
+
+# validation
+```
+
+## Inline Plan Workflow
+
+Read enough of the codebase to identify the current behavior, boundaries, affected files,
+and concrete validation. Keep the plan proportional. Populate every section:
+
+- `context`: Current behavior, relevant constraints, and why the change is needed
+- `scope`: Explicit in-scope and out-of-scope boundaries
+- `changes`: Ordered implementation changes at useful engineering granularity
+- `files`: Exact files expected to be created, modified, or deleted
+- `validation`: Concrete tests, checks, or manual verification
+
+Do not manufacture phases, task IDs, dependency graphs, acceptance matrices, `design.md`,
+`plan.json`, Beads issues, or harness todos. The conversation is the plan artifact.
+
+**Tell the human:** "Inline Plan ready for review."
+
+**STOP. Wait for human review.**
+
+If the human requests changes, revise the plan in conversation and present the complete
+plan again. Do not implement until the human explicitly approves it. A material scope
+change after approval also requires a revised plan and renewed approval.
+
+After approval, hand the approved conversational plan to **spec-implement** in Inline mode.
+
+> "Inline Plan approved. Ready to start implementation?"
+
+Do not create planning artifacts or tracker entries during this handoff.
+
+## Spec-backed Plan Artifacts
 
 ```
 docs/specs/YYYY-MM-DD-<feature-name>/
@@ -103,7 +151,7 @@ structured plan.json when approved.
 
 ---
 
-## Step 1: Write the Plan Draft
+## Spec-backed Step 1: Write the Plan Draft
 
 Read the approved design.md, then write a plan as a markdown section in the same
 document or as a separate draft.
@@ -146,7 +194,7 @@ Each task should take 15-60 minutes. If larger, decompose into smaller tasks.
 
 ---
 
-## Step 2: The Annotation Cycle
+## Spec-backed Step 2: The Annotation Cycle
 
 The human annotates the plan draft directly — adding corrections, rejections, domain
 knowledge, business constraints, or "remove this entirely."
@@ -178,14 +226,15 @@ explicitly approves it.
 
 ---
 
-## Step 3: Create Structured Tasks
+## Spec-backed Step 3: Create Structured Tasks
 
 When the human approves — "looks good", "approved", "create tasks" — convert the plan
 into plan.json.
 
 ### Task Tracking
 
-**Preferred:** Use beads for dependency-aware task tracking:
+Create tracker entries when they add execution value. For multi-task or dependency-ordered
+work, **prefer beads**:
 ```bash
 # Create epic and tasks with dependencies
 bd create "Feature: {name}" --label {feature} --type epic
@@ -193,15 +242,15 @@ bd create "Task: {name}" --label {feature} --type task --epic {epic-id}
 bd dep add --type blocks {task-a} {task-b}  # task-a blocks task-b
 ```
 
-**Fallback:** If beads is not available, use the harness's native todo system.
-The harness provides todo management — use it directly.
+If tracking is useful and beads is unavailable, use the harness's native todo system.
+Do not duplicate a simple plan.json into a tracker merely to satisfy the workflow.
 
 ### What to do
 
 1. Convert the annotated plan draft into structured plan.json
 2. Each task maps to a unit with inputs, description, files, and validation
 3. Dependencies between tasks are captured in `depends_on` fields
-4. Create tasks using beads (preferred) or harness todos:
+4. When execution benefits from task tracking, create tasks using beads or harness todos:
    - Create an epic/feature container
    - Add tasks per phase with clear descriptions
    - Mark dependencies between tasks (beads: `bd dep add`, harness: manual ordering)
@@ -221,11 +270,12 @@ After creating plan.json, verify:
 
 ## Handoff
 
-When plan.json is created and tasks exist, the next step is **spec-implement**.
+When plan.json is created, and any useful tracker entries have been created, the next
+step is **spec-implement** in Spec-backed mode.
 
 Tell the human:
 
-> "Plan is approved and tasks are created. Ready to start implementation?"
+> "Spec-backed Plan is approved. Ready to start implementation?"
 >
 > **Autonomous** — I'll work through all tasks, only stopping if blocked.
 >
@@ -240,9 +290,11 @@ loop back to research. See **spec-orchestrator** for iteration patterns.
 
 ## Quick Reference
 
-| Human says | You do |
-|------------|--------|
-| "write a plan" / "plan this" | Step 1 → write plan draft, stop |
-| "I added notes" | Re-read, address all notes, do NOT implement |
-| "don't implement yet" | Update plan only |
-| "looks good" / "approved" / "create tasks" | Step 3 → create plan.json + task tracking |
+| Selected mode / human says | You do |
+|----------------------------|--------|
+| Inline / "write a plan" | Present the five-section Inline Plan, stop |
+| Inline / "I added notes" | Revise and re-present the complete Inline Plan |
+| Inline / "approved" | Hand the conversational plan to spec-implement; create no artifacts |
+| Spec-backed / "write a plan" | Write the plan draft from design.md, stop |
+| Spec-backed / "I added notes" | Re-read, address all notes, do NOT implement |
+| Spec-backed / "approved" / "create tasks" | Create plan.json and useful task tracking |

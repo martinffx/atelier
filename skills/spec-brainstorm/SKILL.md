@@ -1,22 +1,26 @@
 ---
 name: spec-brainstorm
 description: >
-  Conversational design workshop for new features. Interviews the human one question
+  Conversational design workshop for substantial work. Interviews the human one question
   at a time, explores 2-3 approaches with trade-offs, and presents the design
   section by section for approval before writing the spec. Combines requirements
   discovery with codebase research and architecture design.
   Use when the user says "create a spec", "design this feature", "let's brainstorm",
-  "what should we build", or at the start of any feature/refactor/complex-bug workflow.
+  "what should we build", or when spec-orchestrator selects a Spec-backed Plan.
 user-invocable: true
 argument-hint: <topic or feature description>
 ---
 
 # Spec Brainstorm
 
-Conversational design workshop that produces a focused, reviewed spec.
+Conversational design workshop for substantial work that produces a focused, reviewed spec.
 
 One question at a time. Multiple approaches explored. Design approved in
 sections. Ruthless scope control. No implementation until design is approved.
+
+Run this skill only after `spec-orchestrator` selects a Spec-backed Plan or the human
+explicitly requests a spec. Bounded work should go directly to `spec-plan` for an Inline
+Plan. Do not reclassify the planning mode here.
 
 ## Artifact
 
@@ -33,11 +37,11 @@ Requirements are inline — no separate requirements.json needed.
 
 These principles apply to every spec, every time.
 
-### "Too simple for a design" is an anti-pattern
+### Specs must earn their cost
 
-Every project goes through this process. No exceptions. The five-minute conversation
-often reveals assumptions that would cost hours in implementation. If it's truly trivial,
-the spec will be short — but it still gets written.
+Persisted specs are for work whose discovery, architecture, dependencies, or coordination
+needs justify a durable artifact. Do not pull bounded work into this workflow merely because
+it touches multiple files or takes time. That work belongs in an Inline Plan.
 
 ### Design for isolation and clarity
 
@@ -54,8 +58,9 @@ changes.
 ### Decomposition
 
 If the request describes multiple independent subsystems, flag it immediately. Decompose
-into sub-projects before diving into details. Each sub-project gets its own spec and its
-own plan. A spec that tries to cover three subsystems helps no one.
+into sub-projects before diving into details. Each substantial sub-project gets its own spec
+and plan; bounded sub-projects can use Inline Plans. A spec that tries to cover three
+subsystems helps no one.
 
 ### YAGNI ruthlessly
 
@@ -330,16 +335,16 @@ note them at handoff.
 **Tell the human:**
 
 > "Spec written to `docs/specs/<path>`. Every section was approved during our
-> conversation — review it if you'd like, or we can go straight to the
-> implementation plan. Ready for spec-plan?"
+> conversation - review it if you'd like, or we can go straight to the
+> Spec-backed Plan. Ready for spec-plan?"
 
 If the human requests changes — in conversation or by annotating the file —
 address every note, update the spec, and re-run the self-review. If a change
 alters the substance of an approved section, re-present that section for
 approval before continuing.
 
-The next step is **spec-plan**. Do not start planning without the human's
-go-ahead. Do not write code.
+The next step is **spec-plan** in Spec-backed mode. Do not start planning without the
+human's go-ahead. Do not write code.
 
 If planning reveals design flaws, loop back to research. See **spec-orchestrator**
 for iteration patterns.

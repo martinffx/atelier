@@ -1,0 +1,204 @@
+{
+  "feature": "two-tier-planning",
+  "spec": "docs/specs/2026-07-23-two-tier-planning/design.md",
+  "goal": "Make inline conversational plans the default while preserving persisted specs for substantial work.",
+  "phases": [
+    {
+      "id": "P1",
+      "name": "Core Planning Policy",
+      "tasks": [
+        {
+          "id": "T1",
+          "name": "Add two-tier routing and planning",
+          "depends_on": [],
+          "inputs": [
+            "Approved docs/specs/2026-07-23-two-tier-planning/design.md",
+            "Existing contracts in spec-orchestrator, spec-brainstorm, and spec-plan",
+            "Approved Inline Plan and Spec-backed Plan terminology from CONTEXT.md"
+          ],
+          "description": "Make spec-orchestrator the sole planning-mode classifier, with Inline Plan as the default and the approved substantial-work signals selecting Spec-backed Plan. Restrict spec-brainstorm to the spec-backed route. Add explicit inline and spec-backed modes to spec-plan, preserving the existing plan.json schema and annotation cycle while making inline plans conversational, artifact-free, proportional, and subject to explicit approval.",
+          "files": {
+            "create": [],
+            "modify": [
+              "skills/spec-orchestrator/SKILL.md",
+              "skills/spec-brainstorm/SKILL.md",
+              "skills/spec-plan/SKILL.md"
+            ]
+          },
+          "validation": {
+            "tests": [
+              "Review representative ordinary, substantial, ambiguous, and explicitly overridden requests against the routing rules",
+              "Verify the inline output against the approved five-section template",
+              "Verify the spec-backed path retains the existing plan.json contract"
+            ],
+            "acceptance": [
+              "Ordinary bounded work and ambiguous work route to Inline Plan by default",
+              "Concrete substantial-work signals route through spec-brainstorm",
+              "The selected mode and reason are visible and user-overridable",
+              "Inline mode creates no design.md, plan.json, Beads issues, or native todos and stops for approval",
+              "Spec-backed mode retains its existing artifacts and structured planning behavior"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "name": "Execution Contracts",
+      "tasks": [
+        {
+          "id": "T2",
+          "name": "Support both plan modes during implementation and completion",
+          "depends_on": [
+            "T1"
+          ],
+          "inputs": [
+            "Planning-mode contracts established by T1",
+            "Existing spec-implement prerequisites, execution, reporting, and completion rules",
+            "Existing spec-finish validation and handoff rules"
+          ],
+          "description": "Allow spec-implement to execute either an approved conversational Inline Plan or an approved plan.json. Apply task IDs, dependencies, Beads, and tracker behavior only to Spec-backed Plans. Require approval after material plan changes and promote inline work through spec-orchestrator when durable design or coordination needs emerge. Make spec-finish validate either route while preserving testing, review, validation, and completion discipline.",
+          "files": {
+            "create": [],
+            "modify": [
+              "skills/spec-implement/SKILL.md",
+              "skills/spec-finish/SKILL.md"
+            ]
+          },
+          "validation": {
+            "tests": [
+              "Trace an approved Inline Plan through spec-implement and spec-finish",
+              "Trace an approved plan.json through the existing tracked-task path",
+              "Review material-scope-change and promotion handoffs for both routes"
+            ],
+            "acceptance": [
+              "Inline implementation has no design.md, plan.json, tracker, or structured-task prerequisite",
+              "Spec-backed implementation still loads dependencies and tracking from plan.json",
+              "Both modes require an approved written plan before implementation",
+              "Both modes retain relevant tests, checks, diff review, and code review",
+              "Inline completion does not require Beads queries or report structured task counts"
+            ]
+          }
+        },
+        {
+          "id": "T3",
+          "name": "Generalize subagent prompts for either plan source",
+          "depends_on": [
+            "T2"
+          ],
+          "inputs": [
+            "Approved Inline Plan and Spec-backed Plan execution contracts",
+            "Current subagent dispatch and two-stage review behavior"
+          ],
+          "description": "Permit subagents for inline work only when the full approved Inline Plan is supplied as self-contained task context. Replace unconditional plan.json and design.md assumptions with plan-source-neutral language while preserving focused dispatch, independence checks, and two-stage compliance and quality review. Keep tracker updates conditional on the selected planning mode.",
+          "files": {
+            "create": [],
+            "modify": [
+              "skills/code-subagents/SKILL.md",
+              "skills/code-subagents/references/implementor-prompt.md",
+              "skills/code-subagents/references/spec-reviewer-prompt.md"
+            ]
+          },
+          "validation": {
+            "tests": [
+              "Populate the implementer and compliance-review templates with an Inline Plan",
+              "Populate the same templates with a plan.json task and design context",
+              "Review tracker-update guidance for both planning modes"
+            ],
+            "acceptance": [
+              "Prompt templates accept requirements from either an Inline Plan or plan.json",
+              "Inline subagents receive the complete approved plan rather than artifact paths",
+              "Spec-backed subagents continue receiving full task and design context",
+              "Compliance review does not assume design.md exists",
+              "Task tracking is updated only for Spec-backed Plans"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P3",
+      "name": "Canonical Guidance",
+      "tasks": [
+        {
+          "id": "T4",
+          "name": "Align repository and agent documentation",
+          "depends_on": [
+            "T1",
+            "T2",
+            "T3"
+          ],
+          "inputs": [
+            "Final behavior from the planning and execution skills",
+            "Approved glossary entries in CONTEXT.md",
+            "Current workflow diagrams and skill descriptions in repository documentation"
+          ],
+          "description": "Document Inline Plan and Spec-backed Plan as the two canonical routes. Replace universal artifact and hard-transition claims with mode-aware guidance, make Beads and structured tracking conditional on the spec-backed route, and update Oracle and Architect checklists so persisted artifacts are required only for spec-backed work. Keep the approved domain language consistent across canonical sources.",
+          "files": {
+            "create": [],
+            "modify": [
+              "AGENTS.md",
+              "README.md",
+              "agents/oracle.md",
+              "agents/architect.md",
+              "CONTEXT.md"
+            ]
+          },
+          "validation": {
+            "tests": [
+              "Compare workflow diagrams and routing descriptions across AGENTS.md and README.md",
+              "Review Oracle and Architect checklists under both planning modes",
+              "Search canonical guidance for stale universal artifact requirements"
+            ],
+            "acceptance": [
+              "Repository guidance and all workflow skills describe the same routing rules",
+              "Canonical diagrams show both Inline Plan and Spec-backed Plan paths",
+              "No canonical guidance says every project must produce design.md and plan.json",
+              "Oracle and Architect do not unconditionally create spec artifacts",
+              "Historical specs and independent worktrees remain unchanged"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "P4",
+      "name": "Consistency Validation",
+      "tasks": [
+        {
+          "id": "T5",
+          "name": "Validate the complete workflow",
+          "depends_on": [
+            "T1",
+            "T2",
+            "T3",
+            "T4"
+          ],
+          "inputs": [
+            "All modified workflow, agent, glossary, and documentation files",
+            "Success criteria from the approved design"
+          ],
+          "description": "Review the complete diff for contradictory routing, prerequisites, handoffs, and tracker requirements. Search canonical sources for stale universal-spec and artifact-only assumptions, run repository quality checks, and confirm the change did not modify application source, historical specs, or independent worktrees.",
+          "files": {
+            "create": [],
+            "modify": []
+          },
+          "validation": {
+            "tests": [
+              "bun test",
+              "bun run typecheck",
+              "git diff --check",
+              "Search canonical workflow sources for stale unconditional design.md, plan.json, and tracked-task requirements"
+            ],
+            "acceptance": [
+              "All repository quality checks pass",
+              "Inline and spec-backed examples follow their contracts end-to-end",
+              "No contradictory mode prerequisites or handoffs remain",
+              "The final diff is limited to approved workflow, guidance, glossary, agent, and planning-artifact files"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
