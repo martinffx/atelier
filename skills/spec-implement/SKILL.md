@@ -74,7 +74,7 @@ If the human has not specified an execution style, ask.
 
 - Invoke **code-subagents** for dispatch patterns and review cycle
 - Fresh subagent per task — no context pollution
-- Two-stage review after each: plan compliance, then code quality
+- One combined plan and code-quality review per completed batch
 - Independent tasks dispatch in parallel, dependent tasks run sequentially
 
 Default to batched if the human hasn't expressed a preference.
@@ -121,7 +121,6 @@ for test design patterns when needed.
 3. Run them — verify they fail for the RIGHT reason
 4. Implement minimal code to make tests pass
 5. Refactor if needed (tests stay green)
-6. Commit (use code-commit for commit message)
 ```
 
 Do NOT write implementation before tests. Do NOT skip "verify it fails." Do NOT write
@@ -129,10 +128,11 @@ more code than needed to pass the test.
 
 Verify the task against its **validation** and acceptance criteria.
 
-### After each task: Review
+### After each batch: Review and commit
 
-Invoke **code-review** before moving to the next task.
-This catches issues early rather than accumulating debt across multiple tasks.
+In Subagent Mode, use **code-subagents** for one combined batch review. In other modes,
+invoke **code-review** once for the batch. Resolve blocking findings and revalidate, then the
+coordinator commits the reviewed batch serially using **code-commit**.
 
 ### On completion
 
@@ -159,7 +159,7 @@ all implicit requirements without spelling them out.
 After each batch:
 
 ```
-Completed: [tasks or inline changes]
+Completed: [tasks]
 - [completed work]
 
 Test output: 6 passed, 0 failed

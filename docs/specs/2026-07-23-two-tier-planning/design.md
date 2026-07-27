@@ -149,7 +149,10 @@ File count and estimated duration alone do not make work spec-worthy. When class
 - `spec-brainstorm` runs only for the spec-backed route. Its universal-spec rule is removed.
 - `spec-plan` supports two explicit modes. Inline mode is selected by the orchestrator and presents the five-section Markdown plan. Direct invocation defaults to Spec-backed mode, which retains the annotation cycle, `plan.json`, and task creation.
 - `spec-implement`, `spec-finish`, and `code-subagents` operate only on Spec-backed Plans.
-- `README.md`, `AGENTS.md`, Oracle, and Architect guidance describe both routes and no longer treat persisted artifacts as universal.
+- Subagent batches use exclusive file ownership, path-scoped patch snapshots, one combined
+  review, and a serial coordinator commit.
+- `README.md`, Oracle, and Architect guidance describe both routes without duplicating workflow
+  policy in repository instruction files.
 
 ### State and ownership
 
@@ -205,7 +208,9 @@ Output:
 
 ### Implementation handoff
 
-- Inline route: the main agent builds the approved conversational plan directly, respecting its `scope`, `files`, and `validation`.
+- Inline route: approval authorizes the main agent to build the conversational plan directly.
+  It avoids main/master without permission, respects approved scope and files, runs planned
+  validation, reviews the final diff, and does not commit or publish without explicit instruction.
 - Spec-backed route: `spec-implement` receives `plan.json` and follows task dependencies and tracking.
 - Both routes remain plan-first and validation-driven.
 - A material plan change requires user approval before execution continues.
@@ -236,10 +241,9 @@ Supporting contracts:
 - `agents/architect.md`
 - `skills/code-subagents/SKILL.md`
 - `skills/code-subagents/references/implementor-prompt.md`
-- `skills/code-subagents/references/spec-reviewer-prompt.md`
-- `skills/code-subagents/references/code-quality-reviewer-prompt.md`
+- `skills/code-subagents/references/batch-reviewer-prompt.md`
 - `CONTEXT.md`
-- `CLAUDE.md`
+- Remove duplicate `CLAUDE.md` repository guidance
 
 Historical specs and independently checked-out worktree copies are not modified.
 
@@ -285,5 +289,5 @@ None. The planning modes, default, classification ownership, override behavior, 
 - Both routes require explicit plan approval before implementation.
 - Inline Plans remain conversational and do not enter the persisted-spec execution workflow.
 - `spec-implement` and `spec-finish` retain their existing Spec-backed Plan contracts.
-- Canonical workflow documentation and agent guidance describe the same two-tier model.
+- README workflow documentation and executable skills describe the same two-tier model.
 - Existing spec-backed behavior and `plan.json` structure remain available.

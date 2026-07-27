@@ -26,7 +26,8 @@ need to follow it. But you must check.
 
 ## The One Rule
 
-**Never write code until the human has reviewed and approved a written plan.**
+**When an implementation choice exists, never write code until the human has reviewed and
+approved a written plan.** Exact mechanical changes may use the exception below.
 
 The plan may be inline in the conversation or backed by persisted spec artifacts. Select
 the mode before invoking an artifact-producing skill, state the choice with one brief
@@ -41,6 +42,14 @@ configuration changes, and multi-file changes. Route to **spec-plan** with Inlin
 explicitly selected. It presents a concise plan in conversation, creates no planning artifacts
 or tracker entries, and stops for approval. After approval, implement the plan directly; do
 not invoke `spec-implement`, `spec-finish`, or `code-subagents`.
+
+Direct Inline implementation must:
+
+- Avoid main/master unless the human explicitly permits it
+- Stay within the approved scope and files
+- Run every validation item in the approved plan
+- Review the final diff for unintended changes
+- Do not commit, push, or open a PR without explicit human instruction
 
 When in doubt, choose Inline Plan. File count and estimated duration alone do not make work
 spec-worthy.
