@@ -5,8 +5,8 @@ description: >
   at a time, explores 2-3 approaches with trade-offs, and presents the design
   section by section for approval before writing the spec. Combines requirements
   discovery with codebase research and architecture design.
-  Use when the user says "create a spec", "design this feature", "let's brainstorm",
-  "what should we build", or when spec-orchestrator selects a Spec-backed Plan.
+  Use when the user explicitly requests a spec or when spec-orchestrator selects a
+  Spec-backed Plan. Ambiguous design or discovery requests route through spec-orchestrator.
 user-invocable: true
 argument-hint: <topic or feature description>
 ---

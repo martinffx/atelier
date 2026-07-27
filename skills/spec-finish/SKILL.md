@@ -3,8 +3,8 @@ name: spec-finish
 description: >
   Post-implementation completion workflow for Spec-backed Plans. Use after spec-implement
   completes to validate, review, create stacked commits, and open a PR via code-pull-request.
-  Triggers when persisted-spec implementation is done or the user says "finish", "done", or
-  "complete".
+  Triggers only with an active Spec-backed Plan after spec-implement completes, including when
+  the user says "finish", "done", or "complete" in that context.
 user-invocable: true
 ---
 

@@ -1,21 +1,21 @@
 # Implementer Prompt Template
 
-Use this template when dispatching an implementer subagent. Paste the full plan.json task.
-Do not make the subagent recover planning context.
+Use this template when dispatching an implementer subagent. Paste the complete work-item
+requirements. Do not make the subagent recover context.
 
 ## Template
 
 ```
 You are implementing {WORK_ITEM_NAME}
 
-## Task Description
+## Work Item Requirements
 
-{FULL TEXT of the plan.json task}
+{WORK_ITEM_REQUIREMENTS}
 
 ## Context
 
-{Scene-setting: where this fits in the work, what was built before it, relevant approved
-architectural decisions when a design.md exists, and existing patterns to follow}
+{Scene-setting: where this fits in the work, what was built before it, constraints, and
+existing patterns to follow}
 
 ## Before You Begin
 
@@ -46,7 +46,7 @@ It's always OK to pause and clarify. Don't guess or make assumptions.
 Review your work with fresh eyes:
 
 **Completeness:**
-- Did I fully implement everything in the spec?
+- Did I fully implement every requirement?
 - Did I miss any requirements?
 - Are there edge cases I didn't handle?
 

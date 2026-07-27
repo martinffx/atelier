@@ -88,28 +88,28 @@
           ],
           "inputs": [
             "Approved Inline Plan and Spec-backed Plan execution contracts",
-            "Current subagent dispatch and two-stage review behavior"
+            "Current subagent dispatch and review behavior"
           ],
-          "description": "Reserve subagents for Spec-backed Plan tasks. Restore plan.json and design.md task context, retain focused dispatch and two-stage review, and prohibit implementer commits so the coordinator integrates and commits reviewed work serially.",
+          "description": "Reserve subagents for Spec-backed Plan tasks. Use exclusive shared-tree file ownership and path-scoped task patches, then run one combined plan and code-quality review per completed batch. Prohibit implementer commits so the coordinator integrates and commits each reviewed batch serially.",
           "files": {
             "create": [],
             "modify": [
               "skills/code-subagents/SKILL.md",
               "skills/code-subagents/references/implementor-prompt.md",
-              "skills/code-subagents/references/spec-reviewer-prompt.md"
+              "skills/code-subagents/references/batch-reviewer-prompt.md"
             ]
           },
           "validation": {
             "tests": [
-              "Populate the implementer and compliance-review templates with a plan.json task and design context",
+              "Populate the batch-review template with plan tasks, design constraints, and path-scoped patches",
               "Verify implementers do not commit from a shared worktree",
               "Review tracker-update guidance for Spec-backed Plans"
             ],
             "acceptance": [
-              "Prompt templates use plan.json task and design context",
+              "The batch reviewer receives plan tasks, relevant design constraints, and task patches",
               "Inline Plans do not use subagents",
               "Spec-backed subagents receive full task and design context",
-              "Compliance review checks design.md",
+              "One combined review checks plan compliance and code quality per batch",
               "The coordinator commits reviewed subagent work serially"
             ]
           }
@@ -133,26 +133,26 @@
             "Approved glossary entries in CONTEXT.md",
             "Current workflow diagrams and skill descriptions in repository documentation"
           ],
-          "description": "Document Inline Plan and Spec-backed Plan as the two canonical routes. Replace universal artifact and hard-transition claims with mode-aware guidance, make Beads and structured tracking conditional on the spec-backed route, and update Oracle and Architect checklists so persisted artifacts are required only for spec-backed work. Keep the approved domain language consistent across canonical sources.",
+          "description": "Document Inline Plan and Spec-backed Plan as the two canonical routes. Explain Inline planning in prose and show the full persisted workflow in README, make tracking conditional on the spec-backed route, keep Oracle and Architect artifact requirements conditional, and remove duplicate CLAUDE.md repository guidance.",
           "files": {
             "create": [],
             "modify": [
-              "AGENTS.md",
               "README.md",
               "agents/oracle.md",
               "agents/architect.md",
-              "CONTEXT.md"
+              "CONTEXT.md",
+              "CLAUDE.md"
             ]
           },
           "validation": {
             "tests": [
-              "Compare workflow diagrams and routing descriptions across AGENTS.md and README.md",
+              "Compare README routing descriptions against the workflow skills",
               "Review Oracle and Architect checklists under both planning modes",
               "Search canonical guidance for stale universal artifact requirements"
             ],
             "acceptance": [
               "Repository guidance and all workflow skills describe the same routing rules",
-              "Canonical diagrams show both Inline Plan and Spec-backed Plan paths",
+              "README explains Inline planning in prose and diagrams the full persisted workflow",
               "No canonical guidance says every project must produce design.md and plan.json",
               "Oracle and Architect do not unconditionally create spec artifacts",
               "Historical specs and independent worktrees remain unchanged"

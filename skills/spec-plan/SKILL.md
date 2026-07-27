@@ -60,10 +60,9 @@ If the human requests changes, revise the plan in conversation and present the c
 plan again. Do not implement until the human explicitly approves it. A material scope
 change after approval also requires a revised plan and renewed approval.
 
-After approval, implement the approved conversational plan directly using normal engineering
-discipline. Do not invoke `spec-implement`, `spec-finish`, `code-subagents`, or task tracking.
-
-> "Inline Plan approved. Ready to build it?"
+Approval authorizes implementation. Implement the approved conversational plan directly using
+the Inline execution safeguards in `spec-orchestrator`. Do not invoke `spec-implement`,
+`spec-finish`, `code-subagents`, or task tracking.
 
 Do not create planning artifacts or tracker entries during this handoff.
 
@@ -297,7 +296,7 @@ loop back to research. See **spec-orchestrator** for iteration patterns.
 |----------------------------|--------|
 | Inline / "write a plan" | Present the five-section Inline Plan, stop |
 | Inline / "I added notes" | Revise and re-present the complete Inline Plan |
-| Inline / "approved" | Hand the conversational plan to spec-implement; create no artifacts |
+| Inline / "approved" | Implement the approved conversational plan directly; create no artifacts |
 | Spec-backed / "write a plan" | Write the plan draft from design.md, stop |
 | Spec-backed / "I added notes" | Re-read, address all notes, do NOT implement |
 | Spec-backed / "approved" / "create tasks" | Create plan.json and useful task tracking |

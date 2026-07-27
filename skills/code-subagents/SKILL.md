@@ -1,26 +1,23 @@
 ---
 name: code-subagents
 description: >
-  Subagent dispatch patterns for approved Spec-backed Plan tasks. Use when spec-implement has
-  independent work to dispatch and subagents are available. Covers parallel dispatch for
-  independent work,
-  the two-stage review cycle (plan compliance then code quality), focused prompt construction,
-  and integration of results. Trigger when executing plan tasks with subagent support, when
-  facing 2+ independent problems, or when the user asks to use subagents for implementation.
+  Implementation subagent dispatch patterns. Use when independent implementation work is
+  available and subagents can execute it. Covers parallel dispatch, shared-tree patch
+  snapshots, one combined review per completed batch, and serial integration.
 user-invocable: false
 ---
 
-# Spec Subagents
+# Implementation Subagents
 
-Fresh subagent per task. Two-stage review after each. Parallel when independent, sequential
-when dependent.
+Fresh subagent per task. One combined review per completed batch. Parallel when independent,
+sequential when dependent.
 
 ## When to Use Subagents
 
 **Use when:**
-- Executing plan.json tasks with subagent support available
-- 2+ independent tasks that don't share state or files
-- Each problem can be understood without context from others
+- 2+ independent work items do not share state or files
+- Each work item has explicit requirements, constraints, files, and validation
+- Each problem can be understood without context from the other work items
 
 **Don't use when:**
 - Tasks are tightly coupled (editing the same files)
@@ -54,6 +51,13 @@ Task C (notification tests) ──→ review → complete
 **Independence check:** Would fixing Task A affect Task B? Would they edit the same files?
 If no to both, dispatch in parallel.
 
+For shared-tree parallel work:
+
+1. Assign each task an exclusive file list before dispatch
+2. Do not let implementers stage or commit changes
+3. Capture a path-scoped `git diff` for each task when it reports completion
+4. Run tasks sequentially if their file ownership overlaps or cannot be isolated
+
 ---
 
 ## Prompt Templates
@@ -62,14 +66,13 @@ Use these templates when dispatching subagents. Each template is battle-tested �
 improvise, use them as-is and fill in the variables.
 
 - **[references/implementor-prompt.md](references/implementor-prompt.md)** — Dispatch an implementer. Includes self-review checklist.
-- **[references/spec-reviewer-prompt.md](references/spec-reviewer-prompt.md)** — Plan compliance review. "Do not trust the report."
-- **[references/code-quality-reviewer-prompt.md](references/code-quality-reviewer-prompt.md)** — Code quality review. Critical/Important/Minor severity.
+- **[references/batch-reviewer-prompt.md](references/batch-reviewer-prompt.md)** — Combined plan and code-quality review for one completed batch.
 
 ### Prompt quality rules
 
 - **Focused** — one task, one problem domain
-- **Self-contained** — all context needed is in the prompt. Provide the full plan.json task;
-  do not make the subagent recover planning context
+- **Self-contained** — all context needed is in the prompt. Provide the complete work-item
+  requirements; do not make the subagent recover context
 - **Specific about files** — exact paths, not "the relevant files"
 - **Specific about output** — what should the subagent return?
 - **Constrained** — what should they NOT touch?
@@ -85,63 +88,30 @@ improvise, use them as-is and fill in the variables.
 
 ---
 
-## Two-Stage Review
+## Batch Review
 
-Every completed task gets two reviews in order. Do not skip either. Do not reverse the order.
+Run one combined review after every completed batch, not separate reviews for each task.
 
-### Stage 1: Plan Compliance
+Give one fresh reviewer:
 
-Does the implementation match what was specified?
+- The complete requirements for work items in the batch
+- The relevant constraints
+- The path-scoped patch captured for each task
+- The implementers' reports and validation results
 
-```markdown
-## Plan Review
+The reviewer checks both requirements compliance and code quality:
 
-Review the implementation against the task specification:
+1. Every requirement and acceptance criterion is implemented
+2. The batch follows the supplied constraints
+3. No unrequested work or out-of-scope files are included
+4. Tests are meaningful and cover the right boundaries
+5. The code follows existing patterns without unnecessary complexity
 
-**Approved requirements:** [paste the plan.json task]
+Use [references/batch-reviewer-prompt.md](references/batch-reviewer-prompt.md) as written.
 
-**Files changed:** [list from subagent output]
-
-Check:
-1. Are all requirements from the task spec implemented?
-2. Is anything implemented that wasn't specified? (over-building)
-3. Do tests cover the specified acceptance criteria?
-4. Does the implementation match design.md?
-
-Report: List any gaps or extras. Mark ✅ if compliant, ❌ if not.
-```
-
-If the plan reviewer finds issues → the implementer subagent fixes them → plan reviewer
-reviews again. Repeat until ✅.
-
-### Stage 2: Code Quality
-
-Is the implementation well-built?
-
-```markdown
-## Code Quality Review
-
-Review the implementation for code quality:
-
-**Files changed:** [list]
-
-Check:
-1. Does the code follow existing patterns and conventions?
-2. Are tests meaningful (not just asserting true)?
-3. Is there unnecessary complexity?
-4. Are edge cases handled?
-5. Is the code clean (no dead code, no unnecessary comments)?
-
-Rate issues as Critical (blocks merge), Important (should fix), or Minor (nice to have).
-```
-
-If the quality reviewer finds Critical or Important issues → implementer fixes → reviewer
-reviews again. Minor issues can be noted and moved past.
-
-### Why this order matters
-
-Plan compliance first because there's no point polishing code that doesn't meet the approved plan.
-Quality second because compliant code still needs to be well-built.
+If the reviewer finds Critical or Important issues, send each issue back to the relevant
+implementer, refresh its path-scoped patch, and review the batch again. Minor issues may be
+noted and moved past.
 
 ---
 
@@ -162,9 +132,11 @@ they're thinking rather than guessing.
 After subagents complete (especially parallel dispatch):
 
 1. **Read each summary** — understand what changed
-2. **Check for conflicts** — did any agents edit the same code?
-3. **Run full test suite** — verify all changes work together
-4. **Update task tracking** — when a tracker exists, mark tasks complete
+2. **Capture task patches** — use each task's exclusive file list
+3. **Review the batch** — one combined requirements and quality review
+4. **Run full test suite** — verify all changes work together
+5. **Commit** — the coordinator commits the reviewed batch serially
+6. **Update progress tracking** — when the caller uses it
 
 If there are conflicts between parallel results, resolve them manually. Don't dispatch
 another subagent to merge — that requires too much context.
@@ -177,9 +149,5 @@ If a subagent fails a task:
 
 - **Don't fix it manually** — that pollutes your context
 - **Dispatch a fix subagent** with specific instructions about what went wrong
-- **If it fails twice**, stop and escalate to the human. The plan may need revision.
-
-If failure reveals a Spec-backed Plan design problem:
-
-> "This task is failing because [reason]. The design in design.md may need to change.
-> Want me to go back to spec-brainstorm?"
+- **If it fails twice**, stop and escalate to the human. The requirements or constraints may
+  need revision.
