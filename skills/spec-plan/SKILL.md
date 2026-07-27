@@ -1,11 +1,11 @@
 ---
 name: spec-plan
 description: >
-  Write approved implementation plans in one of two modes. Inline Plan is the default for
-  bounded work and stays in the conversation. Spec-backed Plan converts an approved design.md
-  into plan.json and optional tracked tasks. Trigger after spec-orchestrator selects a mode,
-  when the user asks to plan work, or after spec-brainstorm completes. Do NOT use for research
-  or execution.
+  Write approved implementation plans in one of two modes. Explicit Inline mode creates a
+  conversational plan for bounded work. Spec-backed Plan converts an approved design.md into
+  plan.json and optional tracked tasks. Trigger after spec-orchestrator selects a mode, when
+  the user asks to plan work, or after spec-brainstorm completes. Direct invocation without a
+  selected mode uses Spec-backed Plan. Do NOT use for research or execution.
 user-invocable: true
 ---
 
@@ -15,25 +15,27 @@ Write a proportional plan so clear that any engineer can follow it. The selected
 mode determines whether the plan stays in the conversation or becomes a persisted structured
 artifact. This skill does not write code.
 
-Do not choose or reconsider the planning mode here. `spec-orchestrator` owns automatic
-classification and the human may override it.
+`spec-orchestrator` owns automatic classification and the human may override it. When this
+skill is directly invoked without a selected mode, use Spec-backed Plan. If Inline planning
+reveals substantial design or coordination needs, ask the human whether to switch to a
+Spec-backed Plan before presenting the plan.
 
 ## Outputs
 
-### Inline Plan (default for bounded work)
+### Inline Plan (when explicitly selected)
 
 No repository artifact and no task tracker entry. Present the plan in conversation using:
 
 ```markdown
-# context
+## context
 
 ## scope
 
-# changes
+## changes
 
 ## files
 
-# validation
+## validation
 ```
 
 ## Inline Plan Workflow
@@ -58,9 +60,10 @@ If the human requests changes, revise the plan in conversation and present the c
 plan again. Do not implement until the human explicitly approves it. A material scope
 change after approval also requires a revised plan and renewed approval.
 
-After approval, hand the approved conversational plan to **spec-implement** in Inline mode.
+After approval, implement the approved conversational plan directly using normal engineering
+discipline. Do not invoke `spec-implement`, `spec-finish`, `code-subagents`, or task tracking.
 
-> "Inline Plan approved. Ready to start implementation?"
+> "Inline Plan approved. Ready to build it?"
 
 Do not create planning artifacts or tracker entries during this handoff.
 

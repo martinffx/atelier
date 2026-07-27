@@ -18,7 +18,10 @@ bd close <id>         # Complete work
 
 ### Rules
 
-- Use `bd` for ALL task tracking — do NOT use TodoWrite, TaskCreate, or markdown TODO lists
+- When task tracking is useful for Spec-backed Plans, use `bd` instead of TodoWrite, TaskCreate,
+  or markdown TODO lists. Inline Plans do not create tracker entries.
+- Inline Plans are built directly after approval. `spec-implement`, `spec-finish`, and
+  `code-subagents` are for Spec-backed Plans only.
 - Run `bd prime` for detailed command reference and session close protocol
 - Use `bd remember` for persistent knowledge — do NOT use MEMORY.md files
 

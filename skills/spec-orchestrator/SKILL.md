@@ -37,9 +37,10 @@ reason, and let the human override it.
 ### Inline Plan (default)
 
 Use for bounded, well-understood work, including ordinary features, bug fixes, refactors,
-configuration changes, and multi-file changes. Route directly to **spec-plan**. It presents
-a concise plan in conversation, creates no planning artifacts or tracker entries, and stops
-for approval.
+configuration changes, and multi-file changes. Route to **spec-plan** with Inline mode
+explicitly selected. It presents a concise plan in conversation, creates no planning artifacts
+or tracker entries, and stops for approval. After approval, implement the plan directly; do
+not invoke `spec-implement`, `spec-finish`, or `code-subagents`.
 
 When in doubt, choose Inline Plan. File count and estimated duration alone do not make work
 spec-worthy.
@@ -69,15 +70,15 @@ Do not infer substantial work from size alone. If no concrete signal applies, us
 spec-orchestrator → Select and announce planning mode
 spec-brainstorm   → Spec-backed discovery + design → design.md
 spec-plan         → Inline Plan or Spec-backed Plan → approval
-spec-implement    → Execute the approved plan; track spec-backed tasks
-spec-finish      → Post-implementation validation
-code-subagents   → Parallel dispatch, two-stage review
+spec-implement    → Execute approved Spec-backed Plans; track tasks
+spec-finish       → Post-implementation validation for Spec-backed Plans
+code-subagents    → Parallel dispatch for Spec-backed Plan tasks
 ```
 
 ### Ordinary bounded work
 
 ```
-spec-plan (Inline Plan) → approval → spec-implement → spec-finish
+spec-plan (Inline mode) → approval → implement directly
 ```
 
 ### Substantial work or explicit spec request
@@ -96,7 +97,7 @@ choice to review. If any choice exists, use an Inline Plan.
 | After completing... | Next step |
 |---------------------|-----------|
 | spec-brainstorm | spec-plan in Spec-backed mode |
-| approved Inline Plan | spec-implement in Inline mode |
+| approved Inline Plan | implement the approved plan directly |
 | approved Spec-backed Plan | spec-implement in Spec-backed mode |
 | spec-implement | spec-finish |
 
@@ -120,7 +121,8 @@ The workflow is not purely linear. Expect backflows:
 - Spec-backed work is blocked on an unplanned dependency → update plan.json
 
 ### Implement → Research (fundamental issue)
-- Inline work develops durable design or coordination needs → return here and promote it
+- Inline planning or implementation develops substantial needs → ask the human whether to
+  switch to a Spec-backed Plan
 - Implementation reveals spec-backed design is fundamentally wrong → back to brainstorm
 
 ### Finish → Implement (bugs found)
