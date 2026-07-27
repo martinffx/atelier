@@ -187,8 +187,8 @@ work uses persisted spec artifacts.
 - `spec-orchestrator`: select Inline Plan or Spec-backed Plan and route the workflow
 - `spec-brainstorm` → `design.md`: discovery, requirements, and architecture for substantial work
 - `spec-plan`: produce a conversational Inline Plan or persisted `plan.json`
-- `spec-implement`: execute either approved plan with TDD
-- `spec-finish`: validate, review, and prepare for a PR
+- `spec-implement`: execute approved Spec-backed Plans with TDD
+- `spec-finish`: validate, review, and prepare Spec-backed Plans for a PR
 
 #### Thinking (`oracle:*`)
 
@@ -241,21 +241,24 @@ Skills load from context. For example, "create a spec for user auth" makes
 
 ### The planning workflow
 
+For bounded work, `spec-plan` presents a simple Inline Plan for approval, then the agent
+implements it directly. No spec artifacts, task tracking, or persisted-spec execution
+workflow is involved.
+
+The full planning workflow is:
+
 ```mermaid
-graph TB
-    O[spec-orchestrator] -->|bounded/default| PI[spec-plan: Inline Plan]
-    O -->|substantial| B[spec-brainstorm]
-    B --> D[design.md]
-    D --> PS[spec-plan: Spec-backed Plan]
-    PS --> J[plan.json]
-    PI --> A[Human approval]
-    J --> A
-    A --> I[spec-implement]
+graph LR
+    B[spec-brainstorm] --> D[design.md]
+    D --> G[oracle-grill-me]
+    G -->|design approved| P[spec-plan: review and approve]
+    G -.->|refine| D
+    P --> J[plan.json]
+    J --> I[spec-implement]
     I --> F[spec-finish]
-    F -.->|invokes| PR[code-pull-request]
-    I -.->|revise Inline Plan| PI
-    I -.->|revise Spec-backed Plan| PS
-    I -.->|spec design issue| B
+    F --> PR[code-pull-request]
+    I -.->|revise plan| P
+    I -.->|design issue| B
 ```
 
 The orchestrator chooses one route and states why:

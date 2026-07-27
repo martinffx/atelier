@@ -15,7 +15,7 @@ This makes ordinary bounded changes more expensive to plan than necessary. Durab
 - Make `spec-orchestrator` the sole automatic classifier of planning mode.
 - Let users explicitly override the selected planning mode.
 - Add an inline planning path to `spec-plan` using the approved five-section template.
-- Allow `spec-implement` and `spec-finish` to operate with either planning mode.
+- Keep `spec-implement`, `spec-finish`, and subagent execution exclusive to Spec-backed Plans.
 - Preserve the existing spec-backed workflow for substantial work.
 - Align workflow skills, repository guidance, agent templates, and subagent guidance with the two-tier model.
 
@@ -37,7 +37,7 @@ As a developer requesting ordinary bounded work, I want a concise plan in the co
 - Given work with clear scope, limited uncertainty, and no durable coordination need, when planning starts, then `spec-orchestrator` routes directly to an Inline Plan in `spec-plan`.
 - The plan contains `context`, `scope`, `changes`, `files`, and `validation` sections.
 - No `design.md`, `plan.json`, epic, or task tracker is created.
-- Implementation starts only after the user approves the inline plan.
+- The main agent builds the approved plan directly using normal engineering discipline.
 - Priority: must.
 
 ### US-2: Reserve specs for substantial work
@@ -57,22 +57,23 @@ As a developer, I want to know which planning mode was selected so that I can ov
 - Ambiguous work defaults to inline planning unless a concrete substantial-work signal exists.
 - Priority: must.
 
-### US-4: Implement either approved plan
+### US-4: Keep inline planning lightweight
 
-As a developer, I want implementation to accept either planning mode so that inline plans are first-class rather than an incomplete spec workflow.
+As a developer, I want an Inline Plan to remain a planning aid rather than a second workflow.
 
-- `spec-implement` accepts an approved Inline Plan from the conversation or an approved `plan.json`.
-- Inline execution does not require Beads or structured task creation.
-- Validation remains mandatory in both modes.
+- Inline work does not invoke `spec-implement`, `spec-finish`, `code-subagents`, Beads, or structured task creation.
+- Spec-backed execution retains its existing validation and completion workflow.
 - Priority: must.
 
 ## Constraints
 
 - Never begin implementation before the user reviews and approves a written plan.
 - Inline planning is the default; spec-backed planning requires a concrete substantial-work signal or an explicit user request.
-- `spec-orchestrator` owns automatic classification. Downstream skills consume the selected mode instead of reclassifying it.
+- `spec-orchestrator` owns automatic classification. Direct `spec-plan` invocation without a
+  selected mode uses Spec-backed Plan.
 - A material scope change requires plan revision and renewed approval.
-- If inline work develops durable design or coordination needs, stop implementation and return to the orchestrator for promotion to the spec-backed route.
+- If inline planning reveals durable design or coordination needs, ask the human whether to
+  switch to the spec-backed route.
 - Preserve the existing spec-backed artifacts and `plan.json` schema.
 - Keep the change focused on canonical workflow sources. Do not modify historical artifacts or independent worktrees.
 
@@ -118,8 +119,7 @@ spec-orchestrator classifies the work
       +-- Inline Plan (default)
       |      spec-plan drafts the plan in conversation
       |      -> user approval
-      |      -> spec-implement executes the conversational plan
-      |      -> spec-finish validates and completes
+      |      -> main agent builds the approved plan directly
       |
       +-- Spec-backed Plan (substantial work)
              spec-brainstorm produces design.md
@@ -147,17 +147,16 @@ File count and estimated duration alone do not make work spec-worthy. When class
 
 - `spec-orchestrator` selects and announces the planning mode with one sentence of reasoning.
 - `spec-brainstorm` runs only for the spec-backed route. Its universal-spec rule is removed.
-- `spec-plan` supports two explicit modes. Inline mode presents the five-section Markdown plan and stops for approval. Spec-backed mode retains the annotation cycle, `plan.json`, and task creation.
-- `spec-implement` accepts either the approved conversational plan or `plan.json`. Tracker and dependency behavior applies only to spec-backed plans.
-- `spec-finish` validates either route without requiring structured tasks for inline work.
-- `code-subagents` remains primarily spec-backed. Inline work may use subagents only when the full approved Inline Plan is supplied as task context.
+- `spec-plan` supports two explicit modes. Inline mode is selected by the orchestrator and presents the five-section Markdown plan. Direct invocation defaults to Spec-backed mode, which retains the annotation cycle, `plan.json`, and task creation.
+- `spec-implement`, `spec-finish`, and `code-subagents` operate only on Spec-backed Plans.
 - `README.md`, `AGENTS.md`, Oracle, and Architect guidance describe both routes and no longer treat persisted artifacts as universal.
 
 ### State and ownership
 
 An Inline Plan exists only in the active conversation. Approval is the user's explicit response to that plan. Material scope changes require revision and renewed approval.
 
-If implementation reveals a need for durable design or substantial unresolved decisions, execution stops and returns to `spec-orchestrator` for promotion to the spec-backed route.
+If planning reveals substantial unresolved decisions, `spec-plan` asks the human whether to
+switch to the spec-backed route.
 
 ## Plan Contracts
 
@@ -171,15 +170,15 @@ Input:
 Output:
 
 ```markdown
-# context
+## context
 
 ## scope
 
-# changes
+## changes
 
 ## files
 
-# validation
+## validation
 ```
 
 Content rules:
@@ -206,9 +205,9 @@ Output:
 
 ### Implementation handoff
 
-- Inline route: `spec-implement` receives the approved conversational plan and executes its `changes`, respecting `scope`, `files`, and `validation`.
+- Inline route: the main agent builds the approved conversational plan directly, respecting its `scope`, `files`, and `validation`.
 - Spec-backed route: `spec-implement` receives `plan.json` and follows task dependencies and tracking.
-- Both routes remain plan-first, test-aware, reviewable, and validation-driven.
+- Both routes remain plan-first and validation-driven.
 - A material plan change requires user approval before execution continues.
 
 ## API Design
@@ -238,7 +237,9 @@ Supporting contracts:
 - `skills/code-subagents/SKILL.md`
 - `skills/code-subagents/references/implementor-prompt.md`
 - `skills/code-subagents/references/spec-reviewer-prompt.md`
+- `skills/code-subagents/references/code-quality-reviewer-prompt.md`
 - `CONTEXT.md`
+- `CLAUDE.md`
 
 Historical specs and independently checked-out worktree copies are not modified.
 
@@ -282,6 +283,7 @@ None. The planning modes, default, classification ownership, override behavior, 
 - The selected route and reason are visible and user-overridable.
 - The Inline Plan uses the approved five-section template and creates no repository planning artifacts or tracker entries.
 - Both routes require explicit plan approval before implementation.
-- `spec-implement` and `spec-finish` accept either route without contradictory prerequisites.
+- Inline Plans remain conversational and do not enter the persisted-spec execution workflow.
+- `spec-implement` and `spec-finish` retain their existing Spec-backed Plan contracts.
 - Canonical workflow documentation and agent guidance describe the same two-tier model.
 - Existing spec-backed behavior and `plan.json` structure remain available.

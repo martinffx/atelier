@@ -1,7 +1,7 @@
 # Implementer Prompt Template
 
-Use this template when dispatching an implementer subagent. Paste the full plan.json task
-or complete approved Inline Plan. Do not make the subagent recover planning context.
+Use this template when dispatching an implementer subagent. Paste the full plan.json task.
+Do not make the subagent recover planning context.
 
 ## Template
 
@@ -10,7 +10,7 @@ You are implementing {WORK_ITEM_NAME}
 
 ## Task Description
 
-{FULL TEXT of the plan.json task or complete approved Inline Plan}
+{FULL TEXT of the plan.json task}
 
 ## Context
 
@@ -33,9 +33,8 @@ Once you're clear on requirements:
 1. Implement exactly what the task specifies
 2. Write tests following TDD (failing test → verify fail → implement → verify pass)
 3. Verify implementation works
-4. Commit your work
-5. Self-review (see below)
-6. Report back
+4. Self-review (see below)
+5. Report back. Do not commit; the coordinator integrates and commits reviewed work serially.
 
 Work from: {WORKING_DIRECTORY}
 

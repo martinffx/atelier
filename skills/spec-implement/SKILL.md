@@ -1,41 +1,31 @@
 ---
 name: spec-implement
 description: >
-  Execute an approved Inline Plan or Spec-backed Plan. Uses the conversational plan directly
-  for inline work and plan.json plus useful task tracking for spec-backed work. Enforces TDD
-  and reports between batches. Trigger when the user says "implement", "go", "start", or
-  "do it" after approving a written plan. Do NOT use without an approved plan.
+  Execute an approved Spec-backed Plan from plan.json. Uses task tracking when useful, enforces
+  TDD, and reports between batches. Trigger when the user says "implement", "go", "start", or
+  "do it" after approving a persisted plan. Do NOT use without an approved Spec-backed Plan.
 user-invocable: true
 ---
 
 # Spec Implement
 
-Execute the approved plan. Track progress when the selected planning mode uses tracked
-tasks. Report. Stop when blocked.
+Execute the approved Spec-backed Plan. Track progress when it uses tracked tasks. Report. Stop
+when blocked.
 
 **Announce at start:** "I'm using the spec-implement skill to execute this plan."
 
 This skill does not make design decisions or modify the plan. If the plan is wrong, go
-back to spec-plan. If inline work develops substantial design or coordination needs, return
-to spec-orchestrator for promotion. If a spec-backed design is wrong, go back to
-spec-brainstorm.
+back to spec-plan. If the design is wrong, go back to spec-brainstorm.
 
 ## Prerequisites
 
-Before starting, verify the prerequisites for the selected planning mode:
+Before starting, verify these exist:
 
-**Inline Plan:**
-1. The complete five-section plan is present in the active conversation
-2. The human explicitly approved it
-3. No planning artifact or tracker is required
-
-**Spec-backed Plan:**
 1. Approved `docs/specs/YYYY-MM-DD-<feature>/design.md`
 2. Approved `docs/specs/YYYY-MM-DD-<feature>/plan.json`
 3. Any tracker entries selected during planning are available
-
-**Both modes:** Never start implementation on main/master without explicit user consent.
-Create a branch or use a git worktree first.
+4. You are not on main/master without explicit user consent. Create a branch or use a git
+   worktree first.
 
 If anything is missing, do not proceed. Tell the human what's needed.
 
@@ -43,7 +33,7 @@ If anything is missing, do not proceed. Tell the human what's needed.
 
 ## Step 1: Load and Review the Plan
 
-Read the approved conversational plan or plan.json critically before writing code. Look for:
+Read plan.json critically before writing code. Look for:
 
 - Unclear or ambiguous tasks
 - Missing file paths or incomplete validation criteria
@@ -53,22 +43,20 @@ Read the approved conversational plan or plan.json critically before writing cod
 If you find concerns, **raise them with the human before starting**. Don't guess. Don't
 assume. Don't force through blockers.
 
-If no concerns, proceed. Use existing tracker entries for spec-backed work; do not create
-tracking for Inline Plans.
+If no concerns, proceed. Use existing tracker entries when present.
 
 ---
 
 ## Step 2: Choose Execution Style
 
-Planning mode and execution style are separate. If the human has not specified an execution
-style, ask.
+If the human has not specified an execution style, ask.
 
 ### Autonomous Mode
 
 > "Implement it all. Don't stop until you're done."
 
-- Execute all planned work in order
-- Track progress only when the Spec-backed Plan has tracker entries
+- Execute all tasks in dependency order
+- Track progress when the Spec-backed Plan has tracker entries
 - Run type checking / linting continuously
 - Only stop if blocked
 
@@ -86,7 +74,7 @@ style, ask.
 
 - Invoke **code-subagents** for dispatch patterns and review cycle
 - Fresh subagent per task — no context pollution
-- Two-stage review after each: spec compliance, then code quality
+- Two-stage review after each: plan compliance, then code quality
 - Independent tasks dispatch in parallel, dependent tasks run sequentially
 
 Default to batched if the human hasn't expressed a preference.
@@ -96,14 +84,6 @@ Default to batched if the human hasn't expressed a preference.
 ## Step 3: Execute the Plan
 
 Follow the approved plan exactly.
-
-### Inline Plan
-
-Execute the `changes` in order while respecting `scope`, `files`, and `validation`. Do not
-manufacture task IDs, dependencies, Beads issues, or harness todos. Treat each coherent
-change as the unit for TDD, validation, and review.
-
-### Spec-backed Plan
 
 For each task, find the next ready task:
 
@@ -127,10 +107,9 @@ bd update <task-id> --status in_progress
 **With harness todos:**
 Update the todo status to in_progress.
 
-### For each task or coherent inline change
+### For each task
 
-For spec-backed work, read the task's **inputs** and **description** first. For inline work,
-read the complete plan before each change so its scope and constraints remain visible.
+Read the task's **inputs** and **description** first.
 
 Write tests that cover the validation criteria before writing implementation.
 Invoke `typescript-testing` or `python-testing` (whichever matches the project)
@@ -148,17 +127,16 @@ for test design patterns when needed.
 Do NOT write implementation before tests. Do NOT skip "verify it fails." Do NOT write
 more code than needed to pass the test.
 
-Verify the work against the active plan's validation section. For spec-backed work, also
-check the task's acceptance criteria.
+Verify the task against its **validation** and acceptance criteria.
 
 ### After each task: Review
 
-Invoke **code-review** before moving to the next tracked task or coherent inline change.
+Invoke **code-review** before moving to the next task.
 This catches issues early rather than accumulating debt across multiple tasks.
 
 ### On completion
 
-For spec-backed work with a tracker, mark the task done:
+When a tracker exists, mark the task done:
 
 **With beads:**
 ```bash
@@ -245,14 +223,9 @@ If the plan needs to change:
 
 > "This needs a plan revision. Want me to go back to spec-plan?"
 
-If a Spec-backed Plan's design was wrong:
+If the design was wrong:
 
 > "This changes design assumptions. Want me to go back to spec-brainstorm?"
-
-If Inline Plan work now needs durable design or coordination:
-
-> "This work now has substantial planning needs. Want me to return to spec-orchestrator
-> and promote it to a Spec-backed Plan?"
 
 ---
 
@@ -263,12 +236,8 @@ If Inline Plan work now needs durable design or coordination:
 - Tasks can't be completed as specified
 
 **Return to spec-brainstorm when:**
-- A Spec-backed Plan's fundamental approach needs rethinking
-- Spec-backed implementation reveals design is wrong
-
-**Return to spec-orchestrator when:**
-- Inline work develops substantial unresolved design decisions
-- Inline work now needs durable handoff, audit, or dependency coordination
+- The fundamental approach needs rethinking
+- Implementation reveals the design is wrong
 
 ---
 
@@ -281,8 +250,7 @@ When all planned work is done, verify and present it.
 1. **Run full test suite** — all tests must pass, not just the new ones
 2. **Run type check / lint** — clean output, no new warnings
 3. **Invoke code-review** — full review of all changes
-4. **Verify completion** — for spec-backed work, close every tracker entry; for inline work,
-   verify every planned change and validation item is complete
+4. **Verify completion** — close every tracker entry when tracking is used
 5. **Diff review** — review the full diff against main/master. Look for:
    - Files that changed but shouldn't have
    - Debug code or temporary hacks left behind
@@ -295,9 +263,8 @@ Present to the human:
 ```
 ## Feature Complete: {feature name}
 
-**Plan:** {Inline Plan | Spec-backed Plan}
-**Changes:** {completed} (Inline Plan only)
-**Tasks:** {completed} / {total} (Spec-backed Plan only)
+**Plan:** Spec-backed Plan
+**Tasks:** {completed} / {total}
 **Tests:** {new tests added}, {total passing}
 **Files:** {created}, {modified}
 
@@ -312,8 +279,6 @@ Present to the human:
 
 ### Ready for review
 ```
-
-Include only the progress line that matches the active planning mode.
 
 ### Next steps
 

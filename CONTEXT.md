@@ -48,7 +48,7 @@ _Avoid_: plugin, capability, prompt
 
 **Inline Plan**
 
-A concise implementation plan reviewed in conversation for bounded, well-understood work. It records context, scope, changes, files, and validation without creating a persisted spec, structured plan, or tracked tasks.
+A concise implementation plan reviewed in conversation for bounded, well-understood work. It records context, scope, changes, files, and validation without creating a persisted spec, structured plan, tracked tasks, or a separate execution workflow.
 
 _Avoid_: mini spec, informal spec, quick spec
 

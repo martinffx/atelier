@@ -16,7 +16,7 @@
             "Existing contracts in spec-orchestrator, spec-brainstorm, and spec-plan",
             "Approved Inline Plan and Spec-backed Plan terminology from CONTEXT.md"
           ],
-          "description": "Make spec-orchestrator the sole planning-mode classifier, with Inline Plan as the default and the approved substantial-work signals selecting Spec-backed Plan. Restrict spec-brainstorm to the spec-backed route. Add explicit inline and spec-backed modes to spec-plan, preserving the existing plan.json schema and annotation cycle while making inline plans conversational, artifact-free, proportional, and subject to explicit approval.",
+          "description": "Make spec-orchestrator the sole automatic planning-mode classifier, with Inline Plan as the default only when explicitly selected by the orchestrator and direct spec-plan invocation defaulting to Spec-backed Plan. Restrict spec-brainstorm to the spec-backed route. Add explicit inline and spec-backed modes to spec-plan, preserving the existing plan.json schema and annotation cycle while making inline plans conversational, artifact-free, proportional, and subject to explicit approval.",
           "files": {
             "create": [],
             "modify": [
@@ -48,7 +48,7 @@
       "tasks": [
         {
           "id": "T2",
-          "name": "Support both plan modes during implementation and completion",
+          "name": "Keep persisted-spec execution and completion contracts",
           "depends_on": [
             "T1"
           ],
@@ -57,7 +57,7 @@
             "Existing spec-implement prerequisites, execution, reporting, and completion rules",
             "Existing spec-finish validation and handoff rules"
           ],
-          "description": "Allow spec-implement to execute either an approved conversational Inline Plan or an approved plan.json. Apply task IDs, dependencies, Beads, and tracker behavior only to Spec-backed Plans. Require approval after material plan changes and promote inline work through spec-orchestrator when durable design or coordination needs emerge. Make spec-finish validate either route while preserving testing, review, validation, and completion discipline.",
+          "description": "Keep spec-implement and spec-finish exclusive to approved Spec-backed Plans. Inline Plans are built directly by the main agent after approval and create no task tracking or execution workflow. Let spec-plan ask the human whether to switch to a Spec-backed Plan when inline planning reveals substantial needs. Permit spec-finish to make minor fixes and require blocking or scope-changing fixes to return to spec-implement.",
           "files": {
             "create": [],
             "modify": [
@@ -67,22 +67,22 @@
           },
           "validation": {
             "tests": [
-              "Trace an approved Inline Plan through spec-implement and spec-finish",
+              "Verify an approved Inline Plan is built directly without invoking spec-implement or spec-finish",
               "Trace an approved plan.json through the existing tracked-task path",
               "Review material-scope-change and promotion handoffs for both routes"
             ],
             "acceptance": [
-              "Inline implementation has no design.md, plan.json, tracker, or structured-task prerequisite",
+              "Inline execution has no design.md, plan.json, tracker, subagent, or persisted-spec workflow prerequisite",
               "Spec-backed implementation still loads dependencies and tracking from plan.json",
               "Both modes require an approved written plan before implementation",
-              "Both modes retain relevant tests, checks, diff review, and code review",
+              "Spec-backed Plans retain relevant tests, checks, diff review, and code review",
               "Inline completion does not require Beads queries or report structured task counts"
             ]
           }
         },
         {
           "id": "T3",
-          "name": "Generalize subagent prompts for either plan source",
+          "name": "Constrain subagents to persisted-plan tasks",
           "depends_on": [
             "T2"
           ],
@@ -90,7 +90,7 @@
             "Approved Inline Plan and Spec-backed Plan execution contracts",
             "Current subagent dispatch and two-stage review behavior"
           ],
-          "description": "Permit subagents for inline work only when the full approved Inline Plan is supplied as self-contained task context. Replace unconditional plan.json and design.md assumptions with plan-source-neutral language while preserving focused dispatch, independence checks, and two-stage compliance and quality review. Keep tracker updates conditional on the selected planning mode.",
+          "description": "Reserve subagents for Spec-backed Plan tasks. Restore plan.json and design.md task context, retain focused dispatch and two-stage review, and prohibit implementer commits so the coordinator integrates and commits reviewed work serially.",
           "files": {
             "create": [],
             "modify": [
@@ -101,16 +101,16 @@
           },
           "validation": {
             "tests": [
-              "Populate the implementer and compliance-review templates with an Inline Plan",
-              "Populate the same templates with a plan.json task and design context",
-              "Review tracker-update guidance for both planning modes"
+              "Populate the implementer and compliance-review templates with a plan.json task and design context",
+              "Verify implementers do not commit from a shared worktree",
+              "Review tracker-update guidance for Spec-backed Plans"
             ],
             "acceptance": [
-              "Prompt templates accept requirements from either an Inline Plan or plan.json",
-              "Inline subagents receive the complete approved plan rather than artifact paths",
-              "Spec-backed subagents continue receiving full task and design context",
-              "Compliance review does not assume design.md exists",
-              "Task tracking is updated only for Spec-backed Plans"
+              "Prompt templates use plan.json task and design context",
+              "Inline Plans do not use subagents",
+              "Spec-backed subagents receive full task and design context",
+              "Compliance review checks design.md",
+              "The coordinator commits reviewed subagent work serially"
             ]
           }
         }

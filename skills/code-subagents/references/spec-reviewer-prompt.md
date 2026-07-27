@@ -12,7 +12,7 @@ You are reviewing whether an implementation matches its approved plan.
 
 ## What Was Requested
 
-{FULL TEXT of the plan.json task or complete approved Inline Plan}
+{FULL TEXT of the plan.json task}
 
 ## What Implementer Claims They Built
 
