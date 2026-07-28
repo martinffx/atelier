@@ -5,8 +5,8 @@ description: >
   at a time, explores 2-3 approaches with trade-offs, and presents the design
   section by section for approval before writing the spec. Combines requirements
   discovery with codebase research and architecture design.
-  Use when the user explicitly requests a spec or when spec-orchestrator selects a
-  Spec-backed Plan. Ambiguous design or discovery requests route through spec-orchestrator.
+  Use when the user explicitly requests a spec or when atelier-orchestrator selects a
+  Spec-backed Plan. Ambiguous design or discovery requests route through atelier-orchestrator.
 user-invocable: true
 argument-hint: <topic or feature description>
 ---
@@ -18,7 +18,7 @@ Conversational design workshop for substantial work that produces a focused, rev
 One question at a time. Multiple approaches explored. Design approved in
 sections. Ruthless scope control. No implementation until design is approved.
 
-Run this skill only after `spec-orchestrator` selects a Spec-backed Plan or the human
+Run this skill only after `atelier-orchestrator` selects a Spec-backed Plan or the human
 explicitly requests a spec. Bounded work should go directly to `spec-plan` for an Inline
 Plan. Do not reclassify the planning mode here.
 
@@ -346,5 +346,5 @@ approval before continuing.
 The next step is **spec-plan** in Spec-backed mode. Do not start planning without the
 human's go-ahead. Do not write code.
 
-If planning reveals design flaws, loop back to research. See **spec-orchestrator**
+If planning reveals design flaws, loop back to research. See **atelier-orchestrator**
 for iteration patterns.
