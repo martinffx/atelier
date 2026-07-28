@@ -2,27 +2,87 @@
 
 ![Atelier - A collaborative workshop for software development](atelier.jpg)
 
-> An atelier is the private workshop or studio where a principal master and a number of assistants, students, and apprentices can work together producing fine art or visual art released under the master's name or supervision.
->
-> [Wikipedia](https://en.wikipedia.org/wiki/Atelier)
+> A personal development toolkit for AI agents. It covers spec-driven development, code quality, and deep thinking.
 
-A personal development toolkit for AI agents. It covers spec-driven development, code quality, deep thinking, and ecosystem patterns.
-
-Atelier includes skills installed with `npx skills` and a small CLI for generating agent definitions and configuration for supported harnesses.
-
-## Quick start
-
-Install Atelier, then choose the harness you use. The CLI configures agents and harness-native settings for Claude Code, OpenCode, Codex, and Cursor.
+Atelier gives coding agents a disciplined way to move from an idea to reviewed, verified code without taking control away from the developer.
 
 ```bash
-# Initialize atelier for your harness
+npx skills add martinffx/atelier
 npx @martinffx/atelier@latest init --harness <claude|opencode|codex|cursor>
-
-# Non-interactive mode (CI/CD)
-npx @martinffx/atelier@latest init --harness <claude|opencode|codex|cursor> --yes
 ```
 
-Your project is ready to use the spec workflow.
+## How Atelier works
+
+Atelier uses as much process as each request needs. Bounded work gets a concise plan in the conversation. Substantial work gets a durable spec, an implementation plan, and tracked execution. The developer approves the plan before implementation begins.
+
+```mermaid
+flowchart TD
+    R[Request] --> O[spec-orchestrator]
+    O -->|Bounded work| IP[spec-plan: Inline Plan]
+    IP --> A[Developer approval]
+    A --> I[Implement directly]
+    I --> V[Validate]
+    O -->|Substantial work| B[spec-brainstorm]
+    B --> D[design.md]
+    D --> G[oracle-grill-me]
+    G --> P[spec-plan: review and approve]
+    P --> J[plan.json]
+    J --> SI[spec-implement]
+    SI --> CR[code-review]
+    CR --> F[spec-finish]
+    F --> PR[code-pull-request]
+```
+
+The workflow is deliberately harder to rush than an unstructured agent session. It records decisions when they need to survive the conversation, keeps implementation tied to an approved plan, and requires evidence before calling the work complete.
+
+## Grill the idea
+
+[`oracle-grill-me`](skills/oracle-grill-me/SKILL.md) interviews you one question at a time until the important decisions are explicit. It researches facts from the codebase instead of asking you to supply them, gives a recommended answer for each decision, and leaves the final choice with you.
+
+As the discussion resolves, it maintains the project's domain language and architectural decisions. Use it on a proposal, plan, migration, or design that feels settled a little too quickly.
+
+```text
+Grill me on this migration plan
+```
+
+## Review the code
+
+[`code-review`](skills/code-review/SKILL.md) runs a multi-agent review rather than asking one agent for a general opinion. Sentinel triages the diff, specialist reviewers examine likely failure modes in parallel, Architect checks design boundaries, and a final challenge pass removes weak or unsupported findings.
+
+```text
+rq             # Review the diff to main
+rq develop     # Review against another branch
+rs             # Work through the findings
+```
+
+It reports findings before changing code. You decide which fixes to apply.
+
+## What you get
+
+Atelier installs a focused set of skills for the full development loop:
+
+| Area | Capabilities |
+|------|--------------|
+| Spec workflow | Discovery, research, planning, implementation, validation, and finishing |
+| Thinking | Root-cause debugging, decision grilling, and domain modelling |
+| Delivery | Multi-agent review, subagent coordination, commits, handoffs, and pull requests |
+
+The CLI also configures three specialist agents for Claude Code, OpenCode, Codex, or Cursor:
+
+| Agent | Role |
+|-------|------|
+| **Sentinel** | Fast codebase reconnaissance and review triage |
+| **Oracle** | Requirements, trade-offs, and adversarial analysis |
+| **Architect** | Domain modelling, system design, and architecture review |
+
+Run `npx @martinffx/atelier@latest --help` for CLI commands and options. Each skill contains its own operating instructions and loads when its context applies.
+
+## Ecosystem
+
+Language-specific guidance is being split into companion repositories:
+
+- `martinffx/python-skills`
+- `martinffx/typescript-skills`
 
 ## Rationale and inspiration
 
@@ -53,259 +113,27 @@ Some Atelier skills have more direct lineage:
 | [`oracle-domain-modelling`](skills/oracle-domain-modelling/SKILL.md) | Matt Pocock's [`domain-modeling`](https://github.com/mattpocock/skills/tree/main/skills/engineering/domain-modeling) | Adapted from its active domain-modelling discipline, `CONTEXT.md`, and lightweight ADRs. |
 | [`oracle-debug`](skills/oracle-debug/SKILL.md) | Superpowers [`systematic-debugging`](https://github.com/obra/superpowers/tree/main/skills/systematic-debugging) and Matt Pocock's [`diagnosing-bugs`](https://github.com/mattpocock/skills/tree/main/skills/engineering/diagnosing-bugs) | Adapted from their root-cause-first debugging workflows. |
 
-Elsewhere, [`typescript-functional-patterns`](skills/typescript-functional-patterns/SKILL.md) draws on Rastrian's [Why Reliability Demands Functional Programming, ADTs, Safety and Critical Infrastructure](https://blog.rastrian.dev/post/why-reliability-demands-functional-programming-adts-safety-and-critical-infrastructure), and [`code-commit`](skills/code-commit/SKILL.md) follows the [Conventional Commits](https://www.conventionalcommits.org/) specification.
+[`code-commit`](skills/code-commit/SKILL.md) follows the [Conventional Commits](https://www.conventionalcommits.org/) specification.
 
 Atelier adapts these ideas into an opinionated toolkit that works across harnesses. It does not claim to have invented the practices it uses.
 
-## What gets installed
-
-Atelier sets up the following:
-
-### 1. Skills (29 available)
-
-Skills are specialized knowledge modules that load when their context applies. Install them separately:
-
-```bash
-npx skills add martinffx/atelier
-```
-
-### 2. Agent personas (3 subagents)
-
-Agent definitions are generated for each supported harness with appropriate models:
-
-| Agent | Role | Claude | OpenCode | Codex | Cursor |
-|-------|------|--------|----------|-------|--------|
-| **Sentinel** | Fast codebase reconnaissance | haiku | deepseek-v4-flash | gpt-5.6-luna | composer-2.5 |
-| **Oracle** | Strategic thinking, requirements, analysis | opus | kimi-k2.6 | gpt-5.6-sol | claude-opus-4-8-high |
-| **Architect** | DDD, system design, architecture | opus | deepseek-v4-pro | gpt-5.6-sol | gpt-5.6-sol-medium |
-
-The CLI writes agents to harness-specific locations: `.claude/agents/`, `.opencode/agent/`, `.codex/agents/`, or `~/.cursor/agents/`. It uses each harness's model identifiers. Cursor's primary model and `~/.cursor/cli-config.json` remain user-managed. Atelier only creates its three global subagents.
-
-The agent personas carry a light *Matrix* theme. Sentinel takes after the Sentinels: it moves quickly through the codebase, locating what matters and reporting back. Oracle clarifies human needs and choices under uncertainty. Architect turns those requirements into structured technical designs.
-
-### 3. Task tracking (optional)
-
-The spec workflow can use **beads** for dependency-aware task tracking:
-
-```bash
-# Install beads (optional but recommended)
-npm install -g beads
-```
-
-Beads provides `bd ready` to find unblocked tasks, `bd dep add` to manage dependencies, and `bd list` to show progress. Harness-native todo systems do not provide the same dependency support.
-
-If beads is unavailable, skills use the harness's native todo system: TodoWrite for Claude Code or built-in todos for OpenCode.
-
-### 4. Configuration
-
-Single source of truth in `.atelier/config.json`:
-
-```json
-{
-  "version": "1.0.0",
-  "skills_source": "martinffx/atelier",
-  "skills_path": "~/.agents/skills",
-  "claude": {
-    "provider": "anthropic",
-    "default_model": "opusplan",
-    "agents": [
-      { "template": "sentinel", "name": "sentinel", "model": "haiku" },
-      { "template": "oracle", "name": "oracle", "model": "opus" },
-      { "template": "architect", "name": "architect", "model": "opus" }
-    ]
-  }
-}
-```
-
-## CLI commands
-
-### `init` (default)
-
-Initialize Atelier for one harness. Run the command again for each additional harness.
-
-```bash
-npx @martinffx/atelier@latest init --harness <claude|opencode|codex|cursor> [options]
-```
-
-Options:
-- `--harness <type>` - Harness type (`claude`, `opencode`, `codex`, or `cursor`)
-- `--yes` - Non-interactive mode with default models
-
-You can safely re-run `init` for the same harness. It regenerates its files and does not delete existing files unless you switch harnesses.
-
-### `update`
-
-Refresh agents and harness-native config for one harness without touching skills:
-
-```bash
-npx @martinffx/atelier@latest update --harness <claude|opencode|codex|cursor>
-```
-
-### `remove`
-
-Remove all atelier-generated files for one harness:
-
-```bash
-npx @martinffx/atelier@latest remove --harness <claude|opencode|codex|cursor>
-```
-
-Skills remain installed. Run `npx skills remove martinffx/atelier` to remove them separately.
-
-## Skills
-
-This repository includes 29 skills for agent workflows and stack-specific guidance.
-
-### Installing skills
-
-Install skills manually:
-
-```bash
-# Install all skills
-npx skills add martinffx/atelier
-
-# Install specific skills
-npx skills add martinffx/atelier --skill typescript-drizzle-orm
-npx skills add martinffx/atelier --skill python-fastapi
-npx skills add martinffx/atelier --skill spec-brainstorm
-```
-
-### Skill organization
-
-Atelier has three core skill namespaces:
-
-| Namespace | Type | Invocation | Output | Flexibility |
-|-----------|------|------------|--------|-------------|
-| `spec:` | Process | User or previous skill | Plan or artifact | Follow exactly |
-| `oracle:` | Analytical | Context-driven | Guidance | Adapt to context |
-| `code:` | Utility | User | Result | Use as needed |
-
-#### Workflow (`spec:*`)
-
-These skills guide plan-first development. Inline Plans stay in the conversation; substantial
-work uses persisted spec artifacts.
-
-- `spec-orchestrator`: select Inline Plan or Spec-backed Plan and route the workflow
-- `spec-brainstorm` → `design.md`: discovery, requirements, and architecture for substantial work
-- `spec-plan`: produce a conversational Inline Plan or persisted `plan.json`
-- `spec-implement`: execute approved Spec-backed Plans with TDD
-- `spec-finish`: validate, review, and prepare Spec-backed Plans for a PR
-
-#### Thinking (`oracle:*`)
-
-These skills provide analytical methods and reasoning patterns that adapt to the problem at hand.
-
-- `oracle-debug`: systematic debugging that finds the root cause before a fix
-- `oracle-grill-me`: Socratic review of plans, specs, decisions, and ideas until ambiguity is resolved, shared understanding is reached, and the resulting domain language and decisions are recorded
-- `oracle-domain-modelling`: build and refine the project's domain model
-
-#### Utilities (`code:*`)
-
-These skills handle discrete tasks when you invoke them.
-
-- `code-commit`: generate and validate conventional commits
-- `code-handoff`: turn a conversation into a handoff document
-- `code-pull-request`: create, comment on, and merge GitHub pull requests or GitLab merge requests
-- `code-review`: multi-agent code review with specialized reviewers
-- `code-subagents`: dispatch patterns for parallel implementation
-
-#### Stack-specific knowledge
-
-Python and TypeScript skills provide technology-specific patterns and practices. They support work across the `spec`, `oracle`, and `code` namespaces.
-
-**TypeScript (8 skills)**
-- `typescript-api-design`: REST conventions, error responses, and pagination
-- `typescript-fastify`: Fastify and TypeBox route handlers
-- `typescript-drizzle-orm`: type-safe SQL schemas and queries
-- `typescript-dynamodb-toolbox`: single-table design and GSIs
-- `typescript-functional-patterns`: ADTs, branded types, and Option/Result
-- `typescript-effect-ts`: functional effects, error handling, and resources
-- `typescript-build-tools`: Bun, Vitest, Biome, and Turborepo
-- `typescript-testing`: mocking, MSW, and snapshot testing
-
-**Python (8 skills)**
-- `python-architecture`: functional core/shell, DDD, and layered architecture
-- `python-fastapi`: Pydantic validation, dependency injection, and OpenAPI
-- `python-sqlalchemy`: ORM patterns, queries, async, and upserts
-- `python-temporal`: workflow orchestration, activities, and error handling
-- `python-modern-python`: type hints, generics, and pattern matching
-- `python-monorepo`: uv workspaces and mise task orchestration
-- `python-testing`: stub-driven TDD and pytest patterns
-- `python-build-tools`: uv, ruff, basedpyright, and pytest configuration
-
-Skills load based on their descriptions when the work calls for them. Install them once, then agents can use them as needed.
-
-## How skills work
-
-Skills load from context. For example, "create a spec for user auth" makes
-`spec-orchestrator` select the spec-backed route and invoke `spec-brainstorm`.
-
-### The planning workflow
-
-For bounded work, `spec-plan` presents a simple Inline Plan for approval, then the agent
-implements it directly. No spec artifacts, task tracking, or persisted-spec execution
-workflow is involved.
-
-The full planning workflow is:
-
-```mermaid
-graph LR
-    B[spec-brainstorm] --> D[design.md]
-    D --> G[oracle-grill-me]
-    G -->|design approved| P[spec-plan: review and approve]
-    G -.->|refine| D
-    P --> J[plan.json]
-    J --> I[spec-implement]
-    I --> F[spec-finish]
-    F --> PR[code-pull-request]
-    I -.->|revise plan| P
-    I -.->|design issue| B
-```
-
-The orchestrator chooses one route and states why:
-
-- **Inline Plan (default):** bounded, well-understood work. The plan uses `context`, `scope`,
-  `changes`, `files`, and `validation` in conversation. It creates no spec or tracker artifacts.
-- **Spec-backed Plan:** substantial work that needs discovery, architectural decisions,
-  dependency tracking, durable handoff, or explicit spec artifacts. It uses `design.md` and
-  `plan.json`.
-
-Both routes require human approval before implementation. File count and estimated duration
-alone do not make work spec-worthy, and the human can override the selected route.
-
-### When to use which skill
-
-| User says | Skill invoked |
-|------------|---------------|
-| "Create a spec for X" | spec-orchestrator → spec-brainstorm |
-| "What should we build" | spec-orchestrator selects the planning route |
-| "Write a plan" | spec-orchestrator → spec-plan (Inline by default) |
-| "Implement this" | spec-orchestrator |
-| "Review this code" | code-review |
-| "Open a PR" | code-pull-request |
-| "Merge this PR" | code-pull-request |
-| "Read PR comments" | code-pull-request |
-| "Leave a comment on the PR" | code-pull-request |
-| "Debug this" | oracle-debug |
-
 ## Development
 
-For local development with Claude Code, load skills directly with `--plugin-dir`:
+Load the repository directly in Claude Code:
 
 ```bash
 claude --plugin-dir ./atelier
 ```
 
-Restart Claude Code after making changes to reload skills.
-
-To work on the CLI itself:
+Build and test the CLI:
 
 ```bash
-# Build the CLI
 bun run build
-
-# Test locally
-bun ./dist/atelier.js init --yes
+bun test
+bun run typecheck
 ```
+
+Restart your coding harness after changing skills so it reloads their definitions.
 
 ## License
 
