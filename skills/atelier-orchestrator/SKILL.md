@@ -1,8 +1,8 @@
 ---
-name: spec-orchestrator
+name: atelier-orchestrator
 description: >
   Skill routing and workflow orchestration. Selects Inline Plan or Spec-backed Plan, routes
-  to the correct workflow skill, and manages transitions between phases. Use when starting
+   to the correct workflow skill, and manages transitions between phases. Use when starting
   any conversation or task to determine which planning mode and skill apply.
 user-invocable: false
 ---
@@ -76,7 +76,7 @@ Do not infer substantial work from size alone. If no concrete signal applies, us
 ## Skill Routing
 
 ```
-spec-orchestrator → Select and announce planning mode
+atelier-orchestrator → Select and announce planning mode
 spec-brainstorm   → Spec-backed discovery + design → design.md
 spec-plan         → Inline Plan or Spec-backed Plan → approval
 spec-implement    → Execute approved Spec-backed Plans; track tasks

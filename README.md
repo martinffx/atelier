@@ -17,7 +17,7 @@ Atelier uses as much process as each request needs. Bounded work gets a concise 
 
 ```mermaid
 flowchart TD
-    R[Request] --> O[spec-orchestrator]
+    R[Request] --> O[atelier-orchestrator]
     O -->|Bounded work| IP[spec-plan: Inline Plan]
     IP --> A[Developer approval]
     A --> I[Implement directly]
@@ -102,7 +102,7 @@ Some Atelier skills have more direct lineage:
 
 | Atelier skill | Source skill | Relationship |
 |---------------|--------------|--------------|
-| [`spec-orchestrator`](skills/spec-orchestrator/SKILL.md) | Superpowers [`using-superpowers`](https://github.com/obra/superpowers/tree/main/skills/using-superpowers) | Adapted from its mandatory skill-routing discipline. |
+| [`atelier-orchestrator`](skills/atelier-orchestrator/SKILL.md) | Superpowers [`using-superpowers`](https://github.com/obra/superpowers/tree/main/skills/using-superpowers) | Adapted from its mandatory skill-routing discipline. |
 | [`spec-brainstorm`](skills/spec-brainstorm/SKILL.md) | Superpowers [`brainstorming`](https://github.com/obra/superpowers/tree/main/skills/brainstorming) | Adapted from its conversational discovery and section-by-section design approval. |
 | [`spec-plan`](skills/spec-plan/SKILL.md) | Superpowers [`writing-plans`](https://github.com/obra/superpowers/tree/main/skills/writing-plans) | Inspired by its explicit, verifiable implementation plans. |
 | [`spec-implement`](skills/spec-implement/SKILL.md) | Superpowers [`executing-plans`](https://github.com/obra/superpowers/tree/main/skills/executing-plans) and [`test-driven-development`](https://github.com/obra/superpowers/tree/main/skills/test-driven-development) | Inspired by plan-driven execution and test-first feedback loops. |

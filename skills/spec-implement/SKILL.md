@@ -293,5 +293,5 @@ Offer the human their options:
 
 Don't choose for them. Present options and wait.
 
-If validation finds bugs, loop back to implement. See **spec-orchestrator**
+If validation finds bugs, loop back to implement. See **atelier-orchestrator**
 for iteration patterns.

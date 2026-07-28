@@ -5,42 +5,31 @@
   "owner": {
     "name": "Martin Richards"
   },
+  "renames": {
+    "spec": "atelier",
+    "oracle": "atelier",
+    "code": "atelier"
+  },
   "plugins": [
     {
-      "name": "spec",
-      "description": "Spec-driven development workflows - architectural design patterns and product documentation",
+      "name": "atelier",
+      "description": "Spec-driven development, deep thinking, and code quality workflows",
       "source": "./",
       "strict": false,
       "agents": [
-        "./agents/oracle",
-        "./agents/architect",
-        "./agents/sentinel"
+        "./agents/oracle.md",
+        "./agents/architect.md",
+        "./agents/sentinel.md"
       ],
       "skills": [
         "./skills/spec-brainstorm",
         "./skills/spec-finish",
         "./skills/spec-implement",
         "./skills/spec-plan",
-        "./skills/spec-orchestrator"
-      ]
-    },
-    {
-      "name": "oracle",
-      "description": "Deep thinking and reasoning patterns for complex problem-solving and critical analysis",
-      "source": "./",
-      "strict": false,
-      "skills": [
+        "./skills/atelier-orchestrator",
         "./skills/oracle-debug",
         "./skills/oracle-grill-me",
-        "./skills/oracle-domain-modelling"
-      ]
-    },
-    {
-      "name": "code",
-      "description": "Code development utilities - code review, commits, pull requests, handoffs, and subagent dispatch",
-      "source": "./",
-      "strict": false,
-      "skills": [
+        "./skills/oracle-domain-modelling",
         "./skills/code-commit",
         "./skills/code-handoff",
         "./skills/code-pull-request",

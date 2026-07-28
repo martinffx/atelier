@@ -3,7 +3,7 @@ name: spec-plan
 description: >
   Write approved implementation plans in one of two modes. Explicit Inline mode creates a
   conversational plan for bounded work. Spec-backed Plan converts an approved design.md into
-  plan.json and optional tracked tasks. Trigger after spec-orchestrator selects a mode, when
+  plan.json and optional tracked tasks. Trigger after atelier-orchestrator selects a mode, when
   the user asks to plan work, or after spec-brainstorm completes. Direct invocation without a
   selected mode uses Spec-backed Plan. Do NOT use for research or execution.
 user-invocable: true
@@ -15,7 +15,7 @@ Write a proportional plan so clear that any engineer can follow it. The selected
 mode determines whether the plan stays in the conversation or becomes a persisted structured
 artifact. This skill does not write code.
 
-`spec-orchestrator` owns automatic classification and the human may override it. When this
+`atelier-orchestrator` owns automatic classification and the human may override it. When this
 skill is directly invoked without a selected mode, use Spec-backed Plan. If Inline planning
 reveals substantial design or coordination needs, ask the human whether to switch to a
 Spec-backed Plan before presenting the plan.
@@ -61,7 +61,7 @@ plan again. Do not implement until the human explicitly approves it. A material 
 change after approval also requires a revised plan and renewed approval.
 
 Approval authorizes implementation. Implement the approved conversational plan directly using
-the Inline execution safeguards in `spec-orchestrator`. Do not invoke `spec-implement`,
+the Inline execution safeguards in `atelier-orchestrator`. Do not invoke `spec-implement`,
 `spec-finish`, `code-subagents`, or task tracking.
 
 Do not create planning artifacts or tracker entries during this handoff.
@@ -286,7 +286,7 @@ Tell the human:
 Do not start implementing. That's spec-implement's job.
 
 If implementation reveals missing tasks, update plan.json. If design is wrong,
-loop back to research. See **spec-orchestrator** for iteration patterns.
+loop back to research. See **atelier-orchestrator** for iteration patterns.
 
 ---
 
