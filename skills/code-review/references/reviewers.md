@@ -673,7 +673,7 @@ prompt: |
 
   YOUR FIRST TASK - LOOK FOR RELEVANT SKILLS:
   As a Security Reviewer, look for relevant language, framework, testing, architecture, security, or tooling skills before reviewing.
-  Load relevant skills if available, such as `typescript-testing`.
+  Load relevant installed language, framework, testing, architecture, security, or tooling skills.
   If no relevant skill is available or a skill cannot be loaded, continue with this reviewer prompt.
   Failure to find or load a skill is not a review failure.
 
@@ -719,7 +719,7 @@ prompt: |
 
   YOUR FIRST TASK - LOOK FOR RELEVANT SKILLS:
   As a Correctness Reviewer, look for relevant language, framework, testing, architecture, security, or tooling skills before reviewing.
-  Load relevant skills if available, such as `typescript-testing`.
+  Load relevant installed language, framework, testing, architecture, security, or tooling skills.
   If no relevant skill is available or a skill cannot be loaded, continue with this reviewer prompt.
   Failure to find or load a skill is not a review failure.
 
@@ -755,7 +755,7 @@ prompt: |
 
   YOUR FIRST TASK - LOOK FOR RELEVANT SKILLS:
   As a PerformanceOperator Reviewer, look for relevant language, framework, testing, architecture, security, or tooling skills before reviewing.
-  Load relevant skills if available, such as `typescript-testing`.
+  Load relevant installed language, framework, testing, architecture, security, or tooling skills.
   If no relevant skill is available or a skill cannot be loaded, continue with this reviewer prompt.
   Failure to find or load a skill is not a review failure.
 

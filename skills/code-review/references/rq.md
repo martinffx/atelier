@@ -67,8 +67,8 @@ prompt: |
      - Reviewers should load relevant skills that are available.
      - If no relevant skill is available, reviewers continue with their reviewer prompt.
      - Failure to find or load a skill is not a review failure.
-     - TypeScript → typescript-testing, typescript-fastify (if fastify framework)
-     - Python → python-modern-python, python-testing, python-fastapi (if fastapi framework)
+     - TypeScript → installed TypeScript language, testing, and framework skills
+     - Python → installed Python language, testing, and framework skills
      - Rust → rust-specific skills if available
      - Go → go-specific skills if available
      
@@ -81,7 +81,7 @@ prompt: |
       "domain": "web-api|frontend|database|..."
     },
     "reviewers": ["Security", "Correctness"],
-    "skills_to_load": ["typescript-testing"]
+    "skills_to_load": ["relevant installed testing skill"]
   }
 ```
 
@@ -93,7 +93,7 @@ prompt: |
 {
   "context": { "language": "typescript", "framework": "fastify", "domain": "web-api" },
   "reviewers": ["Security", "Correctness", "PerformanceOperator"],
-  "skills_to_load": ["typescript-testing"]
+  "skills_to_load": ["relevant installed testing skill"]
 }
 ```
 
@@ -114,7 +114,7 @@ Reviewer names are prompt personas, not subagent types. Do not use `general`, `S
 Before dispatching reviewers, the detected relevant skills are passed to each reviewer as best-effort guidance:
 ```json
 {
-  "skills_to_load": ["typescript-testing"]
+  "skills_to_load": ["relevant installed testing skill"]
 }
 ```
 
@@ -263,7 +263,7 @@ prompt: |
 
   **PRE-STEP: Look for Relevant Skills**
   Before reviewing, look for relevant architecture and language architecture skills.
-  Load relevant skills if available, such as `typescript-api-design` or the language skill for this codebase.
+  Load relevant installed language, framework, testing, architecture, security, or tooling skills.
   If no relevant skill is available or a skill cannot be loaded, continue with this architect prompt.
   Failure to find or load a skill is not a review failure.
 
