@@ -215,7 +215,7 @@ with acceptance criteria and priorities. If rejected: revise. If the rejection
 reveals a scope misunderstanding, loop back to Discovery (Step 2).
 
 **Batch B: Architecture** — component design, domain modeling, and layer
-boundaries. Use `python-architecture` or `typescript-api-design` as relevant to
+boundaries. Use installed language-specific architecture or API-design skills as relevant to
 your stack. Then present: component structure, domain model, where business
 logic lives, where IO lives. If rejected: revise. If the rejection undermines
 the chosen approach, offer to return to approach exploration (4a). If it

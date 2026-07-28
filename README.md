@@ -79,10 +79,10 @@ Run `npx @martinffx/atelier@latest --help` for CLI commands and options. Each sk
 
 ## Ecosystem
 
-Language-specific guidance is being split into companion repositories:
+Language-specific guidance lives in companion repositories:
 
-- `martinffx/python-skills`
-- `martinffx/typescript-skills`
+- [Python skills](https://github.com/martinffx/python-skills)
+- [TypeScript skills](https://github.com/martinffx/typescript-skills)
 
 ## Rationale and inspiration
 

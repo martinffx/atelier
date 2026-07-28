@@ -112,8 +112,7 @@ Update the todo status to in_progress.
 Read the task's **inputs** and **description** first.
 
 Write tests that cover the validation criteria before writing implementation.
-Invoke `typescript-testing` or `python-testing` (whichever matches the project)
-for test design patterns when needed.
+Invoke an installed language-specific testing skill when needed.
 
 ```
 1. Read task inputs and description
