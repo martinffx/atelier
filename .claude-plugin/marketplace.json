@@ -27,6 +27,7 @@
         "./skills/spec-implement",
         "./skills/spec-plan",
         "./skills/atelier-orchestrator",
+        "./skills/atelier-setup",
         "./skills/oracle-debug",
         "./skills/oracle-grill-me",
         "./skills/oracle-domain-modelling",
