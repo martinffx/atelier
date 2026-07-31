@@ -4,6 +4,20 @@
 
 - **breaking:** rename the `recon` agent to `sentinel`. Existing Atelier configuration is migrated automatically and legacy generated files are removed during the next command.
 
+## [3.0.0](https://github.com/martinffx/atelier/compare/v2.0.0...v3.0.0) (2026-07-31)
+
+
+### ⚠ BREAKING CHANGES
+
+* **claude:** consolidate plugins under atelier
+* **skills:** split language skills into companion repositories
+
+### Features
+
+* **claude:** consolidate plugins under atelier ([745f872](https://github.com/martinffx/atelier/commit/745f872193ac841074ddc16f788ded5c92cf9744))
+* **skills:** add atelier setup workflow ([69a7a93](https://github.com/martinffx/atelier/commit/69a7a9350c2f8e7d8a6001143cb4f4233f462117))
+* **skills:** split language skills into companion repositories ([b1fb1f7](https://github.com/martinffx/atelier/commit/b1fb1f7db942283bca5f067848c55e0dcc6c228f))
+
 ## [2.0.0](https://github.com/martinffx/atelier/compare/v1.4.0...v2.0.0) (2026-07-27)
 
 
