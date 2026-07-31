@@ -42,9 +42,15 @@ Do not manufacture phases, task IDs, dependency graphs, acceptance matrices, `de
 
 **STOP. Wait for human review.**
 
-If the human requests changes, revise the plan in conversation and present the complete
-plan again. Do not implement until the human explicitly approves it. A material scope
-change after approval also requires a revised plan and renewed approval.
+If the human requests any adjustment, apply it to the working plan and re-present the
+entire updated plan using `references/plan_template.md`. Include unchanged sections so
+the human reviews one coherent plan. Never respond with only the changed text, an
+affected section, a summary, or an acknowledgement. A one-word correction is still a
+plan revision: incorporate it and present the complete plan again.
+
+Every revision invalidates prior approval. End each revised plan with "Inline Plan ready
+for review." and stop until the human explicitly approves that complete version. Do not
+implement until the current plan is approved.
 
 Approval authorizes implementation. Implement the approved conversational plan directly using
 the Inline execution safeguards in `atelier-orchestrator`. Do not invoke `spec-implement`,
@@ -280,8 +286,8 @@ loop back to research. See **atelier-orchestrator** for iteration patterns.
 
 | Selected mode / human says | You do |
 |----------------------------|--------|
-| Inline / "write a plan" | Present the five-section Inline Plan, stop |
-| Inline / "I added notes" | Revise and re-present the complete Inline Plan |
+| Inline / "write a plan" | Present the complete Inline Plan from the template, stop |
+| Inline / "I added notes" | Apply the changes, re-present the entire updated Inline Plan, and stop for renewed approval |
 | Inline / "approved" | Implement the approved conversational plan directly; create no artifacts |
 | Spec-backed / "write a plan" | Write the plan draft from design.md, stop |
 | Spec-backed / "I added notes" | Re-read, address all notes, do NOT implement |
