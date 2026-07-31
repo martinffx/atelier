@@ -1,13 +1,12 @@
 ---
 name: atelier-setup
-description: Configure a repository for Atelier's development workflow. Use only when the user explicitly invokes atelier-setup; it inspects existing repository instructions and domain-document conventions, previews an idempotent project-guidance update, and writes only after approval. It does not install Atelier, configure a harness, or scaffold empty workflow artifacts.
+description: Configure a repository's generic agent guidance for Atelier's development workflow. Use only when the user explicitly invokes atelier-setup; it inspects existing repository instructions and domain-document conventions, previews an idempotent project-guidance update, and writes only after approval. It does not install Atelier, configure a harness, or scaffold empty workflow artifacts.
 user-invocable: true
-disable-model-invocation: true
 ---
 
 # Atelier Setup
 
-Set up the repository conventions that Atelier skills need without taking ownership of the
+Set up generic repository guidance that Atelier skills need without taking ownership of the
 developer's installation, harness configuration, or project structure. Explore first, present
 the proposed edit exactly, and write only after the developer approves it.
 
@@ -15,7 +14,7 @@ the proposed edit exactly, and write only after the developer approves it.
 
 Read the repository before proposing any change:
 
-- Root `AGENTS.md` and `CLAUDE.md`, if present. Note whether either already has an `## Atelier`
+- Root `AGENTS.md` and `CLAUDE.md`, if present. Note whether either already has an `## Agent skills`
   heading.
 - Root `CONTEXT.md` and `CONTEXT-MAP.md`.
 - `docs/adr/` and any context-local `docs/adr/` directories.
@@ -39,37 +38,40 @@ directory until another Atelier skill has resolved terminology or made a decisio
 
 Select the instruction file to edit:
 
-1. If both files exist, ask which file should own the Atelier guidance; do not duplicate it.
+1. If both files exist, ask which file should own the agent guidance; do not duplicate it.
 2. Otherwise use root `AGENTS.md` when it exists.
 3. Otherwise use root `CLAUDE.md` when it exists.
 4. If neither exists, ask which instruction file to create; do not choose on the developer's behalf.
 
-Show the developer the selected file, domain layout, and the exact `## Atelier` block that will be
+Show the developer the selected file, domain layout, and the exact `## Agent skills` block that will be
 written. Stop and wait for explicit approval.
 
 ## 3. Write After Approval
 
-Add the following block to the selected instruction file, adapting only the domain-layout sentence
-to the approved recommendation:
+Add the following block to the selected instruction file:
 
 ```markdown
-## Atelier
+## Agent skills
 
-This repository uses Atelier's plan-first development workflow. Invoke `atelier-orchestrator` at
-the start of work; it selects an Inline Plan for bounded changes or a Spec-backed Plan when durable
-design and coordination artifacts are warranted.
+### Planning and implementation
 
-Domain documentation uses the selected layout. Keep `CONTEXT.md` focused on domain language and
-record architectural decisions as ADRs. Create these documents only when there is resolved content
-to record.
+Use `atelier-orchestrator` at the start of development work. It selects an Inline Plan for bounded
+changes or a Spec-backed Plan when durable design and coordination artifacts are warranted.
 
-Atelier installation and harness configuration are managed separately with `npx skills add
-martinffx/atelier` and `npx @martinffx/atelier@latest init`.
+### Domain documentation
+
+Before working in a domain area, read root `CONTEXT-MAP.md` when present and follow it to the
+relevant context documentation. Otherwise, read root `CONTEXT.md` when present. Read relevant
+architectural decisions under `docs/adr/` and any context-specific ADR directories.
+
+If these documents do not exist, proceed silently. Create or update them only when domain
+terminology or an architectural decision has been resolved.
 ```
 
-If an `## Atelier` section already exists, replace that section in place rather than appending a
-second one. Preserve all content outside that section, including user edits. Do not create any
-other files or directories.
+If an `## Agent skills` section already exists, update the `### Planning and implementation` and
+`### Domain documentation` subsections in place rather than appending duplicates. Preserve other
+subsections and all content outside the section, including user edits. Do not create any other
+files or directories.
 
 ## 4. Report
 
