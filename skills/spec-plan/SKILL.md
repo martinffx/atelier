@@ -24,30 +24,16 @@ Spec-backed Plan before presenting the plan.
 
 ### Inline Plan (when explicitly selected)
 
-No repository artifact and no task tracker entry. Present the plan in conversation using:
-
-```markdown
-## context
-
-## scope
-
-## changes
-
-## files
-
-## validation
-```
+No repository artifact and no task tracker entry. Read
+`references/plan_template.md` and present the plan in conversation using its
+structure. Omit optional subsections rather than rendering empty headings.
 
 ## Inline Plan Workflow
 
 Read enough of the codebase to identify the current behavior, boundaries, affected files,
-and concrete validation. Keep the plan proportional. Populate every section:
-
-- `context`: Current behavior, relevant constraints, and why the change is needed
-- `scope`: Explicit in-scope and out-of-scope boundaries
-- `changes`: Ordered implementation changes at useful engineering granularity
-- `files`: Exact files expected to be created, modified, or deleted
-- `validation`: Concrete tests, checks, or manual verification
+and concrete validation. Keep the plan proportional to implementation risk. Fill the
+template with confirmed, file-and-symbol-level details, including cross-file wiring or
+ordering constraints where they matter.
 
 Do not manufacture phases, task IDs, dependency graphs, acceptance matrices, `design.md`,
 `plan.json`, Beads issues, or harness todos. The conversation is the plan artifact.
