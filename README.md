@@ -18,19 +18,32 @@ Atelier uses as much process as each request needs. Bounded work gets a concise 
 ```mermaid
 flowchart TD
     R[Request] --> O[atelier-orchestrator]
+
     O -->|Bounded work| IP[spec-plan: Inline Plan]
-    IP --> A[Developer approval]
-    A --> I[Implement directly]
+    IP --> IA{Developer approval}
+    IA -->|Approved| I[Implement directly]
+    IA -.->|Revise| IP
     I --> V[Validate]
+    V -.->|Issues found| I
+    IP -.->|Needs brainstorming| B
+    I -.->|Needs brainstorming| B
+
     O -->|Substantial work| B[spec-brainstorm]
     B --> D[design.md]
     D --> G[oracle-grill-me]
-    G --> P[spec-plan: review and approve]
-    P --> J[plan.json]
+    G --> P[spec-plan]
+    G -.->|Refine design| D
+    P --> SA{Developer approval}
+    SA -->|Approved| J[plan.json]
+    SA -.->|Revise plan| P
+    SA -.->|Revisit design| B
     J --> SI[spec-implement]
     SI --> CR[code-review]
     CR --> F[spec-finish]
     F --> PR[code-pull-request]
+    SI -.->|Revise plan| P
+    SI -.->|Revisit design| B
+    F -.->|Issues found| SI
 ```
 
 The workflow is deliberately harder to rush than an unstructured agent session. It records decisions when they need to survive the conversation, keeps implementation tied to an approved plan, and requires evidence before calling the work complete.
