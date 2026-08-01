@@ -154,7 +154,8 @@ Read the relevant codebase deeply. Not signatures — implementations, edge case
 handling, data flows. Trace callers and callees. Read tests to understand expected
 behaviour.
 
-Write findings directly into the spec as the foundation.
+Collect research findings for the spec as the foundation. Do not write `design.md` until the
+approved design sections are assembled in Step 4c.
 
 **Tell the human:** "I've written the research section of the spec. Ready for you to
 review before I continue with the design."
@@ -334,14 +335,13 @@ note them at handoff.
 
 **Tell the human:**
 
-> "Spec written to `docs/specs/<path>`. Every section was approved during our
-> conversation - review it if you'd like, or we can go straight to the
-> Spec-backed Plan. Ready for spec-plan?"
+> "Spec written to `docs/specs/<path>`. Please confirm this assembled document before we move to
+> the Spec-backed Plan."
 
-If the human requests changes — in conversation or by annotating the file —
-address every note, update the spec, and re-run the self-review. If a change
-alters the substance of an approved section, re-present that section for
-approval before continuing.
+If the human requests changes — in conversation or by annotating the file — address every note,
+update the spec, and re-run the self-review. If a change alters the substance of an approved
+section, re-present that section for approval before continuing. Resolve questions that affect
+scope, architecture, contracts, data, security, or task ordering before handoff.
 
 The next step is **spec-plan** in Spec-backed mode. Do not start planning without the
 human's go-ahead. Do not write code.

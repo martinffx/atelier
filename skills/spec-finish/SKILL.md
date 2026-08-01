@@ -10,20 +10,27 @@ user-invocable: true
 
 # Spec Finish
 
-Post-implementation workflow: validate → review → stack commits → prepare PR.
+Post-implementation workflow: synchronize docs → validate → review → prepare PR.
 
 ## Prerequisites
 
 Before starting, verify:
 1. All Spec-backed Plan tasks are complete
-2. Working directory is clean (committed or staged)
+2. Working directory has no unresolved staged or unstaged changes
 3. Tests pass
 
 If not complete, go back to `spec-implement`.
 
 ---
 
-## Step 1: Validate
+## Step 1: Update Documentation
+
+Check whether README, API documentation, or changelog updates are needed. Make and commit any
+necessary documentation changes through **code-commit** before final validation.
+
+---
+
+## Step 2: Validate
 
 Run validation checks.
 
@@ -67,12 +74,13 @@ go build ./...
 
 ---
 
-## Step 2: Review
+## Step 3: Review
 
-Use the Skill tool to invoke code-review skill for comprehensive code review.
+Invoke the installed **code-review** skill through the harness's skill mechanism for one
+comprehensive review of the final change.
 
 ### What to Review
-- All changed files since feature branch
+- All changed files since the intended base branch's merge base
 - Test coverage
 - Documentation updates
 - No debug code left
@@ -83,37 +91,17 @@ Use the Skill tool to invoke code-review skill for comprehensive code review.
 
 ---
 
-## Step 3: Stack Commits
+## Step 4: Prepare Commits
 
-### Workflow
-1. Review current commits: `git log --oneline`
-2. Ensure commits are organized logically
-3. Rebase if needed: `git rebase -i <base-branch>`
-4. Ensure each commit is clean and functional
-
-### Commit Guidelines
-- Each commit should pass tests
-- Use conventional commit format
-- Meaningful commit messages
+Review current commits with `git log --oneline`. Use **code-commit** for any uncommitted work.
+Do not rewrite history by default. If a rebase would materially improve an unpublished stack,
+show the affected range and ask for separate approval before rebasing.
 
 ---
 
-## Step 4: Update Documentation
+## Step 5: Prepare the PR
 
-### Check for Updates
-- README changes needed?
-- API documentation updated?
-- Changelog updated?
-
-### If documentation needed
-- Update relevant docs
-- Commit with docs
-
----
-
-## Step 5: Open the PR
-
-Steps 1-4 (validate, review, stack commits, update docs) must all be complete
+Steps 1-4 (documentation, validation, review, commits) must all be complete
 before proceeding. **If code-review found blocking or scope-changing issues, stop and return
 to spec-implement to fix them. Do not proceed to Step 5b.**
 
@@ -142,7 +130,7 @@ template, generates the body from commits, and opens the PR via `gh` or `glab`.
 
 ### Handoff
 
-> "Implementation complete. [N] commits stacked. Opening PR now."
+> "Implementation complete. [N] commits are ready. PR package ready for approval."
 
 ---
 

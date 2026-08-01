@@ -36,7 +36,7 @@ template with confirmed, file-and-symbol-level details, including cross-file wir
 ordering constraints where they matter.
 
 Do not manufacture phases, task IDs, dependency graphs, acceptance matrices, `design.md`,
-`plan.json`, Beads issues, or harness todos. The conversation is the plan artifact.
+`plan.json`, tracker entries, or harness todos. The conversation is the plan artifact.
 
 **Tell the human:** "Inline Plan ready for review."
 
@@ -227,27 +227,21 @@ into plan.json.
 
 ### Task Tracking
 
-Create tracker entries when they add execution value. For multi-task or dependency-ordered
-work, **prefer beads**:
-```bash
-# Create epic and tasks with dependencies
-bd create "Feature: {name}" --label {feature} --type epic
-bd create "Task: {name}" --label {feature} --type task --epic {epic-id}
-bd dep add --type blocks {task-a} {task-b}  # task-a blocks task-b
-```
-
-If tracking is useful and beads is unavailable, use the harness's native todo system.
-Do not duplicate a simple plan.json into a tracker merely to satisfy the workflow.
+Read `docs/agents/issue-tracker.md` when it exists. Create tracker entries only when that
+document configures a tracker, mirroring is enabled, and tracking adds execution value. Do not
+choose or configure a tracker here. Do not duplicate a simple plan.json into a tracker merely to
+satisfy the workflow.
 
 ### What to do
 
 1. Convert the annotated plan draft into structured plan.json
 2. Each task maps to a unit with inputs, description, files, and validation
 3. Dependencies between tasks are captured in `depends_on` fields
-4. When execution benefits from task tracking, create tasks using beads or harness todos:
-   - Create an epic/feature container
-   - Add tasks per phase with clear descriptions
-   - Mark dependencies between tasks (beads: `bd dep add`, harness: manual ordering)
+4. When execution benefits from configured task tracking, create entries according to
+   `docs/agents/issue-tracker.md`:
+   - Create any configured feature container
+   - Add tasks with clear descriptions
+   - Mirror dependencies when the configured tracker supports them
 5. The plan.json is the source of truth for task details; the task tracker
 tracks execution state
 
@@ -264,7 +258,7 @@ After creating plan.json, verify:
 
 ## Handoff
 
-When plan.json is created, and any useful tracker entries have been created, the next
+When plan.json is created, and any useful configured tracker entries have been created, the next
 step is **spec-implement** in Spec-backed mode.
 
 Tell the human:
@@ -277,8 +271,10 @@ Tell the human:
 
 Do not start implementing. That's spec-implement's job.
 
-If implementation reveals missing tasks, update plan.json. If design is wrong,
-loop back to research. See **atelier-orchestrator** for iteration patterns.
+Minor implementation deviations may be recorded inline and reflected in plan.json when they do
+not change approved behavior, scope, architecture, public contracts, or major dependencies.
+Material changes return to spec-plan for renewed approval; design changes return to
+spec-brainstorm. See **atelier-orchestrator** for iteration patterns.
 
 ---
 

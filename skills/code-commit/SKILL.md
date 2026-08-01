@@ -38,7 +38,7 @@ behavior, motivation, or important implementation decision rather than restating
 | `build` | Build system or dependencies |
 | `revert` | Reverting a prior commit |
 
-For breaking changes, add `!` after the scope and include a `BREAKING CHANGE:` footer.
+Breaking changes may use `!` after the type or scope, a `BREAKING CHANGE:` footer, or both.
 Include issue footers such as `Closes #123` only when the issue is known.
 
 ## Create a Commit
@@ -76,8 +76,9 @@ Before making any write, show:
 
 Ask for approval unless the user explicitly authorizes committing immediately. After
 approval, stage only the files for the approved commit with `git add -- <paths>` and
-commit with the proposed title and body. Do not amend, rebase, push, or include
-unapproved files.
+inspect `git diff --cached --name-status` and `git diff --cached` again. If the staged snapshot
+contains any unapproved file, stop and ask how to handle it. Then commit with the proposed title
+and body. Do not amend, rebase, push, or include unapproved files.
 
 Repository commit hooks are the final message validation when configured. Never bypass
 a failing hook. Report the commit hash on success; report the error and leave changes

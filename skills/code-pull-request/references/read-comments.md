@@ -27,7 +27,7 @@ Inline review comments (file/line threads) — `--json comments` does NOT includ
 them, so fetch them separately:
 
 ```bash
-gh pr view <number> --json reviewThreads,reviews
+gh api --paginate repos/<owner>/<repo>/pulls/<number>/comments
 ```
 
 Or, for a readable summary of top-level comments:

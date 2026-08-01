@@ -17,6 +17,13 @@ You are implementing {WORK_ITEM_NAME}
 {Scene-setting: where this fits in the work, what was built before it, constraints, and
 existing patterns to follow}
 
+## File Ownership
+
+- **Owned files:** {OWNED_FILES}
+- **Forbidden files:** {FORBIDDEN_FILES}
+
+Do not modify files outside the owned list. Report immediately if the work requires one.
+
 ## Before You Begin
 
 If you have questions about:

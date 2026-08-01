@@ -73,14 +73,14 @@ Ask for explicit confirmation before running the merge command.
 
 ### GitHub
 ```bash
-gh pr merge <number> --squash --delete-branch
+gh pr merge <number> --squash --delete-branch --match-head-commit <approved-head-sha>
 ```
 Alternatives: `--rebase`, `--merge`, `--auto` (merge automatically once required
 checks pass), or `--admin` (forced merge — see Step 2) per the human's request.
 
 ### GitLab
 ```bash
-glab mr merge <iid> --squash --remove-source-branch
+glab mr merge <iid> --squash --remove-source-branch --sha <approved-head-sha>
 ```
 Alternatives: `--rebase`, or `--auto-merge` (merge once the pipeline succeeds —
 already the default while a pipeline is running) per the human's request.
