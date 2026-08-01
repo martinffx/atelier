@@ -11,6 +11,10 @@ npx skills add martinffx/atelier
 npx @martinffx/atelier@latest init --harness <claude|opencode|codex|cursor>
 ```
 
+For OpenCode, installing skills first also creates slash commands for every installed skill
+marked `user-invocable: true`. If you initialize first, run `npx @martinffx/atelier@latest update --harness opencode`
+after installing skills.
+
 ## How Atelier works
 
 Atelier uses as much process as each request needs. Bounded work gets a concise plan in the conversation. Substantial work gets a durable spec, an implementation plan, and tracked execution. The developer approves the plan before implementation begins.

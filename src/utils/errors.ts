@@ -83,6 +83,16 @@ export class TemplateReadError extends AtelierError {
   }
 }
 
+export class SkillDiscoveryError extends AtelierError {
+  constructor(path: string, cause: string) {
+    super(
+      `Failed to read skills from ${path}: ${cause}`,
+      'SKILL_DISCOVERY_ERROR',
+      1
+    );
+  }
+}
+
 export class InvalidConfigError extends AtelierError {
   constructor(cause: string, { suggestReinit = false }: { suggestReinit?: boolean } = {}) {
     const suffix = suggestReinit

@@ -1,7 +1,7 @@
 import { join } from 'path';
 import { homedir } from 'os';
 import inquirer from 'inquirer';
-import { readConfig, writeConfig, validateConfig, CONFIG_FILE } from '../utils/config.js';
+import { readConfig, writeConfig, validateConfig, toSharedConfig, CONFIG_FILE } from '../utils/config.js';
 import { getAdapter } from '../registry.js';
 import { resolveBasePath } from '../services/paths.js';
 import { promptForSection, formatFileList } from '../services/prompt.js';
@@ -40,7 +40,7 @@ export async function update(options?: UpdateOptions): Promise<void> {
   const section = await promptForSection(adapter, existingSection);
 
   const harnessBasePath = resolveBasePath(harness);
-  const files = adapter.fileList(harnessBasePath);
+  const files = adapter.fileList(harnessBasePath, toSharedConfig(config));
   console.log('\nFiles to write:');
   console.log(formatFileList(files));
   const { confirm } = await inquirer.prompt([{
@@ -58,7 +58,7 @@ export async function update(options?: UpdateOptions): Promise<void> {
 
   validateConfig(config);
   adapter.mergeHarnessConfig(section, harnessBasePath);
-  adapter.installAgents(section, harnessBasePath);
+  adapter.installAgents(section, harnessBasePath, toSharedConfig(config));
   writeConfig(config, configPath);
 
   console.log(`Atelier updated for ${harness}.`);
