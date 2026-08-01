@@ -31,6 +31,9 @@ describe('codex adapter', () => {
     expect(existsSync(path)).toBe(true);
     const content = TOML.parse(readFileSync(path, 'utf-8')) as Record<string, unknown>;
     expect(content.model).toBe('gpt-5.6-terra');
+    expect(content.plan_mode_reasoning_effort).toBe('high');
+    expect(content.sandbox_mode).toBe('danger-full-access');
+    expect(content.approval_policy).toBe('on-request');
     expect((content.features as Record<string, unknown>).multi_agent).toBe(true);
   });
 
@@ -103,6 +106,9 @@ describe('codex adapter', () => {
     const remaining = TOML.parse(readFileSync(path, 'utf-8')) as Record<string, unknown>;
     expect(remaining.custom).toBe('value');
     expect(remaining.model).toBeUndefined();
+    expect(remaining.plan_mode_reasoning_effort).toBeUndefined();
+    expect(remaining.sandbox_mode).toBeUndefined();
+    expect(remaining.approval_policy).toBeUndefined();
   });
 
   it('remove leaves user-created files in the agents directory', () => {

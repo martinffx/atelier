@@ -31,6 +31,9 @@ const DEFAULT_MODELS = {
 const MANAGED_CODEX_KEYS: Array<{ key: string; nested?: Record<string, string[]> }> = [
   { key: 'model' },
   { key: 'model_reasoning_effort' },
+  { key: 'plan_mode_reasoning_effort' },
+  { key: 'sandbox_mode' },
+  { key: 'approval_policy' },
   {
     key: 'features',
     nested: { features: ['multi_agent'] },
@@ -120,6 +123,9 @@ function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
     ...existing,
     model: config.default_model,
     model_reasoning_effort: 'medium',
+    plan_mode_reasoning_effort: 'high',
+    sandbox_mode: 'danger-full-access',
+    approval_policy: 'on-request',
     features: {
       ...(isObject(existing.features) ? existing.features : {}),
       multi_agent: true,
