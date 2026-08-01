@@ -67,6 +67,18 @@ describe('init', () => {
     expect(config.opencode.provider).toBe('opencode-zen');
   });
 
+  test('creates commands for installed user-invocable skills', async () => {
+    const skillsDir = join(tempDir, '.agents', 'skills', 'invocable-skill');
+    mkdirSync(skillsDir, { recursive: true });
+    writeFileSync(join(skillsDir, 'SKILL.md'), '---\nname: invocable-skill\ndescription: An invocable skill\nuser-invocable: true\n---\n# Invocable\n');
+
+    await init({ yes: true, harness: 'opencode' });
+
+    const command = join(tempDir, '.config', 'opencode', 'command', 'invocable-skill.md');
+    expect(existsSync(command)).toBe(true);
+    expect(readFileSync(command, 'utf-8')).toContain('Activate the invocable-skill skill');
+  });
+
   test('creates codex config and files with --yes', async () => {
     await init({ yes: true, harness: 'codex' });
 

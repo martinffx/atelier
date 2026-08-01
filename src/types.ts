@@ -37,6 +37,7 @@ export type SharedConfig = Pick<AtelierConfig, 'version' | 'skills_source' | 'sk
 export interface FileEntry {
   path: string;
   exists: boolean;
+  action?: 'delete';
 }
 
 export interface HarnessAdapter {
@@ -46,8 +47,8 @@ export interface HarnessAdapter {
   defaultSection(provider?: Provider): HarnessSection;
   modelsForProvider(provider?: Provider): readonly string[];
   promptSection(prompt: typeof inquirer, section: HarnessSection): Promise<HarnessSection>;
-  installAgents(section: HarnessSection, basePath: string): void;
+  installAgents(section: HarnessSection, basePath: string, sharedConfig?: SharedConfig): void;
   mergeHarnessConfig(section: HarnessSection, basePath: string): void;
-  fileList(basePath: string): FileEntry[];
+  fileList(basePath: string, sharedConfig?: SharedConfig): FileEntry[];
   remove(section: HarnessSection, basePath: string): void;
 }

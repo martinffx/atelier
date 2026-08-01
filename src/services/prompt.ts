@@ -105,8 +105,8 @@ export async function promptForOpenCodeModels(
   };
 }
 
-export function formatFileList(files: { path: string; exists: boolean }[]): string {
-  return files.map(f => `  ${f.exists ? '~' : '+'} ${f.path}`).join('\n');
+export function formatFileList(files: { path: string; exists: boolean; action?: 'delete' }[]): string {
+  return files.map(f => `  ${f.action === 'delete' ? '-' : f.exists ? '~' : '+'} ${f.path}`).join('\n');
 }
 
 export function guardProvider(provider: Provider | undefined): OpenCodeConfig['provider'] {

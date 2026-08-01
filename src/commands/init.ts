@@ -1,11 +1,12 @@
 import { join } from 'path';
 import { homedir } from 'os';
 import inquirer from 'inquirer';
-import { readConfig, writeConfig, getDefaultConfig, validateConfig, CONFIG_FILE } from '../utils/config.js';
+import { readConfig, writeConfig, getDefaultConfig, validateConfig, toSharedConfig, CONFIG_FILE } from '../utils/config.js';
 import { getAdapter } from '../registry.js';
-import { resolveBasePath } from '../services/paths.js';
+import { resolveBasePath, resolveSkillsPath } from '../services/paths.js';
 import { promptForSection, formatFileList } from '../services/prompt.js';
 import { HarnessRequiredError, InvalidConfigError, InvalidHarnessError } from '../utils/errors.js';
+import { readUserInvocableSkills } from '../utils/templates.js';
 import type { Harness, AtelierConfig, HarnessSection } from '../types.js';
 import { Harness as Harnesses } from '../constants.js';
 
@@ -72,7 +73,7 @@ export async function init(options: InitOptions): Promise<void> {
   const harnessBasePath = resolveBasePath(harness);
 
   if (!options.yes) {
-    const files = adapter.fileList(harnessBasePath);
+    const files = adapter.fileList(harnessBasePath, toSharedConfig(config));
     console.log('\nFiles to write:');
     console.log(formatFileList(files));
     const { confirm } = await inquirer.prompt([{
@@ -88,7 +89,7 @@ export async function init(options: InitOptions): Promise<void> {
   }
 
   adapter.mergeHarnessConfig(section, harnessBasePath);
-  adapter.installAgents(section, harnessBasePath);
+  adapter.installAgents(section, harnessBasePath, toSharedConfig(config));
   writeConfig(config, configPath);
 
   console.log(`\nAtelier initialized for ${harness}.`);
@@ -97,4 +98,7 @@ export async function init(options: InitOptions): Promise<void> {
     console.log('  opencode auth login --provider openai  # connect your OpenAI account');
   }
   console.log('  npx skills add martinffx/atelier  # install skills');
+  if (harness === 'opencode' && readUserInvocableSkills(resolveSkillsPath(config.skills_path)).skills.length === 0) {
+    console.log('  npx @martinffx/atelier@latest update --harness opencode  # create commands after installing skills');
+  }
 }

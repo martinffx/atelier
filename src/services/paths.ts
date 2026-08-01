@@ -1,5 +1,5 @@
 import { homedir } from 'os';
-import { join } from 'path';
+import { isAbsolute, join, resolve } from 'path';
 import type { Harness } from '../types.js';
 
 export function shortPath(p: string): string {
@@ -12,6 +12,16 @@ export function shortPath(p: string): string {
 
 export function getGlobalOpencodeDir(): string {
   return join(homedir(), '.config', 'opencode');
+}
+
+export function resolveSkillsPath(skillsPath: string): string {
+  if (skillsPath === '~') {
+    return homedir();
+  }
+  if (skillsPath.startsWith('~/')) {
+    return join(homedir(), skillsPath.slice(2));
+  }
+  return isAbsolute(skillsPath) ? skillsPath : resolve(skillsPath);
 }
 
 export function resolveBasePath(harness: Harness): string {
