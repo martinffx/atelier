@@ -55,8 +55,9 @@ For shared-tree parallel work:
 
 1. Assign each task an exclusive file list before dispatch
 2. Do not let implementers stage or commit changes
-3. Capture a path-scoped `git diff` for each task when it reports completion
-4. Run tasks sequentially if their file ownership overlaps or cannot be isolated
+3. Capture full `git status`, including untracked files, before and after each task
+4. Capture the task's path-scoped patch and reject changes outside its assigned paths
+5. Run tasks sequentially if their file ownership overlaps or cannot be isolated
 
 ---
 
@@ -97,6 +98,7 @@ Give one fresh reviewer:
 - The complete requirements for work items in the batch
 - The relevant constraints
 - The path-scoped patch captured for each task
+- The full changed-file inventory, including untracked files
 - The implementers' reports and validation results
 
 The reviewer checks both requirements compliance and code quality:

@@ -23,7 +23,8 @@ Before starting, verify these exist:
 
 1. Approved `docs/specs/YYYY-MM-DD-<feature>/design.md`
 2. Approved `docs/specs/YYYY-MM-DD-<feature>/plan.json`
-3. Any tracker entries selected during planning are available
+3. Any tracker entries selected during planning are available, along with
+   `docs/agents/issue-tracker.md` when tracking is configured
 4. You are not on main/master without explicit user consent. Create a branch or use a git
    worktree first.
 
@@ -85,34 +86,19 @@ Default to batched if the human hasn't expressed a preference.
 
 Follow the approved plan exactly.
 
-For each task, find the next ready task:
+For each task, find the next unblocked task directly from `plan.json`. When tracker entries
+exist, use `docs/agents/issue-tracker.md` to keep their execution state in sync; tracker state
+never overrides the plan's dependency graph.
 
-**With beads (preferred):**
-```bash
-bd ready --label <feature> --json
-```
-
-**With harness todos:** Check the todo list for the next unblocked task, respecting
-`depends_on` from plan.json.
-
-**Without a tracker:** Read the next unblocked task directly from plan.json.
-
-When a tracker exists, mark it in progress:
-
-**With beads:**
-```bash
-bd update <task-id> --status in_progress
-```
-
-**With harness todos:**
-Update the todo status to in_progress.
+When a tracker exists, mark it in progress according to `docs/agents/issue-tracker.md`.
 
 ### For each task
 
 Read the task's **inputs** and **description** first.
 
-Write tests that cover the validation criteria before writing implementation.
-Invoke an installed language-specific testing skill when needed.
+For behavior-changing code tasks, write tests that cover the validation criteria before writing
+implementation. For documentation, configuration, migration, or verification-only tasks, use the
+task's stated validation instead. Invoke an installed language-specific testing skill when needed.
 
 ```
 1. Read task inputs and description
@@ -122,28 +108,22 @@ Invoke an installed language-specific testing skill when needed.
 5. Refactor if needed (tests stay green)
 ```
 
-Do NOT write implementation before tests. Do NOT skip "verify it fails." Do NOT write
-more code than needed to pass the test.
+For behavior-changing code, do NOT write implementation before tests. Do NOT skip "verify it
+fails." Do NOT write more code than needed to pass the test.
 
 Verify the task against its **validation** and acceptance criteria.
 
-### After each batch: Review and commit
+### After each batch: Validate and commit
 
-In Subagent Mode, use **code-subagents** for one combined batch review. In other modes,
-invoke **code-review** once for the batch. Resolve blocking findings and revalidate, then the
-coordinator commits the reviewed batch serially using **code-commit**.
+Run the task's focused validation and inspect the local diff for accidental or out-of-scope
+changes. Report deviations and unexpected findings. Use **code-commit** for any commit; plan
+approval does not bypass its approval gate. Comprehensive **code-review** happens in
+**spec-finish**.
 
 ### On completion
 
-When a tracker exists, mark the task done:
-
-**With beads:**
-```bash
-bd close <task-id> --reason "Implemented with tests"
-```
-
-**With harness todos:**
-Mark the task as completed.
+When a tracker exists, mark the task complete according to
+`docs/agents/issue-tracker.md`.
 
 ### Referencing existing code
 
@@ -231,8 +211,11 @@ If the design was wrong:
 ## When to Revisit Earlier Steps
 
 **Return to spec-plan when:**
-- Partner updates the plan based on your feedback
-- Tasks can't be completed as specified
+- A material change affects approved behavior, scope, architecture, public contracts, or major dependencies
+- Tasks cannot be completed without one of those material changes
+
+Minor deviations may be recorded inline and reflected in plan.json when useful. Report them in the
+next progress update.
 
 **Return to spec-brainstorm when:**
 - The fundamental approach needs rethinking
@@ -248,9 +231,8 @@ When all planned work is done, verify and present it.
 
 1. **Run full test suite** — all tests must pass, not just the new ones
 2. **Run type check / lint** — clean output, no new warnings
-3. **Invoke code-review** — full review of all changes
-4. **Verify completion** — close every tracker entry when tracking is used
-5. **Diff review** — review the full diff against main/master. Look for:
+3. **Verify completion** — close every tracker entry when tracking is used
+4. **Diff review** — review the full diff against the intended base branch. Look for:
    - Files that changed but shouldn't have
    - Debug code or temporary hacks left behind
    - Inconsistencies between what was planned and what was built
@@ -274,7 +256,7 @@ Present to the human:
 - Test suite: ✓ all passing
 - Type check: ✓ clean
 - Lint: ✓ clean
-- Code review: ✓ complete
+- Comprehensive code review: pending spec-finish
 
 ### Ready for review
 ```

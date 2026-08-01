@@ -504,7 +504,6 @@ Output findings in this format:
 - **Suggestion**: How to fix
 - **Pre-existing**: Yes/No
 ```
-```
 
 ---
 

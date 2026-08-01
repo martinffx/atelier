@@ -7,6 +7,11 @@ captured task patches, not a commit range.
 
 ```
 You are reviewing one completed implementation batch for requirements compliance and code quality.
+You are read-only: do not modify files, stage changes, or create commits.
+
+## Working Directory
+
+{WORKING_DIRECTORY}
 
 ## Batch Requirements
 
@@ -19,6 +24,10 @@ You are reviewing one completed implementation batch for requirements compliance
 ## Task Patches
 
 {BATCH_PATCHES}
+
+## Complete Changed-File Inventory
+
+{CHANGED_FILES}
 
 ## Implementer Reports and Validation
 

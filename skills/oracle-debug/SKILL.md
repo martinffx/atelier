@@ -3,7 +3,7 @@ name: oracle-debug
 description: >
   Disciplined debugging methodology. Triggers on bug reports, test failures, "debug this",
   "diagnose this", unexpected behavior, build failures, integration issues, or performance
-  regressions. Always find root cause before attempting any fix.
+  regressions. Find root cause before a permanent corrective fix; contain urgent harm safely first.
 user-invocable: true
 ---
 
@@ -11,7 +11,8 @@ user-invocable: true
 
 Random fixes waste time and create new bugs. Quick patches mask underlying issues.
 
-**Core principle:** find root cause before attempting any fix. Symptom fixes are failure.
+**Core principle:** find root cause before a permanent corrective fix. Temporary containment is
+appropriate when needed to limit security, production, or data-loss impact.
 
 **Violating the letter of this process is violating the spirit of debugging.**
 
@@ -72,11 +73,13 @@ relevant modules before tracing.
 
    Iterate on the loop: make it faster, sharper, and more deterministic. A 30-second flaky loop is barely better than no loop.
 
-3. **Reproduce the bug.** Run the loop. Confirm the failure matches what the user described, is reproducible across runs, and the exact symptom is captured.
+3. **Reproduce the bug.** Run the loop when safe. Confirm the failure matches what the user
+   described and capture the exact symptom. When reproduction is unsafe or impossible, use
+   historical artifacts, static evidence, or targeted telemetry instead.
 4. **Check recent changes.** `git diff`, recent commits, new dependencies, config changes, environment differences.
 5. **Trace data flow.** In multi-component systems, add diagnostic instrumentation at each boundary:
-   - Log what data enters each component
-   - Log what data exits each component
+   - Record only the minimum fields needed at each component boundary
+   - Redact credentials, authorization data, session identifiers, personal data, and payloads
    - Verify environment/config propagation
    - Check state at each layer
 
@@ -85,7 +88,10 @@ relevant modules before tracing.
 
 ### Non-deterministic bugs
 
-The goal is not a clean repro but a **higher reproduction rate**. Loop the trigger 100×, parallelize, add stress, narrow timing windows, inject sleeps. A 50% flake is debuggable; 1% is not — keep raising the rate until it is.
+The goal is not a clean repro but a **higher reproduction rate**. Narrow timing windows and vary
+one condition at a time. Treat added delay or load as a perturbation, not proof. Do not replay
+state-changing traffic, stress production, or collect sensitive artifacts without explicit
+authorization and a safe operational plan.
 
 ### When you genuinely cannot build a loop
 
@@ -95,7 +101,8 @@ Stop and say so explicitly. Ask the user for:
 - A captured artifact (HAR, log dump, core dump, screen recording)
 - Permission to add temporary production instrumentation
 
-**Do not proceed to Phase 2 without a loop you believe in.**
+**Do not claim root cause without evidence you can explain.** A safe loop is preferred, but
+artifact-based investigation is valid when a loop is unavailable.
 
 ---
 
@@ -123,7 +130,8 @@ Use the scientific method.
 
    **Tag every debug log** with a unique prefix, e.g. `[DEBUG-a4f2]`. Cleanup becomes a single grep.
 
-4. **Performance regressions.** Logs are usually wrong. Establish a baseline measurement (timing harness, profiler, query plan), then bisect. Measure first, fix second.
+4. **Performance regressions.** Establish a baseline measurement using the least intrusive
+   evidence available, then bisect. Measure first, fix second.
 
 5. **When you don't know, say so.** Don't pretend. Ask for help or research more.
 
@@ -211,8 +219,7 @@ After each session, summarize:
 
 ## References
 
-- **Language-specific tools** → `references/language-tools.md`
 - **Common bug patterns** → `references/bug-patterns.md`
-- **Logging & techniques** → `references/techniques.md`
+- **Techniques and safety practices** → `references/techniques.md`
 
 Structure inspired by [obra/superpowers systematic-debugging](https://github.com/obra/superpowers).

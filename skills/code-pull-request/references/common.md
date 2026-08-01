@@ -22,10 +22,10 @@ Scan the push URLs for the platform host — don't assume the remote is named
 ## Determine the Base Branch
 
 ```bash
-base=$(git symbolic-ref --quiet refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+base=$(git symbolic-ref --quiet "refs/remotes/<remote>/HEAD" 2>/dev/null | sed 's@^refs/remotes/<remote>/@@')
 if [ -z "$base" ]; then
   for candidate in main master; do
-    git rev-parse --verify --quiet "origin/$candidate" >/dev/null && base=$candidate && break
+    git rev-parse --verify --quiet "<remote>/$candidate" >/dev/null && base=$candidate && break
   done
 fi
 echo "$base"
@@ -59,7 +59,7 @@ gh pr view --json state,number,url,headRefName
 GitLab:
 
 ```bash
-glab mr view --json state,iid,web_url,source_branch
+glab mr view --output json
 ```
 
 - **Open** → use this PR/MR number/URL for comment and merge workflows.

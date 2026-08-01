@@ -41,13 +41,16 @@ If a `CONTEXT-MAP.md` exists at the root, the repo has multiple contexts. The ma
 │       └── docs/adr/
 ```
 
-Create files lazily — only when you have something to write. If no `CONTEXT.md` exists, create one when the first term is resolved. If no `docs/adr/` exists, create it when the first ADR is needed.
+Read `docs/agents/domain.md` when it exists to locate the configured domain documents. Create files
+lazily — only when you have something to write. If no `CONTEXT.md` exists, create one when the
+first term is resolved. If no `docs/adr/` exists, create it when the first ADR is needed.
 
 ## During the session
 
 ### Challenge against the glossary
 
-When the user uses a term that conflicts with the existing language in `CONTEXT.md`, call it out immediately:
+When the user uses a term that conflicts with the existing language in the relevant `CONTEXT.md`,
+call it out immediately. Resolve `CONTEXT-MAP.md` first when present:
 
 > "Your glossary defines 'cancellation' as X, but you seem to mean Y — which is it?"
 

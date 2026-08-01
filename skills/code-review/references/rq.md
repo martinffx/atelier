@@ -15,18 +15,22 @@ This workflow:
 
 ## Step 1: Get Diff
 
-### Default: git diff to main
+### Default: diff from the selected base branch's merge base
 
 ```bash
-git diff main
+base=<selected-base>
+merge_base=$(git merge-base "$base" HEAD)
+git diff "$merge_base" HEAD
 ```
 
 If target branch specified:
 ```bash
-git diff <branch>
+merge_base=$(git merge-base <branch> HEAD)
+git diff "$merge_base" HEAD
 ```
 
-Capture the list of changed files and the full diff.
+Capture the list of changed files and the full diff. Inspect untracked files separately with
+`git ls-files --others --exclude-standard`; report whether any are in review scope.
 
 ---
 
@@ -134,10 +138,13 @@ description: "Security review of code diff"
 prompt: |
   You are a Security Reviewer analyzing code for security vulnerabilities.
 
-  CONTEXT:
-  - Language: {language}
-  - Framework: {framework}
-  - Files: {files}
+   CONTEXT:
+   - Language: {language}
+   - Framework: {framework}
+   - Files: {files}
+
+   DIFF:
+   {diff}
 
   **PRE-STEP: Look for Relevant Skills**
   Before reviewing, look for relevant language, framework, testing, architecture, security, or tooling skills.
@@ -264,13 +271,16 @@ description: "Architecture review of code diff"
 prompt: |
   You are an Architecture Reviewer analyzing structural issues.
 
-  CONTEXT:
-  - Language: {language}
-  - Framework: {framework}
-  - Files: {files}
+   CONTEXT:
+   - Language: {language}
+   - Framework: {framework}
+   - Files: {files}
 
-  SYNTHESIZED FINDINGS:
-  {synthesized_findings_json}
+   DIFF:
+   {diff}
+
+   SYNTHESIZED FINDINGS:
+   {synthesized_findings_json}
 
   **PRE-STEP: Look for Relevant Skills**
   Before reviewing, look for relevant architecture and language architecture skills.
@@ -328,14 +338,14 @@ prompt: |
   If no relevant skill is available or a skill cannot be loaded, continue with this challenge prompt.
   Failure to find or load a skill is not a review failure.
 
-  For each flagged finding, use `mcp__sequential-thinking__sequentialthinking` to analyze:
+   For each finding, use structured reasoning to analyze:
   1. Is this handled elsewhere in the codebase?
   2. Is this the correct place for this concern?
   3. Is this a valid concern or a false positive?
   4. What evidence supports or refutes this finding?
   5. What are alternative perspectives to consider?
 
-  Return JSON with validated findings:
+   Preserve every finding unless evidence rejects it. Return JSON with validated findings:
   {
     "validated": [
       {
@@ -364,7 +374,8 @@ prompt: |
 
 **Purpose:** Produce final report with extended reasoning sections.
 
-This step is done **inline** (no subagent needed) - format the validated findings into the output structure defined in [output.md](./output.md).
+This step is done **inline** (no subagent needed) - format every finding not explicitly listed in
+`removed` into the output structure defined in [output.md](./output.md).
 
 Display findings in terminal per [output.md](./output.md).
 
@@ -374,7 +385,7 @@ Display findings in terminal per [output.md](./output.md).
 
 | Step | Subagent | Uses | Parallel? | Purpose |
 |------|----------|------|----------|---------|
-| 1 | Get Diff | inline | — | `git diff <branch>` |
+| 1 | Get Diff | inline | — | diff from the selected base branch's merge base |
 | 2 | Triage | `sentinel` agent | No | Detect context, select reviewers, identify relevant skills to look for |
 | 3 | Reviewers | `oracle` agent | Yes (per reviewer) | Specialty analysis |
 | 4 | Synthesis | inline | No | Deduplicate and group |

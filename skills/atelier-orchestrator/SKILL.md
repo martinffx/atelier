@@ -125,9 +125,10 @@ The workflow is not purely linear. Expect backflows:
 - Planning reveals design assumptions are wrong → back to brainstorm
 - Tasks can't be decomposed without more context → back to brainstorm
 
-### Implement → Plan (missing tasks)
-- Implementation reveals missing work → revise the active plan and get approval
-- Spec-backed work is blocked on an unplanned dependency → update plan.json
+### Implement → Plan (material changes)
+- A minor deviation may be recorded inline and reflected in the plan when it does not change
+  approved behavior, scope, architecture, public contracts, or major dependencies.
+- Material missing work or an unplanned dependency → revise the active plan and get approval.
 
 ### Implement → Research (fundamental issue)
 - Inline planning or implementation develops substantial needs → ask the human whether to
