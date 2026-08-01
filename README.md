@@ -7,13 +7,27 @@
 Atelier gives coding agents a disciplined way to move from an idea to reviewed, verified code without taking control away from the developer.
 
 ```bash
-npx skills add martinffx/atelier
 npx @martinffx/atelier@latest init --harness <claude|opencode|codex|cursor>
 ```
 
+Install the skills separately:
+
+```bash
+npx skills add martinffx/atelier
+```
+
+Update installed skills with:
+
+```bash
+npx skills update martinffx/atelier
+```
+
 For OpenCode, installing skills first also creates slash commands for every installed skill
-marked `user-invocable: true`. If you initialize first, run `npx @martinffx/atelier@latest update --harness opencode`
-after installing skills.
+marked `user-invocable: true`. If you initialized OpenCode before installing the skills, run:
+
+```bash
+npx @martinffx/atelier@latest update --harness opencode
+```
 
 ## How Atelier works
 
