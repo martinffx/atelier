@@ -12,6 +12,7 @@
 - Files reviewed: N
 - Findings: N Critical, N High, N Medium, N Low
 - Pre-existing: N | Introduced: N
+- Honored decisions: N
 
 ## Critical (Fix before merge)
 
@@ -28,6 +29,7 @@
   {Detailed explanation of why this was flagged}
   </details>
 - **Suggestion**: {How to fix}
+- **Prior decision reopened**: {Why the recorded rationale no longer applies; omit when not applicable}
 
 ## High Priority
 
@@ -45,7 +47,15 @@
 - {What the code does well}
 - {Smart patterns to keep}
 - {Good practices observed}
+
+## Honored Decisions
+
+- `{comment-file}:{line}` — {Concern}: {Short rationale and why it still applies}
 ```
+
+Omit the **Honored Decisions** section when there are no honored decisions. Keep each entry to
+one compact bullet; do not repeat the full finding, impact, reasoning, or suggestion.
+Severity and pre-existing/introduced statistics count active findings only.
 
 ---
 
@@ -60,6 +70,7 @@ Pre-existing: {Yes/No}
 Issue: {Brief description}
 Reasoning: {Why this matters}
 Suggestion: {Fix}
+Prior decision reopened: {Why the recorded rationale no longer applies; omit when not applicable}
 ```
 
 ---
@@ -98,6 +109,9 @@ Each finding includes a collapsible section with:
 3. **Evidence**: Code snippets, references, or examples
 4. **Alternative view**: If uncertain, what else to consider
 
+When a recorded decision is reopened, also identify the comment location and the evidence that
+invalidated its rationale or met its reconsideration condition.
+
 Example:
 ```markdown
 <details>
@@ -130,6 +144,7 @@ Implements OAuth login flow with token refresh. Generally well-structured with p
 - Files reviewed: 1
 - Findings: 1 Critical, 1 High, 0 Medium, 2 Low
 - Pre-existing: 1 | Introduced: 3
+- Honored decisions: 0
 
 ## Critical (Fix before merge)
 
@@ -198,3 +213,4 @@ Implements OAuth login flow with token refresh. Generally well-structured with p
 2. **Pre-existing detection** requires git blame check (not just diff)
 3. **Extended reasoning** should be collapsible in markdown renderers
 4. **Positive findings** help balance the review tone
+5. **Honored decisions** stay out of active severity counts and are summarized without restating the finding
