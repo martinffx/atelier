@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: Multi-agent code review with parallel specialized reviewers, architecture validation, and challenge validation. Use `rq` to request a review of diffs (defaults to main branch), `rs` to respond to review findings. Triggers on "review this", "review my code", "code review", "check for bugs", "audit this", when examining PRs, pull requests, branches, or diffs. Always asks user before applying fixes.
+description: Multi-agent code review with parallel specialized reviewers, architecture validation, challenge validation, and durable handling of previously decided findings. Use `rq` to request a review of diffs (defaults to main branch), `rs` to respond to findings and record intentional non-fix decisions beside the relevant code. Triggers on "review this", "review my code", "code review", "check for bugs", "audit this", when examining PRs, pull requests, branches, or diffs. Always asks user before applying fixes or adding decision comments.
 argument-hint: "rq [branch] | rs"
 user-invocable: true
 ---
@@ -52,7 +52,8 @@ Reviewer names such as `Security`, `Correctness`, `Maintainability`, and `Perfor
 
 ### rs (Respond to Review)
 
-No subagents. Interactive interview mode — see [rs.md](./references/rs.md).
+No subagents. Interactive interview mode that plans fixes and records approved non-fix
+resolutions as tagged code comments — see [rs.md](./references/rs.md).
 
 ## Dispatch Patterns
 
