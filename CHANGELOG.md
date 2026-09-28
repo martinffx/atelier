@@ -4,6 +4,15 @@
 
 - **breaking:** rename the `recon` agent to `sentinel`. Existing Atelier configuration is migrated automatically and legacy generated files are removed during the next command.
 
+## [3.2.0](https://github.com/martinffx/atelier/compare/v3.1.2...v3.2.0) (2026-09-28)
+
+
+### Features
+
+* **config:** add per-model thinking defaults across adapters ([756e698](https://github.com/martinffx/atelier/commit/756e698ccc0c466dc496a07c32c2e92508a58149))
+* **config:** add per-model thinking defaults across adapters ([319196e](https://github.com/martinffx/atelier/commit/319196eb0e37454551a3589a712ca8650fd8e57f))
+* **models:** update sonnet to 5.5 ([781d99f](https://github.com/martinffx/atelier/commit/781d99ff58600cb3ade16183f62814e40b7b73ee))
+
 ## [3.1.2](https://github.com/martinffx/atelier/compare/v3.1.1...v3.1.2) (2026-08-09)
 
 
