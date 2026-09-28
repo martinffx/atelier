@@ -7,10 +7,14 @@ import type { CodexConfig, HarnessAdapter, FileEntry, Provider, HarnessSection }
 import { AGENT_NAMES, LEGACY_AGENT_NAME } from '../constants.js';
 import { FileWriteError, HarnessConfigError } from '../utils/errors.js';
 import { shortPath } from '../services/paths.js';
-import { SimpleConfigSchema } from '../utils/schemas.js';
+import { CodexConfigSchema } from '../utils/schemas.js';
+import { codexThinking } from '../utils/thinking.js';
 import { promptForSimpleModels } from '../services/prompt.js';
 
 const OPENAI_MODELS = [
+  'gpt-6-astra',
+  'gpt-6-sol',
+  'gpt-6-luna',
   'gpt-5.6-sol',
   'gpt-5.6-terra',
   'gpt-5.6-luna',
@@ -22,10 +26,10 @@ const OPENAI_MODELS = [
 ] as const;
 
 const DEFAULT_MODELS = {
-  default_model: 'gpt-5.6-terra',
-  sentinel: 'gpt-5.6-luna',
-  oracle: 'gpt-5.6-sol',
-  architect: 'gpt-5.6-sol',
+  default_model: 'gpt-6-sol',
+  sentinel: 'gpt-6-luna',
+  oracle: 'gpt-6-astra',
+  architect: 'gpt-6-astra',
 } as const;
 
 const MANAGED_CODEX_KEYS: Array<{ key: string; nested?: Record<string, string[]> }> = [
@@ -46,7 +50,7 @@ const MANAGED_CODEX_KEYS: Array<{ key: string; nested?: Record<string, string[]>
 
 export const codexAdapter: HarnessAdapter = {
   name: 'codex',
-  configSchema: SimpleConfigSchema,
+  configSchema: CodexConfigSchema,
   defaultSection,
   modelsForProvider,
   promptSection,
@@ -60,10 +64,13 @@ function defaultSection(): CodexConfig {
   return {
     provider: 'openai',
     default_model: DEFAULT_MODELS.default_model,
+    build_thinking: 'high',
+    plan_thinking: 'xhigh',
     agents: AGENT_NAMES.map(name => ({
       template: name,
       name,
       model: DEFAULT_MODELS[name],
+      thinking: ({ sentinel: 'low', oracle: 'high', architect: 'xhigh' } as const)[name],
     })),
   };
 }
@@ -73,11 +80,11 @@ function modelsForProvider(_provider?: Provider): readonly string[] {
 }
 
 async function promptSection(prompt: typeof inquirer, section: HarnessSection): Promise<HarnessSection> {
-  return promptForSimpleModels(prompt, section as CodexConfig, modelsForProvider());
+  return promptForSimpleModels(prompt, section as CodexConfig, modelsForProvider(), 'codex');
 }
 
 function installAgents(section: HarnessSection, basePath: string): void {
-  const config = section as CodexConfig;
+  const config = CodexConfigSchema.parse(section);
   const codexDir = join(basePath, '.codex');
   const agentsDir = join(codexDir, 'agents');
 
@@ -94,7 +101,7 @@ function installAgents(section: HarnessSection, basePath: string): void {
       name: agent.name,
       description: template.description,
       model: agent.model,
-      model_reasoning_effort: 'medium',
+      ...effortField('model_reasoning_effort', codexThinking(agent.thinking, 'medium')),
       sandbox_mode: 'read-only',
       developer_instructions: template.body,
     };
@@ -106,7 +113,7 @@ function installAgents(section: HarnessSection, basePath: string): void {
 }
 
 function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
-  const config = section as CodexConfig;
+  const config = CodexConfigSchema.parse(section);
   const codexDir = join(basePath, '.codex');
   const configPath = join(codexDir, 'config.toml');
   let existing: Record<string, unknown> = {};
@@ -119,11 +126,13 @@ function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
     }
   }
 
+  if (config.build_thinking === 'default') delete existing.model_reasoning_effort;
+  if (config.plan_thinking === 'default') delete existing.plan_mode_reasoning_effort;
   const merged = {
     ...existing,
     model: config.default_model,
-    model_reasoning_effort: 'medium',
-    plan_mode_reasoning_effort: 'high',
+    ...effortField('model_reasoning_effort', codexThinking(config.build_thinking, 'medium')),
+    ...effortField('plan_mode_reasoning_effort', codexThinking(config.plan_thinking, 'high')),
     sandbox_mode: 'danger-full-access',
     approval_policy: 'on-request',
     features: {
@@ -144,6 +153,10 @@ function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
     throw new FileWriteError(configPath, err instanceof Error ? err.message : String(err));
   }
   console.log(`Updated ${shortPath(configPath)}`);
+}
+
+function effortField(key: string, value: string | undefined): Record<string, string> {
+  return value === undefined ? {} : { [key]: value };
 }
 
 function fileList(basePath: string): FileEntry[] {

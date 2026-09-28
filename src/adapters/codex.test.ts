@@ -17,8 +17,8 @@ describe('codex adapter', () => {
   it('defaultSection returns openai defaults', () => {
     const section = codexAdapter.defaultSection();
     expect(section.provider).toBe('openai');
-    expect(section.default_model).toBe('gpt-5.6-terra');
-    expect(section.agents.map(a => a.model)).toEqual(['gpt-5.6-luna', 'gpt-5.6-sol', 'gpt-5.6-sol']);
+    expect(section.default_model).toBe('gpt-6-sol');
+    expect(section.agents.map(a => a.model)).toEqual(['gpt-6-luna', 'gpt-6-astra', 'gpt-6-astra']);
   });
 
   it('modelsForProvider returns openai models', () => {
@@ -30,8 +30,8 @@ describe('codex adapter', () => {
     const path = join(basePath, '.codex', 'config.toml');
     expect(existsSync(path)).toBe(true);
     const content = TOML.parse(readFileSync(path, 'utf-8')) as Record<string, unknown>;
-    expect(content.model).toBe('gpt-5.6-terra');
-    expect(content.plan_mode_reasoning_effort).toBe('high');
+    expect(content.model).toBe('gpt-6-sol');
+    expect(content.plan_mode_reasoning_effort).toBe('xhigh');
     expect(content.sandbox_mode).toBe('danger-full-access');
     expect(content.approval_policy).toBe('on-request');
     expect((content.features as Record<string, unknown>).multi_agent).toBe(true);
@@ -44,7 +44,7 @@ describe('codex adapter', () => {
     codexAdapter.mergeHarnessConfig(section(), basePath);
     const content = TOML.parse(readFileSync(join(codexDir, 'config.toml'), 'utf-8')) as Record<string, unknown>;
     expect(content.custom).toBe('value');
-    expect(content.model).toBe('gpt-5.6-terra');
+    expect(content.model).toBe('gpt-6-sol');
   });
 
   it('mergeHarnessConfig throws on malformed config.toml', () => {

@@ -7,6 +7,7 @@ import { AGENT_NAMES, LEGACY_AGENT_NAME } from '../constants.js';
 import { FileWriteError, HarnessConfigError } from '../utils/errors.js';
 import { shortPath, getGlobalOpencodeDir, resolveSkillsPath } from '../services/paths.js';
 import { OpenCodeConfigSchema } from '../utils/schemas.js';
+import { openCodeThinkingOptions, OPENCODE_THINKING_KEYS } from '../utils/thinking.js';
 import { promptForOpenCodeProvider, promptForOpenCodeModels, guardProvider } from '../services/prompt.js';
 
 const OPENCODE_PROVIDERS: { name: string; value: OpenCodeProvider }[] = [
@@ -18,84 +19,43 @@ const OPENCODE_PROVIDERS: { name: string; value: OpenCodeProvider }[] = [
 
 const PROVIDER_MODELS: Record<OpenCodeProvider, readonly string[]> = {
   'opencode-zen': [
-    'opencode/gpt-5.5',
-    'opencode/gpt-5.4',
-    'opencode/gpt-5.3-codex',
-    'opencode/gpt-5.3-codex-spark',
-    'opencode/gpt-5.2',
-    'opencode/gpt-5.1',
-    'opencode/gpt-5',
-    'opencode/claude-opus-4-7',
-    'opencode/claude-opus-4-6',
-    'opencode/claude-sonnet-4-6',
-    'opencode/claude-sonnet-4-5',
-    'opencode/claude-haiku-4-5',
-    'opencode/qwen3.6-plus',
-    'opencode/minimax-m2.7',
-    'opencode/kimi-k2.6',
-    'opencode/glm-5.1',
-    'opencode/gemini-3.1-pro',
-    'opencode/gemini-3-flash',
-  ],
+    'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna',
+    'claude-opus-5-5', 'claude-fable-5-1', 'claude-sonnet-5-5', 'claude-haiku-4-5',
+    'glm-5.3', 'glm-5.3-flash', 'kimi-k3', 'kimi-k2.7-code',
+    'deepseek-v4.1-flash', 'deepseek-v4-pro', 'minimax-m3',
+    'qwen3.8-max', 'qwen3.8-flash', 'mimo-v2.6-flash-free',
+    'gemini-3.8-flash', 'gemini-3.1-pro',
+  ].map(id => `opencode/${id}`),
   'opencode-go': [
-    'opencode-go/glm-5.1',
-    'opencode-go/glm-5',
-    'opencode-go/kimi-k2.5',
-    'opencode-go/kimi-k2.6',
-    'opencode-go/deepseek-v4-pro',
-    'opencode-go/deepseek-v4-flash',
-    'opencode-go/minimax-m2.7',
-    'opencode-go/minimax-m2.5',
-    'opencode-go/qwen3.5-plus',
-    'opencode-go/qwen3.6-plus',
-    'opencode-go/mimo-v2.5',
-    'opencode-go/mimo-v2.5-pro',
-  ],
+    'glm-5.3', 'glm-5.3-flash', 'kimi-k3',
+    'deepseek-v4.1-flash', 'deepseek-v4-pro', 'minimax-m3',
+    'qwen3.8-max', 'qwen3.8-flash', 'mimo-v2.6-pro', 'mimo-v2.6-flash', 'gpt-6-luna',
+  ].map(id => `opencode-go/${id}`),
   'amazon-bedrock': [
-    'amazon-bedrock/anthropic-claude-sonnet-4-5',
-    'amazon-bedrock/anthropic-claude-haiku-4-5',
-    'amazon-bedrock/anthropic-claude-opus-4-7',
-  ],
-  openai: [
-    'openai/gpt-5.6-sol',
-    'openai/gpt-5.6-terra',
-    'openai/gpt-5.6-luna',
-    'openai/gpt-5.5',
-    'openai/gpt-5.4',
-    'openai/gpt-5.4-mini',
-    'openai/gpt-5.4-nano',
-    'openai/gpt-5.3-codex-spark',
-  ],
+    'us.anthropic.claude-opus-5-5', 'us.anthropic.claude-fable-5-1',
+    'us.anthropic.claude-sonnet-5-5', 'us.anthropic.claude-haiku-4-5-20251001-v1:0',
+  ].map(id => `amazon-bedrock/${id}`),
+  openai: ['gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna', 'gpt-5.3-codex-spark'].map(id => `openai/${id}`),
 };
 
-const DEFAULT_MODELS: Record<OpenCodeProvider, { build: string; plan: string; sentinel: string; oracle: string; architect: string }> = {
+const DEFAULT_MODELS: Record<OpenCodeProvider, Record<'build' | 'plan' | typeof AGENT_NAMES[number], string>> = {
   'opencode-zen': {
-    sentinel: 'opencode/minimax-m2.7',
-    oracle: 'opencode/kimi-k2.6',
-    architect: 'opencode/deepseek-v4-pro',
-    build: 'opencode/deepseek-v4-flash',
-    plan: 'opencode/deepseek-v4-pro',
+    sentinel: 'opencode/glm-5.3-flash', oracle: 'opencode/kimi-k3', architect: 'opencode/glm-5.3',
+    build: 'opencode/deepseek-v4.1-flash', plan: 'opencode/glm-5.3',
   },
   'opencode-go': {
-    sentinel: 'opencode-go/minimax-m2.7',
-    oracle: 'opencode-go/kimi-k2.6',
-    architect: 'opencode-go/deepseek-v4-pro',
-    build: 'opencode-go/deepseek-v4-flash',
-    plan: 'opencode-go/deepseek-v4-pro',
+    sentinel: 'opencode-go/glm-5.3-flash', oracle: 'opencode-go/mimo-v2.6-pro', architect: 'opencode-go/glm-5.3',
+    build: 'opencode-go/deepseek-v4.1-flash', plan: 'opencode-go/glm-5.3',
   },
   'amazon-bedrock': {
-    sentinel: 'amazon-bedrock/anthropic-claude-haiku-4-5',
-    oracle: 'amazon-bedrock/anthropic-claude-opus-4-7',
-    architect: 'amazon-bedrock/anthropic-claude-opus-4-7',
-    build: 'amazon-bedrock/anthropic-claude-sonnet-4-5',
-    plan: 'amazon-bedrock/anthropic-claude-haiku-4-5',
+    sentinel: 'amazon-bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0',
+    oracle: 'amazon-bedrock/us.anthropic.claude-fable-5-1',
+    architect: 'amazon-bedrock/us.anthropic.claude-opus-5-5',
+    build: 'amazon-bedrock/us.anthropic.claude-sonnet-5-5', plan: 'amazon-bedrock/us.anthropic.claude-opus-5-5',
   },
   openai: {
-    sentinel: 'openai/gpt-5.6-luna',
-    oracle: 'openai/gpt-5.6-sol',
-    architect: 'openai/gpt-5.6-sol',
-    build: 'openai/gpt-5.6-terra',
-    plan: 'openai/gpt-5.6-sol',
+    sentinel: 'openai/gpt-6-luna', oracle: 'openai/gpt-6-astra', architect: 'openai/gpt-6-astra',
+    build: 'openai/gpt-6-sol', plan: 'openai/gpt-6-astra',
   },
 };
 
@@ -121,10 +81,15 @@ function defaultSection(provider?: Provider): OpenCodeConfig {
     provider: selectedProvider,
     build_model: defaults.build,
     plan_model: defaults.plan,
+    build_thinking: 'high',
+    plan_thinking: selectedProvider === 'openai' ? 'xhigh' : 'high',
     agents: AGENT_NAMES.map(name => ({
       template: name,
       name,
       model: defaults[name],
+      thinking: name === 'sentinel' ? (selectedProvider === 'amazon-bedrock' ? 'default' : 'low')
+        : name === 'oracle' && selectedProvider === 'opencode-go' ? 'on'
+        : name === 'architect' && selectedProvider === 'openai' ? 'xhigh' : 'high',
     })),
   };
 }
@@ -140,11 +105,11 @@ async function promptSection(prompt: typeof inquirer, section: HarnessSection): 
     await promptForOpenCodeProvider(prompt, OPENCODE_PROVIDERS, openCodeSection.provider)
   );
   const models = modelsForProvider(provider);
-  return promptForOpenCodeModels(prompt, openCodeSection, models, provider);
+  return promptForOpenCodeModels(prompt, provider === openCodeSection.provider ? openCodeSection : defaultSection(provider), models, provider);
 }
 
 function installAgents(section: HarnessSection, basePath: string, sharedConfig?: SharedConfig): void {
-  const config = section as OpenCodeConfig;
+  const config = OpenCodeConfigSchema.parse(section);
   const opencodeRoot = getOpencodeRoot(basePath);
   const agentsDir = join(opencodeRoot, 'agent');
 
@@ -157,7 +122,8 @@ function installAgents(section: HarnessSection, basePath: string, sharedConfig?:
 
   for (const agent of config.agents) {
     const template = readTemplate(agent.template);
-    const frontmatter = `---\nname: ${agent.name}\ndescription: ${template.description}\nmode: subagent\nmodel: ${agent.model}\ntemperature: 0.2\n---\n`;
+    const options = Object.entries(openCodeThinkingOptions(agent.model, agent.thinking)).map(([key, value]) => `${key}: ${JSON.stringify(value)}\n`).join('');
+    const frontmatter = `---\nname: ${agent.name}\ndescription: ${template.description}\nmode: subagent\nmodel: ${JSON.stringify(agent.model)}\n${options}---\n`;
     const content = frontmatter + template.body;
 
     const agentPath = join(agentsDir, `${agent.name}.md`);
@@ -199,7 +165,7 @@ function installCommands(opencodeRoot: string, sharedConfig: SharedConfig): void
 }
 
 function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
-  const config = section as OpenCodeConfig;
+  const config = OpenCodeConfigSchema.parse(section);
   const opencodeJsonPath = join(basePath, 'opencode.json');
   const existing = readExistingOpenCodeJson(opencodeJsonPath);
   const isNew = Object.keys(existing).length === 0;
@@ -213,15 +179,24 @@ function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
   const sentinel = config.agents.find(a => a.name === 'sentinel');
   const architect = config.agents.find(a => a.name === 'architect');
 
+  // Explicit thinking selections replace stale settings from the previous model.
+  const existingAgents = existing.agent as Record<string, Record<string, unknown>> | undefined;
+  for (const mode of ['build', 'plan'] as const) {
+    if (config[`${mode}_thinking`] === undefined || !existingAgents?.[mode]) continue;
+    for (const key of OPENCODE_THINKING_KEYS) delete existingAgents[mode][key];
+  }
+
   const atelierFields: Record<string, unknown> = {
     agent: {
       build: {
         mode: 'primary',
         model: config.build_model || sentinel?.model || DEFAULT_MODELS[config.provider].build,
+        ...openCodeThinkingOptions(config.build_model, config.build_thinking),
       },
       plan: {
         mode: 'primary',
         model: config.plan_model || architect?.model || DEFAULT_MODELS[config.provider].plan,
+        ...openCodeThinkingOptions(config.plan_model, config.plan_thinking),
       },
     },
   };
@@ -434,8 +409,12 @@ function readExistingOpenCodeJson(opencodeJsonPath: string): Record<string, unkn
 function stripOpenCodeConfig(content: Record<string, unknown>, provider: OpenCodeProvider): Record<string, unknown> {
   if (content.agent && typeof content.agent === 'object' && !Array.isArray(content.agent)) {
     const agent = content.agent as Record<string, unknown>;
-    delete agent.build;
-    delete agent.plan;
+    for (const mode of ['build', 'plan']) {
+      const entry = agent[mode];
+      if (!entry || typeof entry !== 'object' || Array.isArray(entry)) continue;
+      for (const key of ['mode', 'model', ...OPENCODE_THINKING_KEYS]) delete (entry as Record<string, unknown>)[key];
+      if (!Object.keys(entry).length) delete agent[mode];
+    }
     if (Object.keys(agent).length === 0) {
       delete content.agent;
     }
@@ -443,7 +422,13 @@ function stripOpenCodeConfig(content: Record<string, unknown>, provider: OpenCod
 
   if (provider === 'amazon-bedrock' && content.provider && typeof content.provider === 'object' && !Array.isArray(content.provider)) {
     const providerRecord = content.provider as Record<string, unknown>;
-    delete providerRecord['amazon-bedrock'];
+    const bedrock = providerRecord['amazon-bedrock'] as Record<string, unknown> | undefined;
+    const options = bedrock?.options as Record<string, unknown> | undefined;
+    if (options) {
+      delete options.region;
+      if (!Object.keys(options).length) delete bedrock!.options;
+    }
+    if (bedrock && !Object.keys(bedrock).length) delete providerRecord['amazon-bedrock'];
     if (Object.keys(providerRecord).length === 0) {
       delete content.provider;
     }
