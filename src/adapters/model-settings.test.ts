@@ -12,10 +12,10 @@ import { thinkingChoices, openCodeThinkingOptions } from '../utils/thinking.js';
 import type { HarnessAdapter, SimpleConfig, OpenCodeConfig, Provider } from '../types.js';
 
 const cases: Array<[HarnessAdapter, Provider, string[], string[]]> = [
-  [claudeAdapter, 'anthropic', ['haiku', 'fable', 'opus', 'claude-opus-5-5', 'claude-sonnet-5'], ['default', 'high', 'high', 'high', 'high']],
+  [claudeAdapter, 'anthropic', ['haiku', 'fable', 'opus', 'claude-opus-5-5', 'claude-sonnet-5-5'], ['default', 'high', 'high', 'high', 'high']],
   [codexAdapter, 'openai', ['gpt-6-luna', 'gpt-6-astra', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-sol'], ['low', 'high', 'xhigh', 'xhigh', 'high']],
   [opencodeAdapter, 'openai', ['openai/gpt-6-luna', 'openai/gpt-6-astra', 'openai/gpt-6-astra', 'openai/gpt-6-astra', 'openai/gpt-6-sol'], ['low', 'high', 'xhigh', 'xhigh', 'high']],
-  [opencodeAdapter, 'amazon-bedrock', ['amazon-bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0', 'amazon-bedrock/us.anthropic.claude-fable-5-1', 'amazon-bedrock/us.anthropic.claude-opus-5-5', 'amazon-bedrock/us.anthropic.claude-opus-5-5', 'amazon-bedrock/us.anthropic.claude-sonnet-5'], ['default', 'high', 'high', 'high', 'high']],
+  [opencodeAdapter, 'amazon-bedrock', ['amazon-bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0', 'amazon-bedrock/us.anthropic.claude-fable-5-1', 'amazon-bedrock/us.anthropic.claude-opus-5-5', 'amazon-bedrock/us.anthropic.claude-opus-5-5', 'amazon-bedrock/us.anthropic.claude-sonnet-5-5'], ['default', 'high', 'high', 'high', 'high']],
   [opencodeAdapter, 'opencode-zen', ['opencode/glm-5.3-flash', 'opencode/kimi-k3', 'opencode/glm-5.3', 'opencode/glm-5.3', 'opencode/deepseek-v4.1-flash'], ['low', 'high', 'high', 'high', 'high']],
   [opencodeAdapter, 'opencode-go', ['opencode-go/glm-5.3-flash', 'opencode-go/mimo-v2.6-pro', 'opencode-go/glm-5.3', 'opencode-go/glm-5.3', 'opencode-go/deepseek-v4.1-flash'], ['low', 'on', 'high', 'high', 'high']],
 ];

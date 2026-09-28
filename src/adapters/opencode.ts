@@ -20,7 +20,7 @@ const OPENCODE_PROVIDERS: { name: string; value: OpenCodeProvider }[] = [
 const PROVIDER_MODELS: Record<OpenCodeProvider, readonly string[]> = {
   'opencode-zen': [
     'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna',
-    'claude-opus-5-5', 'claude-fable-5-1', 'claude-sonnet-5', 'claude-haiku-4-5',
+    'claude-opus-5-5', 'claude-fable-5-1', 'claude-sonnet-5-5', 'claude-haiku-4-5',
     'glm-5.3', 'glm-5.3-flash', 'kimi-k3', 'kimi-k2.7-code',
     'deepseek-v4.1-flash', 'deepseek-v4-pro', 'minimax-m3',
     'qwen3.8-max', 'qwen3.8-flash', 'mimo-v2.6-flash-free',
@@ -33,7 +33,7 @@ const PROVIDER_MODELS: Record<OpenCodeProvider, readonly string[]> = {
   ].map(id => `opencode-go/${id}`),
   'amazon-bedrock': [
     'us.anthropic.claude-opus-5-5', 'us.anthropic.claude-fable-5-1',
-    'us.anthropic.claude-sonnet-5', 'us.anthropic.claude-haiku-4-5-20251001-v1:0',
+    'us.anthropic.claude-sonnet-5-5', 'us.anthropic.claude-haiku-4-5-20251001-v1:0',
   ].map(id => `amazon-bedrock/${id}`),
   openai: ['gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna', 'gpt-5.3-codex-spark'].map(id => `openai/${id}`),
 };
@@ -51,7 +51,7 @@ const DEFAULT_MODELS: Record<OpenCodeProvider, Record<'build' | 'plan' | typeof 
     sentinel: 'amazon-bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0',
     oracle: 'amazon-bedrock/us.anthropic.claude-fable-5-1',
     architect: 'amazon-bedrock/us.anthropic.claude-opus-5-5',
-    build: 'amazon-bedrock/us.anthropic.claude-sonnet-5', plan: 'amazon-bedrock/us.anthropic.claude-opus-5-5',
+    build: 'amazon-bedrock/us.anthropic.claude-sonnet-5-5', plan: 'amazon-bedrock/us.anthropic.claude-opus-5-5',
   },
   openai: {
     sentinel: 'openai/gpt-6-luna', oracle: 'openai/gpt-6-astra', architect: 'openai/gpt-6-astra',

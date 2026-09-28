@@ -10,7 +10,7 @@ export function thinkingChoices(harness: ThinkingHarness, model: string, session
   if (/gpt-6-(astra|sol|luna)$/.test(id)) {
     return ['default', ...(id.endsWith('astra') ? [] : ['off'] as const), 'low', 'medium', 'high', 'xhigh', 'max'];
   }
-  if (/^(opus|opusplan|sonnet|fable|best)$/.test(id) || /claude-(opus-5-5|fable-5-1|sonnet-5)$/.test(id)) {
+  if (/^(opus|opusplan|sonnet|fable|best)$/.test(id) || /claude-(opus-5-5|fable-5-1|sonnet-5-5)$/.test(id)) {
     return ['default', 'low', 'medium', 'high', 'xhigh', ...(harness === 'claude' && session ? [] : ['max'] as const)];
   }
   if (harness === 'opencode') {
@@ -33,7 +33,7 @@ export function codexThinking(thinking: Thinking | undefined, legacy: string): s
 }
 
 export function claudeModel(model: string): string {
-  return ({ opus: 'claude-opus-5-5', fable: 'claude-fable-5-1', best: 'claude-fable-5-1', sonnet: 'claude-sonnet-5', haiku: 'claude-haiku-4-5-20251001' } as Record<string, string>)[model] ?? model;
+  return ({ opus: 'claude-opus-5-5', fable: 'claude-fable-5-1', best: 'claude-fable-5-1', sonnet: 'claude-sonnet-5-5', haiku: 'claude-haiku-4-5-20251001' } as Record<string, string>)[model] ?? model;
 }
 
 export function claudeModeModels(model: string): { build: string; plan: string } {
