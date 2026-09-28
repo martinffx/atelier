@@ -21,11 +21,11 @@ describe('claude adapter', () => {
     const section = claudeAdapter.defaultSection();
     expect(section.provider).toBe('anthropic');
     expect(section.default_model).toBe('opusplan');
-    expect(section.agents.map(a => a.model)).toEqual(['haiku', 'opus', 'opus']);
+    expect(section.agents.map(a => a.model)).toEqual(['haiku', 'fable', 'opus']);
   });
 
   it('modelsForProvider returns anthropic models', () => {
-    expect(claudeAdapter.modelsForProvider()).toEqual(['haiku', 'sonnet', 'opus', 'opusplan']);
+    expect(claudeAdapter.modelsForProvider()).toEqual(['haiku', 'sonnet', 'opus', 'fable', 'best', 'opusplan']);
   });
 
   it('mergeHarnessConfig writes settings.json', () => {

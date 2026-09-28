@@ -176,7 +176,7 @@ describe('config', () => {
     expect(sentinel?.model).toBe('haiku');
 
     const oracle = config.claude?.agents.find(a => a.name === 'oracle');
-    expect(oracle?.model).toBe('opus');
+    expect(oracle?.model).toBe('fable');
 
     const architect = config.claude?.agents.find(a => a.name === 'architect');
     expect(architect?.model).toBe('opus');
@@ -188,17 +188,17 @@ describe('config', () => {
     const config = getDefaultConfig('codex');
 
     expect(config.codex).toBeDefined();
-    expect(config.codex?.default_model).toBe('gpt-5.6-terra');
+    expect(config.codex?.default_model).toBe('gpt-6-sol');
     expect(config.codex?.agents).toHaveLength(3);
 
     const sentinel = config.codex?.agents.find(a => a.name === 'sentinel');
-    expect(sentinel?.model).toBe('gpt-5.6-luna');
+    expect(sentinel?.model).toBe('gpt-6-luna');
 
     const oracle = config.codex?.agents.find(a => a.name === 'oracle');
-    expect(oracle?.model).toBe('gpt-5.6-sol');
+    expect(oracle?.model).toBe('gpt-6-astra');
 
     const architect = config.codex?.agents.find(a => a.name === 'architect');
-    expect(architect?.model).toBe('gpt-5.6-sol');
+    expect(architect?.model).toBe('gpt-6-astra');
   });
 
   test('opencode adapter defaultSection returns valid config with default models for opencode zen', () => {
@@ -207,13 +207,13 @@ describe('config', () => {
     expect(section.provider).toBe('opencode-zen');
 
     const sentinel = section.agents.find(a => a.name === 'sentinel');
-    expect(sentinel?.model).toBe('opencode/minimax-m2.7');
+    expect(sentinel?.model).toBe('opencode/glm-5.3-flash');
 
     const oracle = section.agents.find(a => a.name === 'oracle');
-    expect(oracle?.model).toBe('opencode/kimi-k2.6');
+    expect(oracle?.model).toBe('opencode/kimi-k3');
 
     const architect = section.agents.find(a => a.name === 'architect');
-    expect(architect?.model).toBe('opencode/deepseek-v4-pro');
+    expect(architect?.model).toBe('opencode/glm-5.3');
   });
 
   test('opencode adapter defaultSection returns valid config with default models for opencode go', () => {
@@ -222,13 +222,13 @@ describe('config', () => {
     expect(section.provider).toBe('opencode-go');
 
     const sentinel = section.agents.find(a => a.name === 'sentinel');
-    expect(sentinel?.model).toBe('opencode-go/minimax-m2.7');
+    expect(sentinel?.model).toBe('opencode-go/glm-5.3-flash');
 
     const oracle = section.agents.find(a => a.name === 'oracle');
-    expect(oracle?.model).toBe('opencode-go/kimi-k2.6');
+    expect(oracle?.model).toBe('opencode-go/mimo-v2.6-pro');
 
     const architect = section.agents.find(a => a.name === 'architect');
-    expect(architect?.model).toBe('opencode-go/deepseek-v4-pro');
+    expect(architect?.model).toBe('opencode-go/glm-5.3');
   });
 
   test('opencode config accepts the OpenAI provider', async () => {
@@ -249,7 +249,7 @@ describe('config', () => {
     expect(section.provider).toBe('opencode-zen');
 
     const sentinel = section.agents.find(a => a.name === 'sentinel');
-    expect(sentinel?.model).toBe('opencode/minimax-m2.7');
+    expect(sentinel?.model).toBe('opencode/glm-5.3-flash');
   });
 
   test('cursor config accepts only agent selections', async () => {

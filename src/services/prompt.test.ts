@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import { promptForSection, formatFileList, promptForSimpleModels, promptForOpenCodeModels, guardProvider } from './prompt.js';
 import type { HarnessAdapter, SimpleConfig, OpenCodeConfig } from '../types.js';
+import { codexAdapter } from '../adapters/codex.js';
+import { opencodeAdapter } from '../adapters/opencode.js';
 
 const mockAnswers: Record<string, unknown>[] = [];
 let answerIndex = 0;
@@ -126,5 +128,52 @@ describe('prompt', () => {
       { path: '~/.claude/agents/sentinel.md', exists: false },
     ];
     expect(formatFileList(files)).toBe('  ~ ~/.claude/settings.json\n  + ~/.claude/agents/sentinel.md');
+  });
+
+  it('keeps saved custom models and implicit thinking when accepting defaults', async () => {
+    const questions: any[] = [];
+    const prompt = { prompt: async (batch: any[]) => {
+      questions.push(...batch);
+      return Object.fromEntries(batch.map(q => [q.name, q.default]));
+    } } as unknown as typeof import('inquirer').default;
+    const original: SimpleConfig = {
+      default_model: 'custom-model',
+      agents: ['sentinel', 'oracle', 'architect'].map(name => ({ name, template: name, model: 'custom-agent' })) as SimpleConfig['agents'],
+    };
+    const result = await codexAdapter.promptSection(prompt, original) as SimpleConfig;
+    expect(result.default_model).toBe('custom-model');
+    expect(result.agents.map(a => a.model)).toEqual(['custom-agent', 'custom-agent', 'custom-agent']);
+    expect(result.build_thinking).toBeUndefined();
+    expect(result.plan_thinking).toBeUndefined();
+    expect(result.agents.every(a => a.thinking === undefined)).toBe(true);
+    expect(questions.find(q => q.name === 'default_model').choices).toContain('custom-model');
+    expect(original.agents.every(a => a.thinking === undefined)).toBe(true);
+  });
+
+  it('offers thinking for the newly selected model and drops incompatible saved thinking', async () => {
+    const batches: any[][] = [];
+    const prompt = { prompt: async (batch: any[]) => {
+      batches.push(batch);
+      const answers = Object.fromEntries(batch.map(q => [q.name, q.default]));
+      if (batches.length === 1) answers.oracle = 'opencode-go/glm-5.3';
+      return answers;
+    } } as unknown as typeof import('inquirer').default;
+    const original = opencodeAdapter.defaultSection('opencode-go') as OpenCodeConfig;
+    const result = await promptForOpenCodeModels(prompt, original, opencodeAdapter.modelsForProvider('opencode-go'), 'opencode-go');
+    expect(result.agents[1].model).toBe('opencode-go/glm-5.3');
+    expect(result.agents[1].thinking).toBe('default');
+    expect(original.agents[1].thinking).toBe('on');
+    expect(batches[1].find(q => q.name === 'oracle_thinking').choices).toEqual(['default', 'low', 'high', 'max']);
+  });
+
+  it('uses the new provider defaults rather than carrying models across providers', async () => {
+    let call = 0;
+    const prompt = { prompt: async (batch: any[]) => {
+      call++;
+      return call === 1 ? { provider: 'opencode-go' } : Object.fromEntries(batch.map(q => [q.name, q.default]));
+    } } as unknown as typeof import('inquirer').default;
+    const result = await opencodeAdapter.promptSection(prompt, opencodeAdapter.defaultSection('openai')) as OpenCodeConfig;
+    expect(result).toEqual(opencodeAdapter.defaultSection('opencode-go'));
+    expect(result.agents.every(a => a.model.startsWith('opencode-go/'))).toBe(true);
   });
 });

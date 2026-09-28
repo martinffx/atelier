@@ -91,7 +91,7 @@ describe('init', () => {
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
     expect(config.codex).toBeDefined();
     expect(config.codex.provider).toBe('openai');
-    expect(config.codex.default_model).toBe('gpt-5.6-terra');
+    expect(config.codex.default_model).toBe('gpt-6-sol');
     expect(config.codex.agents).toHaveLength(3);
   });
 

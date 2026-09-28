@@ -1,7 +1,7 @@
 import type { z } from 'zod';
 import type inquirer from 'inquirer';
 import { AGENT_NAMES, Harness } from './constants.js';
-import { AgentSchema, SimpleConfigSchema, OpenCodeConfigSchema, CursorConfigSchema } from './utils/schemas.js';
+import { SimpleConfigSchema, OpenCodeConfigSchema, CursorConfigSchema } from './utils/schemas.js';
 
 export type Harness = typeof Harness[number];
 export type AgentName = typeof AGENT_NAMES[number];
@@ -14,7 +14,7 @@ export interface ProviderChoice {
   value: Provider;
 }
 
-export type AgentConfig = z.infer<typeof AgentSchema>;
+export type AgentConfig = z.infer<typeof SimpleConfigSchema>['agents'][number];
 export type SimpleConfig = z.infer<typeof SimpleConfigSchema>;
 
 // Claude and Codex share the same simple config shape; the harness key provides the meaning.
