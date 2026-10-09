@@ -176,7 +176,7 @@ describe('config', () => {
     expect(sentinel?.model).toBe('haiku');
 
     const oracle = config.claude?.agents.find(a => a.name === 'oracle');
-    expect(oracle?.model).toBe('fable');
+    expect(oracle?.model).toBe('opus');
 
     const architect = config.claude?.agents.find(a => a.name === 'architect');
     expect(architect?.model).toBe('opus');

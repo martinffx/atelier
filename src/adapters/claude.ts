@@ -15,7 +15,7 @@ const ANTHROPIC_MODELS = ['haiku', 'sonnet', 'opus', 'fable', 'best', 'opusplan'
 const DEFAULT_MODELS = {
   default_model: 'opusplan',
   sentinel: 'haiku',
-  oracle: 'fable',
+  oracle: 'opus',
   architect: 'opus',
   keymaker: 'haiku',
 } as const;
@@ -42,7 +42,7 @@ function defaultSection(): ClaudeConfig {
       template: name,
       name,
       model: DEFAULT_MODELS[name],
-      thinking: name === 'sentinel' || name === 'keymaker' ? 'default' : 'high',
+      thinking: name === 'sentinel' || name === 'keymaker' ? 'default' : name === 'oracle' ? 'xhigh' : 'high',
     })),
   };
 }
