@@ -4,6 +4,18 @@
 
 - **breaking:** rename the `recon` agent to `sentinel`. Existing Atelier configuration is migrated automatically and legacy generated files are removed during the next command.
 
+## [3.3.0](https://github.com/martinffx/atelier/compare/v3.2.1...v3.3.0) (2026-10-09)
+
+
+### Features
+
+* **agents:** let the harness select agents from descriptions ([5fb7eba](https://github.com/martinffx/atelier/commit/5fb7eba11f96f7af9c48f8663c6e853f22de6149))
+* **agents:** let the harness select agents from descriptions ([6793dde](https://github.com/martinffx/atelier/commit/6793dde9afebb7ccbc6efb3efa3e3e1e24bd2fa5))
+* **claude:** oracle on opus/xhigh and claude.ai opt-outs in user settings ([#76](https://github.com/martinffx/atelier/issues/76)) ([d79208f](https://github.com/martinffx/atelier/commit/d79208fec17801dd041e202ee9ba6738f0071724))
+* **claude:** support graded thinking for Haiku 5.5 ([#77](https://github.com/martinffx/atelier/issues/77)) ([6cc6992](https://github.com/martinffx/atelier/commit/6cc699274e08ef9ff116ffa22e895194b85fbb06))
+* **skills:** authorise delegation without naming agents ([d63e4c2](https://github.com/martinffx/atelier/commit/d63e4c27d24bf7fe82722546bb28e913a1af6b01))
+* **skills:** authorise delegation without naming agents ([81af084](https://github.com/martinffx/atelier/commit/81af08494f736375e10fcdedb44192cfe0299d87))
+
 ## [3.2.1](https://github.com/martinffx/atelier/compare/v3.2.0...v3.2.1) (2026-10-03)
 
 
