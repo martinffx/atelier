@@ -4,6 +4,13 @@
 
 - **breaking:** rename the `recon` agent to `sentinel`. Existing Atelier configuration is migrated automatically and legacy generated files are removed during the next command.
 
+## [3.4.0](https://github.com/martinffx/atelier/compare/v3.3.0...v3.4.0) (2026-10-09)
+
+
+### Features
+
+* **skills:** add oracle-codebase-design ([#80](https://github.com/martinffx/atelier/issues/80)) ([3672e9c](https://github.com/martinffx/atelier/commit/3672e9c655fa93d704473ebba8d2c194605f39c7))
+
 ## [3.3.0](https://github.com/martinffx/atelier/compare/v3.2.1...v3.3.0) (2026-10-09)
 
 
