@@ -247,6 +247,8 @@ Focus areas:
 - Test coverage gaps
 - Coupling and cohesion
 - DRY violations
+- Tests that reach past the interface
+- Vague or inconsistent names
 
 Output findings in this format:
 - **Location**: file:line
@@ -257,7 +259,7 @@ Output findings in this format:
 - **Pre-existing**: Yes/No
 ```
 
-Loads: Look for relevant testing and language-specific pattern skills; load them if available.
+Loads: Look for `oracle-codebase-design` and relevant testing and language-specific pattern skills; load them if available.
 
 ---
 
@@ -278,6 +280,8 @@ Focus areas:
 - Dependency direction
 - Layer separation
 - SOLID violations
+- Shallow modules and pass-throughs, information leakage across modules
+- Untrusted input crossing a seam unparsed, I/O mixed into decision logic
 
 Output findings in this format:
 - **Location**: file:line
@@ -288,7 +292,7 @@ Output findings in this format:
 - **Pre-existing**: Yes/No
 ```
 
-Loads: Look for relevant architecture and language architecture skills; load them if available.
+Loads: Look for `oracle-codebase-design` and relevant architecture and language architecture skills; load them if available.
 
 ---
 

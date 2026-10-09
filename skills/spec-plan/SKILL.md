@@ -43,6 +43,7 @@ request. Implementation requires a later, explicit request after this skill has 
   same need.
 - Group tests by changed contract and active boundary. Do not repeat the CRUD matrix across
   layers.
+- Plan tests at each module's interface, not past it (see **oracle-codebase-design**).
 
 ### Proportionality Gate
 

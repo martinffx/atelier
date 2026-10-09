@@ -121,7 +121,7 @@ prompt: |
   "context": { "language": "typescript", "framework": "fastify", "domain": "web-api", "change_type": "refactor" },
   "simplicity_required": true,
   "reviewers": ["Security", "Correctness", "PerformanceOperator"],
-  "skills_to_load": ["ponytail", "relevant installed testing skill"]
+  "skills_to_load": ["ponytail", "oracle-codebase-design", "relevant installed testing skill"]
 }
 ```
 
@@ -363,7 +363,7 @@ prompt: |
    independently and leave final decision reconciliation to the challenge step.
 
   **PRE-STEP: Look for Relevant Skills**
-  Before reviewing, look for relevant architecture and language architecture skills.
+  Before reviewing, look for `oracle-codebase-design` and relevant architecture and language architecture skills.
   Load relevant installed language, framework, testing, architecture, security, or tooling skills.
   If no relevant skill is available or a skill cannot be loaded, continue with this architect prompt.
   Failure to find or load a skill is not a review failure.
@@ -376,6 +376,8 @@ prompt: |
   - SOLID violations
   - Data model design
   - API contract design
+  - Shallow modules and pass-throughs, information leakage across modules
+  - Untrusted input crossing a seam unparsed, I/O mixed into decision logic
 
   Return findings as JSON:
   {

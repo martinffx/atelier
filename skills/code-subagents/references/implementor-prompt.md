@@ -63,6 +63,7 @@ Review your work with fresh eyes:
 - Is this my best work?
 - Are names clear and accurate?
 - Is the code clean and maintainable?
+- If `oracle-codebase-design` is available, did I check its red flags (shallow modules, leakage, pass-throughs)?
 
 **Discipline:**
 - Did I avoid overbuilding (YAGNI)?
@@ -71,6 +72,7 @@ Review your work with fresh eyes:
 
 **Testing:**
 - Do tests actually verify behaviour (not just mock behaviour)?
+- Do tests go through the module's interface rather than past it?
 - Did I follow TDD?
 - Are tests comprehensive?
 

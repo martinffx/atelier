@@ -20,4 +20,5 @@ understanding. Update domain documentation as terminology and decisions are reso
 session is nested in spec-brainstorm, return changed assumptions to that workflow for any required
 design update.
 
-Run this session using the `oracle-domain-modelling` skill.
+Run this session using the `oracle-domain-modelling` skill. When the decision is about a module's
+interface, seams, or test level, also use the `oracle-codebase-design` skill.
