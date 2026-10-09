@@ -6,18 +6,17 @@ Specialty reviewers are dispatched as **parallel subagents** following
 [code-subagents](../../code-subagents/SKILL.md) patterns. For migrations, refactors, and
 architectural changes, dispatch the mandatory Simplicity reviewer first and wait for its result.
 
-**Uses:** `oracle` subagent - One per reviewer. Dispatch Simplicity alone when required, then
+**Agent:** harness-selected (see Agent Selection in SKILL.md) - One subagent per reviewer. Dispatch Simplicity alone when required, then
 dispatch the specialty reviewers concurrently.
 
 Reviewer names such as `Simplicity`, `Security`, `Correctness`, `Maintainability`, and
-`PerformanceOperator` are personas inside the prompt. They are not subagent types. Do not use
-`general`; it is not a harness agent.
+`PerformanceOperator` are personas inside the prompt. They are not agent types. Do not name a
+specific agent; let the harness choose.
 
 ### Task Tool Invocation Template
 
 ```yaml
 # Dispatch ONE subagent per selected reviewer
-subagent_type: oracle
 description: "{ReviewerName} code review"
 prompt: |
   You are a {ReviewerName} analyzing code for {focus_area}.
@@ -730,7 +729,6 @@ change. After it completes, dispatch the selected specialty reviewers in paralle
 
 **Security Reviewer:**
 ```yaml
-subagent_type: oracle
 description: "Security review of PR"
 prompt: |
   You are a Security Reviewer analyzing code for security vulnerabilities.
@@ -787,7 +785,6 @@ prompt: |
 
 **Correctness Reviewer:**
 ```yaml
-subagent_type: oracle
 description: "Correctness review of PR"
 prompt: |
   You are a Correctness Reviewer analyzing code for logic errors.
@@ -834,7 +831,6 @@ prompt: |
 
 **PerformanceOperator Reviewer:**
 ```yaml
-subagent_type: oracle
 description: "Performance review of PR"
 prompt: |
   You are a Performance Operator - performance with production reality.
@@ -920,6 +916,6 @@ if not all_findings:
 1. **Ordered simplicity gate** — Run the mandatory Simplicity reviewer first when applicable
 2. **Parallel specialty dispatch** — Run the selected specialty reviewers simultaneously
 3. **Fresh subagent per reviewer** — No context pollution between reviewers
-4. **Concrete harness agent** — Use `oracle` for reviewer personas; do not use reviewer names or `general` as `subagent_type`
+4. **Harness-selected agent** — Do not name an agent; let the harness choose the best-fitting available agent from its description. Reviewer names are prompt personas, not agent types
 5. **Error isolation** — One reviewer failing doesn't block others
 6. **Structured output** — JSON format for easy aggregation

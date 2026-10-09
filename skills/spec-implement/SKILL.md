@@ -86,16 +86,31 @@ If the human has not specified an execution style, ask.
 - Stop and report: what was done, test output, anything unexpected
 - Wait for human feedback before continuing
 
+### Delegation (all modes)
+
+In any mode, delegate a task to a fresh subagent when **the design is already settled and the
+file just needs to be made**. That covers the plan or `design.md` already specifying what the
+file contains (types, signatures, schema, contract, or an existing pattern to copy), new files,
+scaffolding, boilerplate, and pattern-following edits. The task must also meet the
+**code-subagents** "When to Use" criteria: independent of other in-flight tasks, with owned
+files no other task touches and a clear validation command.
+
+- Invoke **code-subagents** for dispatch patterns and the implementer template
+- Paste the relevant design excerpt into the dispatch so the subagent makes no design decisions
+- Never name an agent; the harness chooses from agent descriptions
+- Keep coupled, exploratory, or design-sensitive tasks in the main thread
+- The main agent runs the combined plan and code-quality review per completed batch, and the
+  validation commands itself
+
 ### Subagent Mode
 
 > "Use subagents."
 
-- Invoke **code-subagents** for dispatch patterns and review cycle
-- Fresh subagent per task — no context pollution
-- One combined plan and code-quality review per completed batch
-- Independent tasks dispatch in parallel, dependent tasks run sequentially
+Delegate every eligible task. Independent tasks dispatch in parallel, dependent tasks run
+sequentially.
 
-Default to batched if the human hasn't expressed a preference.
+Default to batched if the human hasn't expressed a preference; delegation still applies per
+task.
 
 ---
 

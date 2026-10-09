@@ -120,6 +120,15 @@ new spec-implement request → implementation → spec-finish
 A typo or exact single-line replacement may skip planning when there is no implementation
 choice to review. If any choice exists, use an Inline Plan.
 
+## Delegation
+
+Delegate bounded, read-only work to a subagent when it would otherwise flood the main context:
+wide codebase research, finding comparable code, or independent review. Ask for a concise,
+file:line-cited summary, and read the key cited files yourself before deciding. Never name a
+specific agent; the harness chooses from agent descriptions. Do not delegate interviews or
+design dialogue with the human, lookups of a few files, or stateful debug and implementation
+loops.
+
 ## Hard Transitions
 
 | After completing... | Next step |
