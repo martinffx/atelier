@@ -55,7 +55,8 @@ it touches multiple files or takes time. That work belongs in an Inline Plan.
 
 Break the system into units with one clear purpose each. Well-defined interfaces between
 them. Each unit independently understandable and independently testable. If you can't
-explain a unit's job in one sentence, it's doing too much.
+explain a unit's job in one sentence, it's doing too much. Apply **oracle-codebase-design**:
+deep modules, seams placed where behaviour varies, and the interface as the test surface.
 
 ### Working in existing codebases
 
@@ -203,6 +204,8 @@ Before settling on a design, present **2-3 approaches** with trade-offs.
 
 The first approach must keep the existing architecture and make the smallest correct change.
 Present broader approaches only when a current requirement makes their extra cost relevant.
+When approaches differ mainly in interface shape, use the design-it-twice reference in
+**oracle-codebase-design**.
 
 For each approach, address:
 
@@ -250,9 +253,10 @@ with acceptance criteria and priorities. If rejected: revise. If the rejection
 reveals a scope misunderstanding, loop back to Discovery (Step 2).
 
 **Batch B: Architecture** — component design, domain modeling, and layer
-boundaries. Use installed language-specific architecture or API-design skills as relevant to
-your stack. Then present: component structure, domain model, where business
-logic lives, where IO lives. If rejected: revise. If the rejection undermines
+boundaries. Use **oracle-codebase-design** and any installed language-specific architecture or
+API-design skills relevant to your stack. Then present: component structure, domain model, where
+business logic lives, where IO lives, where untrusted input is parsed (the external seam), and
+the seam each module is tested through. If rejected: revise. If the rejection undermines
 the chosen approach, offer to return to approach exploration (4a). If it
 reveals a fundamental gap, loop back to Research (Step 3). If the detail reveals
 the work is far more complex than estimated, say so and offer to revisit the

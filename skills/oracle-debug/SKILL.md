@@ -145,7 +145,7 @@ Fix the root cause, not the symptom.
 
 1. **Create a failing test case.** The simplest possible reproduction. MUST exist before the fix.
 
-   A **correct seam** is one where the test exercises the real bug pattern as it occurs at the call site. If the only available seam is too shallow, note that the codebase architecture is preventing the bug from being locked down.
+   A **correct seam** is one where the test exercises the real bug pattern as it occurs at the call site. If the only available seam is too shallow, note that the codebase architecture is preventing the bug from being locked down. Use the seam and depth vocabulary from `oracle-codebase-design` when you raise it.
 
 2. **Implement a single fix.** Address the root cause. One change at a time. No "while I'm here" improvements. No bundled refactoring.
 3. **Verify the fix.** Does the test pass? Do other tests still pass? Does the original repro no longer reproduce?
@@ -153,7 +153,7 @@ Fix the root cause, not the symptom.
    - STOP
    - Count the failed fix attempts
    - If < 3: return to Phase 1 with the new information
-   - If ≥ 3: **question the architecture**. Pattern problems, hidden coupling, and shared state that each fix reveals are signs of a wrong pattern. Discuss with the user before attempting Fix #4.
+   - If ≥ 3: **question the architecture**. Pattern problems, hidden coupling, and shared state that each fix reveals are signs of a wrong pattern (see the red flags in `oracle-codebase-design`). Discuss with the user before attempting Fix #4.
 
 ### Cleanup + post-mortem
 

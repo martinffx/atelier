@@ -128,6 +128,8 @@ Read the task's **inputs** and **description** first.
 For behavior-changing code tasks, write tests that cover the validation criteria before writing
 implementation. For documentation, configuration, migration, or verification-only tasks, use the
 task's stated validation instead. Invoke an installed language-specific testing skill when needed.
+Write tests at the module's interface (see **oracle-codebase-design**), and use its red flags
+when refactoring.
 
 ```
 1. Read task inputs and description

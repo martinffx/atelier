@@ -198,7 +198,7 @@ If you loop 2+ times on the same issue, stop and ask the human:
 **Process skills** (spec-brainstorm, spec-plan, spec-implement, spec-finish): Follow exactly.
 Don't adapt away discipline.
 
-**Knowledge skills** (oracle-grill-me, oracle-domain-modelling): Adapt principles to
+**Knowledge skills** (oracle-grill-me, oracle-domain-modelling, oracle-codebase-design): Adapt principles to
 context. These inform decisions within the workflow.
 
 **Discipline skills** (oracle-debug): Strict methodology that must be followed
