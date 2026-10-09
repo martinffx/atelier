@@ -18,7 +18,7 @@ describe('codex adapter', () => {
     const section = codexAdapter.defaultSection();
     expect(section.provider).toBe('openai');
     expect(section.default_model).toBe('gpt-6-sol');
-    expect(section.agents.map(a => a.model)).toEqual(['gpt-6-luna', 'gpt-6-astra', 'gpt-6-astra']);
+    expect(section.agents.map(a => a.model)).toEqual(['gpt-6-luna', 'gpt-6-astra', 'gpt-6-astra', 'gpt-6-luna']);
   });
 
   it('modelsForProvider returns openai models', () => {
@@ -57,12 +57,12 @@ describe('codex adapter', () => {
 
   it('installAgents writes agent toml files', () => {
     codexAdapter.installAgents(section(), basePath);
-    for (const name of ['sentinel', 'oracle', 'architect']) {
+    for (const name of ['sentinel', 'oracle', 'architect', 'keymaker']) {
       const path = join(basePath, '.codex', 'agents', `${name}.toml`);
       expect(existsSync(path)).toBe(true);
       const content = TOML.parse(readFileSync(path, 'utf-8')) as Record<string, unknown>;
       expect(content.name).toBe(name);
-      expect(content.sandbox_mode).toBe('read-only');
+      expect(content.sandbox_mode).toBe(name === 'keymaker' ? 'workspace-write' : 'read-only');
     }
   });
 
@@ -75,6 +75,7 @@ describe('codex adapter', () => {
       join(basePath, '.codex', 'agents', 'sentinel.toml'),
       join(basePath, '.codex', 'agents', 'oracle.toml'),
       join(basePath, '.codex', 'agents', 'architect.toml'),
+      join(basePath, '.codex', 'agents', 'keymaker.toml'),
     ]);
   });
 

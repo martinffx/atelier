@@ -170,7 +170,7 @@ describe('config', () => {
     expect(config.skills_source).toBe('martinffx/atelier');
     expect(config.claude).toBeDefined();
     expect(config.claude?.default_model).toBe('opusplan');
-    expect(config.claude?.agents).toHaveLength(3);
+    expect(config.claude?.agents).toHaveLength(4);
 
     const sentinel = config.claude?.agents.find(a => a.name === 'sentinel');
     expect(sentinel?.model).toBe('haiku');
@@ -189,7 +189,7 @@ describe('config', () => {
 
     expect(config.codex).toBeDefined();
     expect(config.codex?.default_model).toBe('gpt-6-sol');
-    expect(config.codex?.agents).toHaveLength(3);
+    expect(config.codex?.agents).toHaveLength(4);
 
     const sentinel = config.codex?.agents.find(a => a.name === 'sentinel');
     expect(sentinel?.model).toBe('gpt-6-luna');

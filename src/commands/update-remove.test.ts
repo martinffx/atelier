@@ -141,6 +141,7 @@ describe('update', () => {
       { template: 'sentinel', name: 'sentinel', model: 'cursor-grok-4.5-high' },
       { template: 'oracle', name: 'oracle', model: 'kimi-k2.7-code' },
       { template: 'architect', name: 'architect', model: 'glm-5.2-high' },
+      { template: 'keymaker', name: 'keymaker', model: 'composer-2.5' },
     ]);
     expect(readFileSync(join(tempDir, '.cursor/agents/sentinel.md'), 'utf-8')).toContain('model: cursor-grok-4.5-high');
     expect(readFileSync(nativeConfig, 'utf-8')).toBe('{"model":"user-managed"}\n');

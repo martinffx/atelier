@@ -43,13 +43,14 @@ describe('init', () => {
     expect(existsSync(join(tempDir, '.claude/agents/sentinel.md'))).toBe(true);
     expect(existsSync(join(tempDir, '.claude/agents/oracle.md'))).toBe(true);
     expect(existsSync(join(tempDir, '.claude/agents/architect.md'))).toBe(true);
+    expect(existsSync(join(tempDir, '.claude/agents/keymaker.md'))).toBe(true);
 
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
     expect(config.claude).toBeDefined();
     expect(config.claude.provider).toBe('anthropic');
     expect(config.opencode).toBeUndefined();
     expect(config.codex).toBeUndefined();
-    expect(config.claude.agents).toHaveLength(3);
+    expect(config.claude.agents).toHaveLength(4);
   });
 
   test('creates opencode config and files with --yes', async () => {
@@ -87,12 +88,13 @@ describe('init', () => {
     expect(existsSync(join(tempDir, '.codex/agents/sentinel.toml'))).toBe(true);
     expect(existsSync(join(tempDir, '.codex/agents/oracle.toml'))).toBe(true);
     expect(existsSync(join(tempDir, '.codex/agents/architect.toml'))).toBe(true);
+    expect(existsSync(join(tempDir, '.codex/agents/keymaker.toml'))).toBe(true);
 
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
     expect(config.codex).toBeDefined();
     expect(config.codex.provider).toBe('openai');
     expect(config.codex.default_model).toBe('gpt-6-sol');
-    expect(config.codex.agents).toHaveLength(3);
+    expect(config.codex.agents).toHaveLength(4);
   });
 
   test('adds a second harness without removing the first', async () => {
@@ -107,8 +109,8 @@ describe('init', () => {
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
     expect(config.claude).toBeDefined();
     expect(config.codex).toBeDefined();
-    expect(config.claude.agents).toHaveLength(3);
-    expect(config.codex.agents).toHaveLength(3);
+    expect(config.claude.agents).toHaveLength(4);
+    expect(config.codex.agents).toHaveLength(4);
   });
 
   test('defaults to opencode-zen provider in --yes mode', async () => {
@@ -204,9 +206,10 @@ describe('init', () => {
     expect(existsSync(join(tempDir, '.cursor/agents/sentinel.md'))).toBe(true);
     expect(existsSync(join(tempDir, '.cursor/agents/oracle.md'))).toBe(true);
     expect(existsSync(join(tempDir, '.cursor/agents/architect.md'))).toBe(true);
+    expect(existsSync(join(tempDir, '.cursor/agents/keymaker.md'))).toBe(true);
 
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
-    expect(config.cursor.agents).toHaveLength(3);
+    expect(config.cursor.agents).toHaveLength(4);
   });
 
   test('cancels when confirm prompt is false', async () => {

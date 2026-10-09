@@ -21,7 +21,7 @@ describe('claude adapter', () => {
     const section = claudeAdapter.defaultSection();
     expect(section.provider).toBe('anthropic');
     expect(section.default_model).toBe('opusplan');
-    expect(section.agents.map(a => a.model)).toEqual(['haiku', 'fable', 'opus']);
+    expect(section.agents.map(a => a.model)).toEqual(['haiku', 'fable', 'opus', 'haiku']);
   });
 
   it('modelsForProvider returns anthropic models', () => {
@@ -60,7 +60,7 @@ describe('claude adapter', () => {
 
   it('installAgents writes agent files', () => {
     claudeAdapter.installAgents(section(), basePath);
-    for (const name of ['sentinel', 'oracle', 'architect']) {
+    for (const name of ['sentinel', 'oracle', 'architect', 'keymaker']) {
       const path = join(basePath, '.claude', 'agents', `${name}.md`);
       expect(existsSync(path)).toBe(true);
       const content = readFileSync(path, 'utf-8');
@@ -78,6 +78,7 @@ describe('claude adapter', () => {
       join(basePath, '.claude', 'agents', 'sentinel.md'),
       join(basePath, '.claude', 'agents', 'oracle.md'),
       join(basePath, '.claude', 'agents', 'architect.md'),
+      join(basePath, '.claude', 'agents', 'keymaker.md'),
     ]);
   });
 

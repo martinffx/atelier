@@ -47,6 +47,7 @@ describe('opencode adapter', () => {
       { template: 'sentinel', name: 'sentinel', model: 'openai/gpt-6-luna', thinking: 'low' },
       { template: 'oracle', name: 'oracle', model: 'openai/gpt-6-astra', thinking: 'high' },
       { template: 'architect', name: 'architect', model: 'openai/gpt-6-astra', thinking: 'xhigh' },
+      { template: 'keymaker', name: 'keymaker', model: 'openai/gpt-6-luna', thinking: 'low' },
     ]);
     expect(models.every(model => model.startsWith('openai/'))).toBe(true);
   });
@@ -79,7 +80,7 @@ describe('opencode adapter', () => {
   it('installAgents writes agent files', () => {
     opencodeAdapter.installAgents(section(), basePath);
     const agentsDir = join(getOpencodeRoot(basePath), 'agent');
-    for (const name of ['sentinel', 'oracle', 'architect']) {
+    for (const name of ['sentinel', 'oracle', 'architect', 'keymaker']) {
       const path = join(agentsDir, `${name}.md`);
       expect(existsSync(path)).toBe(true);
       const content = readFileSync(path, 'utf-8');
@@ -119,6 +120,7 @@ describe('opencode adapter', () => {
       join(getOpencodeRoot(basePath), 'agent', 'sentinel.md'),
       join(getOpencodeRoot(basePath), 'agent', 'oracle.md'),
       join(getOpencodeRoot(basePath), 'agent', 'architect.md'),
+      join(getOpencodeRoot(basePath), 'agent', 'keymaker.md'),
     ]);
   });
 

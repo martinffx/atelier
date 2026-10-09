@@ -30,7 +30,10 @@ const DEFAULT_MODELS = {
   sentinel: 'gpt-6-luna',
   oracle: 'gpt-6-astra',
   architect: 'gpt-6-astra',
+  keymaker: 'gpt-6-luna',
 } as const;
+
+const WRITABLE_AGENTS: readonly string[] = ['keymaker'];
 
 const MANAGED_CODEX_KEYS: Array<{ key: string; nested?: Record<string, string[]> }> = [
   { key: 'model' },
@@ -70,7 +73,7 @@ function defaultSection(): CodexConfig {
       template: name,
       name,
       model: DEFAULT_MODELS[name],
-      thinking: ({ sentinel: 'low', oracle: 'high', architect: 'xhigh' } as const)[name],
+      thinking: ({ sentinel: 'low', oracle: 'high', architect: 'xhigh', keymaker: 'low' } as const)[name],
     })),
   };
 }
@@ -102,7 +105,7 @@ function installAgents(section: HarnessSection, basePath: string): void {
       description: template.description,
       model: agent.model,
       ...effortField('model_reasoning_effort', codexThinking(agent.thinking, 'medium')),
-      sandbox_mode: 'read-only',
+      sandbox_mode: WRITABLE_AGENTS.includes(agent.template) ? 'workspace-write' : 'read-only',
       developer_instructions: template.body,
     };
 

@@ -12,22 +12,22 @@ import { thinkingChoices, openCodeThinkingOptions } from '../utils/thinking.js';
 import type { HarnessAdapter, SimpleConfig, OpenCodeConfig, Provider } from '../types.js';
 
 const cases: Array<[HarnessAdapter, Provider, string[], string[]]> = [
-  [claudeAdapter, 'anthropic', ['haiku', 'fable', 'opus', 'claude-opus-5-5', 'claude-sonnet-5-5'], ['default', 'high', 'high', 'high', 'high']],
-  [codexAdapter, 'openai', ['gpt-6-luna', 'gpt-6-astra', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-sol'], ['low', 'high', 'xhigh', 'xhigh', 'high']],
-  [opencodeAdapter, 'openai', ['openai/gpt-6-luna', 'openai/gpt-6-astra', 'openai/gpt-6-astra', 'openai/gpt-6-astra', 'openai/gpt-6-sol'], ['low', 'high', 'xhigh', 'xhigh', 'high']],
-  [opencodeAdapter, 'amazon-bedrock', ['amazon-bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0', 'amazon-bedrock/us.anthropic.claude-fable-5-1', 'amazon-bedrock/us.anthropic.claude-opus-5-5', 'amazon-bedrock/us.anthropic.claude-opus-5-5', 'amazon-bedrock/us.anthropic.claude-sonnet-5-5'], ['default', 'high', 'high', 'high', 'high']],
-  [opencodeAdapter, 'opencode-zen', ['opencode/glm-5.3-flash', 'opencode/kimi-k3', 'opencode/glm-5.3', 'opencode/glm-5.3', 'opencode/deepseek-v4.1-flash'], ['low', 'high', 'high', 'high', 'high']],
-  [opencodeAdapter, 'opencode-go', ['opencode-go/glm-5.3-flash', 'opencode-go/mimo-v2.6-pro', 'opencode-go/glm-5.3', 'opencode-go/glm-5.3', 'opencode-go/deepseek-v4.1-flash'], ['low', 'on', 'high', 'high', 'high']],
+  [claudeAdapter, 'anthropic', ['haiku', 'fable', 'opus', 'haiku', 'claude-opus-5-5', 'claude-sonnet-5-5'], ['default', 'high', 'high', 'default', 'high', 'high']],
+  [codexAdapter, 'openai', ['gpt-6-luna', 'gpt-6-astra', 'gpt-6-astra', 'gpt-6-luna', 'gpt-6-sol', 'gpt-6-sol'], ['low', 'high', 'xhigh', 'low', 'xhigh', 'high']],
+  [opencodeAdapter, 'openai', ['openai/gpt-6-luna', 'openai/gpt-6-astra', 'openai/gpt-6-astra', 'openai/gpt-6-luna', 'openai/gpt-6-astra', 'openai/gpt-6-sol'], ['low', 'high', 'xhigh', 'low', 'xhigh', 'high']],
+  [opencodeAdapter, 'amazon-bedrock', ['amazon-bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0', 'amazon-bedrock/us.anthropic.claude-fable-5-1', 'amazon-bedrock/us.anthropic.claude-opus-5-5', 'amazon-bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0', 'amazon-bedrock/us.anthropic.claude-opus-5-5', 'amazon-bedrock/us.anthropic.claude-sonnet-5-5'], ['default', 'high', 'high', 'default', 'high', 'high']],
+  [opencodeAdapter, 'opencode-zen', ['opencode/glm-5.3-flash', 'opencode/kimi-k3', 'opencode/glm-5.3', 'opencode/glm-5.3-flash', 'opencode/glm-5.3', 'opencode/deepseek-v4.1-flash'], ['low', 'high', 'high', 'low', 'high', 'high']],
+  [opencodeAdapter, 'opencode-go', ['opencode-go/glm-5.3-flash', 'opencode-go/mimo-v2.6-pro', 'opencode-go/glm-5.3', 'opencode-go/glm-5.3-flash', 'opencode-go/glm-5.3', 'opencode-go/deepseek-v4.1-flash'], ['low', 'on', 'high', 'low', 'high', 'high']],
 ];
 
 describe('model and thinking settings', () => {
   for (const [adapter, provider, models, levels] of cases) {
-    it(`${adapter.name}/${provider}: generates all five assignments and removes them`, () => {
+    it(`${adapter.name}/${provider}: generates all six assignments and removes them`, () => {
       const root = mkdtempSync(join(tmpdir(), 'atelier-models-'));
       try {
         const config = adapter.defaultSection(provider) as SimpleConfig | OpenCodeConfig;
         expect(adapter.configSchema.safeParse(config).success).toBe(true);
-        expect(config.agents.map(a => a.model)).toEqual(models.slice(0, 3));
+        expect(config.agents.map(a => a.model)).toEqual(models.slice(0, 4));
         expect([...config.agents.map(a => a.thinking), config.plan_thinking, config.build_thinking]).toEqual(levels);
         for (const agent of config.agents) expect(adapter.modelsForProvider(provider)).toContain(agent.model);
         adapter.installAgents(config, root);
@@ -43,24 +43,24 @@ describe('model and thinking settings', () => {
           const data = adapter.name === 'codex' ? TOML.parse(raw) : matter(raw).data;
           expect(data.model).toBe(models[index]);
           if (adapter.name === 'codex') expect(data.model_reasoning_effort).toBe(levels[index]);
-          else if (adapter.name === 'claude') expect(data.effort).toBe(index === 0 ? undefined : levels[index]);
+          else if (adapter.name === 'claude') expect(data.effort).toBe(levels[index] === 'default' ? undefined : levels[index]);
           else {
             expect(data.temperature).toBeUndefined();
-            if (provider === 'amazon-bedrock') expect(data.reasoningConfig?.maxReasoningEffort).toBe(index === 0 ? undefined : levels[index]);
+            if (provider === 'amazon-bedrock') expect(data.reasoningConfig?.maxReasoningEffort).toBe(levels[index] === 'default' ? undefined : levels[index]);
             else if (provider === 'opencode-go' && index === 1) expect(data.thinking).toEqual({ type: 'enabled' });
             else expect(data.reasoningEffort).toBe(levels[index]);
           }
         });
         if (adapter.name === 'claude') {
           expect(native.model).toBe('opusplan');
-          expect(native.modelSettings[models[3]].effortLevel).toBe(levels[3]);
           expect(native.modelSettings[models[4]].effortLevel).toBe(levels[4]);
+          expect(native.modelSettings[models[5]].effortLevel).toBe(levels[5]);
         } else if (adapter.name === 'codex') {
-          expect(native.model).toBe(models[4]);
-          expect(native.plan_mode_reasoning_effort).toBe(levels[3]);
-          expect(native.model_reasoning_effort).toBe(levels[4]);
+          expect(native.model).toBe(models[5]);
+          expect(native.plan_mode_reasoning_effort).toBe(levels[4]);
+          expect(native.model_reasoning_effort).toBe(levels[5]);
         } else {
-          for (const [mode, index] of [['plan', 3], ['build', 4]] as const) {
+          for (const [mode, index] of [['plan', 4], ['build', 5]] as const) {
             expect(native.agent[mode].model).toBe(models[index]);
             expect(adapter.modelsForProvider(provider)).toContain(models[index]);
             expect(provider === 'amazon-bedrock' ? native.agent[mode].reasoningConfig.maxReasoningEffort : native.agent[mode].reasoningEffort).toBe(levels[index]);
