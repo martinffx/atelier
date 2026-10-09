@@ -20,6 +20,12 @@ const DEFAULT_MODELS = {
   keymaker: 'haiku',
 } as const;
 
+const CLAUDE_AI_OPT_OUTS = {
+  disableClaudeAiConnectors: true,
+  syncClaudeAiSkills: false,
+  syncClaudeAiPlugins: false,
+} as const;
+
 export const claudeAdapter: HarnessAdapter = {
   name: 'claude',
   configSchema: ClaudeConfigSchema,
@@ -88,6 +94,7 @@ function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
   const settings: ExistingSettings = {
     ...existing,
     $schema: 'https://json.schemastore.org/claude-code-settings.json',
+    ...CLAUDE_AI_OPT_OUTS,
     model: config.default_model || DEFAULT_MODELS.default_model,
   };
   applyModeThinking(settings, config);
@@ -151,6 +158,9 @@ function removeAtelierSettings(claudeDir: string, config: ClaudeConfig): void {
   const content = parseSettingsJson(settingsPath);
   delete content.$schema;
   delete content.model;
+  for (const [key, value] of Object.entries(CLAUDE_AI_OPT_OUTS)) {
+    if (content[key] === value) delete content[key];
+  }
   applyModeThinking(content, config, true);
   writeOrDeleteSettings(settingsPath, content);
 }

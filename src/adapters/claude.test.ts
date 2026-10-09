@@ -35,6 +35,9 @@ describe('claude adapter', () => {
     const content = JSON.parse(readFileSync(settingsPath, 'utf-8'));
     expect(content.$schema).toBeDefined();
     expect(content.model).toBe('opusplan');
+    expect(content.disableClaudeAiConnectors).toBe(true);
+    expect(content.syncClaudeAiSkills).toBe(false);
+    expect(content.syncClaudeAiPlugins).toBe(false);
   });
 
   it('mergeHarnessConfig preserves user settings', () => {
@@ -112,6 +115,24 @@ describe('claude adapter', () => {
     expect(remaining.customKey).toBe('value');
     expect(remaining.model).toBeUndefined();
     expect(remaining.$schema).toBeUndefined();
+    expect(remaining.disableClaudeAiConnectors).toBeUndefined();
+    expect(remaining.syncClaudeAiSkills).toBeUndefined();
+    expect(remaining.syncClaudeAiPlugins).toBeUndefined();
+  });
+
+  it('remove keeps claude.ai settings the user changed after install', () => {
+    const s = section();
+    claudeAdapter.mergeHarnessConfig(s, basePath);
+    const settingsPath = join(basePath, '.claude', 'settings.json');
+    const content = JSON.parse(readFileSync(settingsPath, 'utf-8'));
+    content.disableClaudeAiConnectors = false;
+    writeFileSync(settingsPath, JSON.stringify(content, null, 2));
+
+    claudeAdapter.remove(s, basePath);
+
+    const remaining = JSON.parse(readFileSync(settingsPath, 'utf-8'));
+    expect(remaining.disableClaudeAiConnectors).toBe(false);
+    expect(remaining.syncClaudeAiSkills).toBeUndefined();
   });
 
   it('remove leaves user-created files in the agents directory', () => {
