@@ -81,7 +81,13 @@ describe('model and thinking settings', () => {
     const claude = claudeAdapter.defaultSection() as SimpleConfig;
     expect(ClaudeConfigSchema.safeParse({ ...claude, build_thinking: 'max' }).success).toBe(false);
     claude.agents[0].thinking = 'low';
+    expect(ClaudeConfigSchema.safeParse(claude).success).toBe(true);
+    claude.agents[0].model = 'custom-model';
     expect(ClaudeConfigSchema.safeParse(claude).success).toBe(false);
+    for (const model of ['haiku', 'claude-haiku-5-5']) {
+      expect(thinkingChoices('claude', model)).toEqual(['default', 'low', 'medium', 'high', 'xhigh', 'max']);
+      expect(thinkingChoices('claude', model, true)).not.toContain('max');
+    }
     expect(thinkingChoices('codex', 'gpt-6-astra')).not.toContain('off');
     expect(thinkingChoices('codex', 'gpt-6-sol')).toContain('off');
     expect(thinkingChoices('opencode', 'custom/unknown')).toEqual(['default']);
