@@ -6,7 +6,10 @@
   "bin": {
     "atelier": "dist/atelier.js"
   },
-  "repository": "github:martinffx/atelier",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/martinffx/atelier.git"
+  },
   "keywords": [
     "cli",
     "claude-code",
