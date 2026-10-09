@@ -4,6 +4,15 @@
 
 - **breaking:** rename the `recon` agent to `sentinel`. Existing Atelier configuration is migrated automatically and legacy generated files are removed during the next command.
 
+## [3.2.1](https://github.com/martinffx/atelier/compare/v3.2.0...v3.2.1) (2026-10-03)
+
+
+### Bug Fixes
+
+* **code-review:** align simplicity trust boundary and aggregation ([04ad861](https://github.com/martinffx/atelier/commit/04ad861aaef0d5048b11a4945c53628dc99f102c))
+* **code-review:** run simplicity gate once and add trust boundary ([4d34d2a](https://github.com/martinffx/atelier/commit/4d34d2af7612fac1cb907681800fc6d1a9493e4c))
+* **code-review:** run simplicity gate once and add trust boundary ([fe09d49](https://github.com/martinffx/atelier/commit/fe09d49c5ce230859f81591783e88650d25a85bb)), closes [#67](https://github.com/martinffx/atelier/issues/67) [#68](https://github.com/martinffx/atelier/issues/68)
+
 ## [3.2.0](https://github.com/martinffx/atelier/compare/v3.1.2...v3.2.0) (2026-09-28)
 
 
