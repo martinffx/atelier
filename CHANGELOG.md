@@ -9,11 +9,9 @@
 
 ### Features
 
-* **agents:** let the harness select agents from descriptions ([5fb7eba](https://github.com/martinffx/atelier/commit/5fb7eba11f96f7af9c48f8663c6e853f22de6149))
 * **agents:** let the harness select agents from descriptions ([6793dde](https://github.com/martinffx/atelier/commit/6793dde9afebb7ccbc6efb3efa3e3e1e24bd2fa5))
 * **claude:** oracle on opus/xhigh and claude.ai opt-outs in user settings ([#76](https://github.com/martinffx/atelier/issues/76)) ([d79208f](https://github.com/martinffx/atelier/commit/d79208fec17801dd041e202ee9ba6738f0071724))
 * **claude:** support graded thinking for Haiku 5.5 ([#77](https://github.com/martinffx/atelier/issues/77)) ([6cc6992](https://github.com/martinffx/atelier/commit/6cc699274e08ef9ff116ffa22e895194b85fbb06))
-* **skills:** authorise delegation without naming agents ([d63e4c2](https://github.com/martinffx/atelier/commit/d63e4c27d24bf7fe82722546bb28e913a1af6b01))
 * **skills:** authorise delegation without naming agents ([81af084](https://github.com/martinffx/atelier/commit/81af08494f736375e10fcdedb44192cfe0299d87))
 
 ## [3.2.1](https://github.com/martinffx/atelier/compare/v3.2.0...v3.2.1) (2026-10-03)
@@ -22,7 +20,6 @@
 ### Bug Fixes
 
 * **code-review:** align simplicity trust boundary and aggregation ([04ad861](https://github.com/martinffx/atelier/commit/04ad861aaef0d5048b11a4945c53628dc99f102c))
-* **code-review:** run simplicity gate once and add trust boundary ([4d34d2a](https://github.com/martinffx/atelier/commit/4d34d2af7612fac1cb907681800fc6d1a9493e4c))
 * **code-review:** run simplicity gate once and add trust boundary ([fe09d49](https://github.com/martinffx/atelier/commit/fe09d49c5ce230859f81591783e88650d25a85bb)), closes [#67](https://github.com/martinffx/atelier/issues/67) [#68](https://github.com/martinffx/atelier/issues/68)
 
 ## [3.2.0](https://github.com/martinffx/atelier/compare/v3.1.2...v3.2.0) (2026-09-28)
@@ -30,7 +27,6 @@
 
 ### Features
 
-* **config:** add per-model thinking defaults across adapters ([756e698](https://github.com/martinffx/atelier/commit/756e698ccc0c466dc496a07c32c2e92508a58149))
 * **config:** add per-model thinking defaults across adapters ([319196e](https://github.com/martinffx/atelier/commit/319196eb0e37454551a3589a712ca8650fd8e57f))
 * **models:** update sonnet to 5.5 ([781d99f](https://github.com/martinffx/atelier/commit/781d99ff58600cb3ade16183f62814e40b7b73ee))
 
@@ -126,10 +122,8 @@
 ### Features
 
 * **code-pull-request:** add comment and merge workflows with progressive disclosure ([53e8957](https://github.com/martinffx/atelier/commit/53e89574ae1c37d0c3e868c7bbecee560e38c573))
-* **code:** add code-pull-request skill for PR creation ([62e32a6](https://github.com/martinffx/atelier/commit/62e32a6373be02cfad5fd3cb3fa248efcf3cc06c))
 * **code:** add code-pull-request skill for PR creation ([e4d2475](https://github.com/martinffx/atelier/commit/e4d24752f610177d6706cf382f3db3c9f5406355))
 * **skills:** split oracle-grillme into oracle-grill-me and oracle-domain-modelling ([#40](https://github.com/martinffx/atelier/issues/40)) ([e373c12](https://github.com/martinffx/atelier/commit/e373c12d05d9cde3ddb02fb0fc26ee770fb959a2))
-* **spec-brainstorm:** add section-by-section design approval ([f66eb62](https://github.com/martinffx/atelier/commit/f66eb6275780768300218d329bff8882b6d20e5d))
 * **spec-brainstorm:** add section-by-section design approval ([9cfb7e7](https://github.com/martinffx/atelier/commit/9cfb7e732fe20c546c2465218a8392dcba7859ad))
 
 
@@ -144,7 +138,6 @@
 
 ### Bug Fixes
 
-* **skills:** remove user-invocable from code-docs ([beaaaee](https://github.com/martinffx/atelier/commit/beaaaee03d64955a3e8092d250cd4ab318c5d55d))
 * **skills:** remove user-invocable from code-docs ([00a2a82](https://github.com/martinffx/atelier/commit/00a2a82ce064bf0a88d2d13de796c4c7e120e472))
 
 ## [1.2.1](https://github.com/martinffx/atelier/compare/v1.2.0...v1.2.1) (2026-05-23)
@@ -153,7 +146,6 @@
 ### Bug Fixes
 
 * **cli:** correct skills directory path and add legacy config migration ([14f9611](https://github.com/martinffx/atelier/commit/14f9611bf4d8876844ef86ccc3fce55b203f2bed))
-* register missing skills in marketplace.json ([06da766](https://github.com/martinffx/atelier/commit/06da76647ed7c6721a2bc283f9bbd1c212b08456))
 * register missing skills in marketplace.json ([9f48099](https://github.com/martinffx/atelier/commit/9f48099e0be5de184c6200105e9b0b839fbcda1a))
 
 ## [1.2.0](https://github.com/martinffx/atelier/compare/v1.1.0...v1.2.0) (2026-05-23)
@@ -161,15 +153,10 @@
 
 ### Features
 
-* **code-debug:** upgrade to six-phase diagnose workflow ([62dec10](https://github.com/martinffx/atelier/commit/62dec1045555947462a447f4579e83b0dee63d17))
 * **code-debug:** upgrade to six-phase diagnose workflow ([8df277d](https://github.com/martinffx/atelier/commit/8df277d425ca16dfa63a8bf1949003e3e6aaf87c))
-* **code-handoff:** add code-handoff skill ([5ab6f5f](https://github.com/martinffx/atelier/commit/5ab6f5f5d890b024718e3b69103b23c3eb1205ef))
-* **oracle-architect:** add vocabulary, evaluation heuristics, and interface design reference ([7c528d3](https://github.com/martinffx/atelier/commit/7c528d308ebc98929cfc6be17e8d5c7444b36607))
 * **oracle-architect:** add vocabulary, evaluation heuristics, and interface design reference ([63ee753](https://github.com/martinffx/atelier/commit/63ee75380c4d4be92708539173534566f2033dea))
-* **oracle-security:** add security architecture and threat modeling skill ([8fcbd87](https://github.com/martinffx/atelier/commit/8fcbd87943bcb23d51480ed9e9bd702f19817096))
 * **oracle-security:** add security architecture and threat modeling skill ([69b6fdc](https://github.com/martinffx/atelier/commit/69b6fdcdf1f2b7732fb339cbf1d64c1fb7252eb7))
 * **skills:** add code-handoff skill ([012f467](https://github.com/martinffx/atelier/commit/012f4676d48c7f6799361ca6bdfef12f33a8849e))
-* **skills:** add oracle-doubt skill ([adf118b](https://github.com/martinffx/atelier/commit/adf118be197da43195c9ddd052b53f8c714405b5))
 * **skills:** add oracle-doubt skill for adversarial review ([447673e](https://github.com/martinffx/atelier/commit/447673eb7904e4d28306360f64329f7874db5b2b))
 
 ## [1.1.0](https://github.com/martinffx/atelier/compare/v1.0.2...v1.1.0) (2026-05-23)
@@ -177,7 +164,6 @@
 
 ### Features
 
-* **skills:** add oracle-grillme socratic interrogation skill ([6ad5ce5](https://github.com/martinffx/atelier/commit/6ad5ce52428863b51fec83880ce8083bb80aa3a0))
 * **skills:** add oracle-grillme socratic interrogation skill ([fd21606](https://github.com/martinffx/atelier/commit/fd2160639b82ba335963bec3128d9c6a5b5801b6))
 * **skills:** add PR creation workflow to code-commit ([25bb826](https://github.com/martinffx/atelier/commit/25bb8264364cb1c5ee843baea0127eaba3935c78))
 
@@ -186,7 +172,6 @@
 
 ### Bug Fixes
 
-* **package:** remove publish script to prevent recursive npm publish ([cbb1420](https://github.com/martinffx/atelier/commit/cbb14200785f0bf73c6e9f60714e3bf774bac5dd))
 * **package:** remove publish script to prevent recursive npm publish in CI ([d2a62dc](https://github.com/martinffx/atelier/commit/d2a62dc3c40301abdf7ddfce86db71c60724b575))
 
 ## [1.0.1](https://github.com/martinffx/atelier/compare/v1.0.0...v1.0.1) (2026-05-23)
@@ -194,7 +179,6 @@
 
 ### Bug Fixes
 
-* **ci:** resolve npm publish authentication failure ([7c57b85](https://github.com/martinffx/atelier/commit/7c57b8504e1f8045b9efeb7ccc5aebfb98e80050))
 * **ci:** resolve npm publish authentication failure in release workflow ([5e584bb](https://github.com/martinffx/atelier/commit/5e584bb7bea0f261152cc057dfab444e4c9c1402))
 
 ## 1.0.0 (2026-05-22)
