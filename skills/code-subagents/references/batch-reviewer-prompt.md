@@ -1,7 +1,8 @@
 # Batch Reviewer Prompt Template
 
 Use this template after all tasks in an implementation batch report completion. Review the
-captured task patches, not a commit range.
+captured task patches, not a commit range. Do not name an agent; let the harness choose the
+available agent whose description best fits a read-only critical review.
 
 ## Template
 

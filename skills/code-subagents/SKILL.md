@@ -1,9 +1,10 @@
 ---
 name: code-subagents
 description: >
-  Implementation subagent dispatch patterns. Use when independent implementation work is
-  available and subagents can execute it. Covers parallel dispatch, shared-tree patch
-  snapshots, one combined review per completed batch, and serial integration.
+  Implementation subagent dispatch patterns. Use when a task's design is settled and the file
+  just needs to be made, or when independent implementation work can run in parallel. Covers
+  eligibility, dispatch, shared-tree patch snapshots, one combined review per completed batch,
+  and serial integration.
 user-invocable: false
 ---
 
@@ -14,10 +15,15 @@ sequential when dependent.
 
 ## When to Use Subagents
 
-**Use when:**
-- 2+ independent work items do not share state or files
-- Each work item has explicit requirements, constraints, files, and validation
-- Each problem can be understood without context from the other work items
+**Use when** (all must hold):
+- The design is settled: the plan or `design.md` already specifies what the file contains
+  (types, signatures, schema, contract, or an existing pattern to copy)
+- The work item has explicit requirements, owned files, and a validation command
+- It does not share files or state with other in-flight work
+
+Prime candidates are new files, scaffolding, boilerplate, and pattern-following edits.
+Parallelism is a separate question: dispatch two or more eligible items concurrently only when
+the independence check below passes.
 
 **Don't use when:**
 - Tasks are tightly coupled (editing the same files)
@@ -58,6 +64,15 @@ For shared-tree parallel work:
 3. Capture full `git status`, including untracked files, before and after each task
 4. Capture the task's path-scoped patch and reject changes outside its assigned paths
 5. Run tasks sequentially if their file ownership overlaps or cannot be isolated
+
+---
+
+## Agent Selection
+
+Never name an agent; the harness chooses the available agent whose description best fits the
+work (see Delegation in `atelier-orchestrator`). Give implementers the design excerpt so they
+make no design decisions: mechanical file creation should match a scaffolder, design-sensitive
+implementation the harness's general writer. The batch reviewer is a read-only critical review.
 
 ---
 

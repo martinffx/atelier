@@ -89,13 +89,9 @@ If the human has not specified an execution style, ask.
 ### Delegation (all modes)
 
 In any mode, delegate a task to a fresh subagent when **the design is already settled and the
-file just needs to be made**. That covers the plan or `design.md` already specifying what the
-file contains (types, signatures, schema, contract, or an existing pattern to copy), new files,
-scaffolding, boilerplate, and pattern-following edits. The task must also meet the
-**code-subagents** "When to Use" criteria: independent of other in-flight tasks, with owned
-files no other task touches and a clear validation command.
+file just needs to be made**, as defined by the **code-subagents** "When to Use" criteria.
 
-- Invoke **code-subagents** for dispatch patterns and the implementer template
+- Invoke **code-subagents** for eligibility, dispatch patterns, and the implementer template
 - Paste the relevant design excerpt into the dispatch so the subagent makes no design decisions
 - Never name an agent; the harness chooses from agent descriptions
 - Keep coupled, exploratory, or design-sensitive tasks in the main thread
