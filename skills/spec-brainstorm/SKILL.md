@@ -169,6 +169,9 @@ Read the relevant codebase deeply. Not signatures — implementations, edge case
 handling, data flows. Trace callers and callees. Read tests to understand expected
 behaviour.
 
+When research spans more than a few files, delegate it to a read-only subagent per area (see
+Delegation in atelier-orchestrator) and assemble the research table from their cited findings.
+
 Collect research findings for the spec as the foundation. Do not write `design.md` until the
 approved design sections are assembled in Step 4c.
 

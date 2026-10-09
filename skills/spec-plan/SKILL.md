@@ -50,6 +50,25 @@ Before presenting any plan, compare its size and concepts with the requested beh
 bounded migration or refactor introduces shared infrastructure, unrelated behavior, or a plan
 substantially larger than the behavior being changed, stop and simplify it.
 
+### Challenge Gate
+
+Before presenting a plan, dispatch two read-only subagents in parallel with the draft plan and
+its design context. Do not name agents; describe the work so the harness matches it to agent
+descriptions (see Delegation in `atelier-orchestrator`):
+
+1. **Design review:** check architectural fit, layer and data-model boundaries, API contracts,
+   and whether task ordering respects the dependencies.
+2. **Critical challenge:** challenge assumptions, look for missing cases, scope creep, and
+   unproven requirements, and propose simpler alternatives.
+
+Each returns at most five evidence-backed findings. Fold in the valid ones, drop the rest with a
+reason, and present the plan with a short **Challenged** note listing what changed.
+
+Run the gate on every Spec-backed Plan. Run it on an Inline Plan only when the change touches a
+data model, an API contract, or more than one module or layer; skip it for small bounded edits.
+Run it once per draft; do not re-run it for the human's annotation revisions unless the plan's
+structure changes.
+
 ## Outputs
 
 ### Inline Plan (when explicitly selected)
@@ -63,7 +82,7 @@ structure. Omit optional subsections rather than rendering empty headings.
 Read enough of the codebase to identify the current behavior, boundaries, affected files,
 and concrete validation. Keep the plan proportional to implementation risk. Fill the
 template with confirmed, file-and-symbol-level details, including cross-file wiring or
-ordering constraints where they matter. Apply the Planning Rules and Proportionality Gate
+ordering constraints where they matter. Apply the Planning Rules, Proportionality Gate, and Challenge Gate
 before presenting it.
 
 Do not manufacture phases, task IDs, dependency graphs, acceptance matrices, `design.md`,
@@ -192,8 +211,8 @@ structured `plan.json` when approved.
 
 ## Spec-backed Step 1: Write the Plan Draft
 
-Read the approved `design.md`, then present the plan draft in conversation. Do not write the
-draft into `design.md` or create a separate draft file.
+Read the approved `design.md`, apply the Challenge Gate to the draft, then present the plan
+draft in conversation. Do not write the draft into `design.md` or create a separate draft file.
 
 ### Plan quality
 

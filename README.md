@@ -70,6 +70,8 @@ flowchart TD
 
 The workflow is deliberately harder to rush than an unstructured agent session. `spec-brainstorm` writes only `design.md`, and `spec-plan` writes only its selected plan output. Each skill then stops. The developer starts planning and implementation with separate requests. This records decisions when they need to survive the conversation, keeps implementation tied to an approved plan, and requires evidence before calling the work complete.
 
+Before a plan is presented, `spec-plan` runs a design review and a critical challenge as parallel subagents and notes what changed. During implementation, `spec-implement` hands tasks whose design is already settled to a subagent, keeping design-sensitive work in the main thread. Which agent handles each step is left to the harness.
+
 ## Grill the idea
 
 [`oracle-grill-me`](skills/oracle-grill-me/SKILL.md) interviews you one question at a time until the important decisions are explicit. It researches facts from the codebase instead of asking you to supply them, gives a recommended answer for each decision, and leaves the final choice with you.

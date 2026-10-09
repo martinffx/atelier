@@ -1,7 +1,9 @@
 # Implementer Prompt Template
 
 Use this template when dispatching an implementer subagent. Paste the complete work-item
-requirements. Do not make the subagent recover context.
+requirements. Do not make the subagent recover context. Do not name an agent; let the harness
+choose the available agent whose description best fits the work item (for example, a scaffolder
+for boilerplate or pattern-following file creation).
 
 ## Template
 

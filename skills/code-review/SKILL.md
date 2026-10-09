@@ -28,17 +28,20 @@ Uses explicit subagent dispatch patterns from [code-subagents](../code-subagents
 | `feat/foo` | Review diff to feat/foo (bare branch = rq) |
 | `rs` | Respond to review findings (interview mode) |
 
-## Subagent Architecture
+## Agent Selection
 
-Use these concrete harness subagent types. If an exact match is unavailable, use the most correct available subagent based on the harness-provided descriptions.
+Dispatch each step as a subagent, but never name a specific agent. The harness chooses the
+available agent whose description best fits the step's task. Steps and the kind of work they
+need:
 
-| `subagent_type` | Purpose |
-|-----------------|---------|
-| `sentinel` | Triage only: changed-file analysis, context retrieval, reviewer selection |
-| `oracle` | Reviewer personas, evidence-based critique, failure-mode analysis, challenge validation |
-| `architect` | Architecture, design-boundary, data-model, and API-contract review |
+| Step | Kind of work |
+|------|--------------|
+| Triage | Read-only recon: changed-file analysis, context retrieval, reviewer selection |
+| Reviewers | Critical analysis: evidence-based critique and failure-mode analysis |
+| Architect | Architecture, design-boundary, data-model, and API-contract review |
+| Challenge | Critical analysis: validate or reject findings |
 
-Reviewer names such as `Security`, `Correctness`, `Maintainability`, and `PerformanceOperator` are prompt personas, not subagent types. Do not use `general`; it is not a harness agent.
+Reviewer names such as `Security`, `Correctness`, `Maintainability`, and `PerformanceOperator` are prompt personas, not agent types.
 
 `Simplicity` is a mandatory reviewer persona for migrations, refactors, and architectural
 changes. Run it before the other reviewers; do not include it in the parallel reviewer batch.
@@ -84,11 +87,7 @@ Follows [code-subagents](../code-subagents/SKILL.md) patterns:
 
 ## Agent Dispatch
 
-| Agent | Used In Step |
-|-------|--------------|
-| `sentinel` | Triage only (context retrieval, file analysis) |
-| `oracle` | Reviewers and challenge validation |
-| `architect` | Architect (architecture review) |
+Every step except synthesis and output uses a harness-selected agent (see Agent Selection).
 
 Synthesis is performed inline by the main agent.
 

@@ -108,7 +108,9 @@ artifact-based investigation is valid when a loop is unavailable.
 
 ## Phase 2 — Pattern Analysis
 
-Find the pattern before fixing.
+Find the pattern before fixing. Finding working examples across a large codebase can be
+delegated to a read-only subagent (see Delegation in atelier-orchestrator). Phases 1, 3 and 4
+stay in the main thread.
 
 1. **Find working examples.** Locate similar working code in the same codebase.
 2. **Compare against references.** If implementing a known pattern, read the reference implementation completely.

@@ -50,12 +50,11 @@ older comments.
 
 **Purpose:** Analyze diff to determine context, select reviewers, identify relevant skills to look for.
 
-**Uses:** `sentinel` agent.
+**Agent:** harness-selected (see Agent Selection in SKILL.md). Triage is read-only recon.
 
 ### Subagent Invocation
 
 ```yaml
-subagent_type: sentinel
 description: "Triage diff for code review"
 prompt: |
   Analyze this code diff to determine review needs.
@@ -138,9 +137,9 @@ migration, refactor, or architectural change even if triage omits it. If triage 
 **Purpose:** Run the required simplicity gate, then analyze the code from selected specialty
 perspectives.
 
-**Uses:** `oracle` agent - One per reviewer, dispatched concurrently.
+**Agent:** harness-selected per reviewer (see Agent Selection in SKILL.md), dispatched concurrently.
 
-Reviewer names are prompt personas, not subagent types. Do not use `general`, `Security`, `Correctness`, `PerformanceOperator`, or any other reviewer name as `subagent_type`.
+Reviewer names are prompt personas, not agent names. Do not use `Security`, `Correctness`, `PerformanceOperator`, or any other reviewer name as an agent type, and do not name a specific agent: let the harness choose.
 
 **Pattern:** Run the mandatory Simplicity reviewer first when required, then spawn one
 subagent per specialty reviewer in `reviewers` concurrently.
@@ -152,7 +151,6 @@ findings before starting other reviewers. The gate runs exactly once; `Simplicit
 of the parallel batch.
 
 ```yaml
-subagent_type: oracle
 description: "Simplicity review of code diff"
 prompt: |
   You are a Simplicity Reviewer. Find the smallest implementation that preserves the requested
@@ -197,7 +195,6 @@ The `skills_to_load` field name is retained for compatibility. Treat it as optio
 ### Subagent Invocation (One per Reviewer)
 
 ```yaml
-subagent_type: oracle
 description: "Security review of code diff"
 prompt: |
   You are a Security Reviewer analyzing code for security vulnerabilities.
@@ -339,12 +336,11 @@ for reviewer in reviewers:
 
 **Purpose:** Review architecture-specific concerns.
 
-**Uses:** `architect` agent.
+**Agent:** harness-selected (see Agent Selection in SKILL.md); architecture review.
 
 ### Subagent Invocation
 
 ```yaml
-subagent_type: architect
 description: "Architecture review of code diff"
 prompt: |
   You are an Architecture Reviewer analyzing structural issues.
@@ -403,12 +399,11 @@ prompt: |
 
 **Purpose:** Validate findings by challenging assumptions.
 
-**Uses:** `oracle` agent.
+**Agent:** harness-selected (see Agent Selection in SKILL.md); critical challenge.
 
 ### Subagent Invocation
 
 ```yaml
-subagent_type: oracle
 description: "Challenge code review findings"
 prompt: |
   Challenge these code review findings critically using sequential-thinking.
@@ -520,10 +515,10 @@ Display findings in terminal per [output.md](./output.md).
 | Step | Subagent | Uses | Parallel? | Purpose |
 |------|----------|------|----------|---------|
 | 1 | Get Context | inline | — | User goal, prior behavior, diff, SDD, and recorded decisions |
-| 2 | Triage | `sentinel` agent | No | Classify the change and select reviewers |
-| 3 | Simplicity | `oracle` agent | No | Mandatory necessity and deletion gate when applicable |
-| 4 | Reviewers | `oracle` agent | Yes (per reviewer) | Correctness, security, and specialty analysis |
+| 2 | Triage | harness-selected | No | Classify the change and select reviewers |
+| 3 | Simplicity | harness-selected | No | Mandatory necessity and deletion gate when applicable |
+| 4 | Reviewers | harness-selected | Yes (per reviewer) | Correctness, security, and specialty analysis |
 | 5 | Synthesis | inline | No | Deduplicate and group |
-| 6 | Architect | `architect` agent | No | Architecture review |
-| 7 | SDD + Challenge | `oracle` agent | No | Reconcile the SDD last and validate findings |
+| 6 | Architect | harness-selected | No | Architecture review |
+| 7 | SDD + Challenge | harness-selected | No | Reconcile the SDD last and validate findings |
 | 8 | Output | inline | — | Format and display findings |
