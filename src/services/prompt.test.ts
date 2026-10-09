@@ -65,7 +65,7 @@ describe('prompt', () => {
   it('prompts for default model and agent models for simple config', async () => {
     mockAnswers.push(
       { default_model: 'sonnet' },
-      { sentinel: 'haiku', oracle: 'opus', architect: 'opus' }
+      { sentinel: 'haiku', oracle: 'opus', architect: 'opus', keymaker: 'haiku' }
     );
 
     const section = await promptForSection(simpleAdapter, {
@@ -74,6 +74,7 @@ describe('prompt', () => {
         { template: 'sentinel', name: 'sentinel', model: 'haiku' },
         { template: 'oracle', name: 'oracle', model: 'opus' },
         { template: 'architect', name: 'architect', model: 'opus' },
+        { template: 'keymaker', name: 'keymaker', model: 'haiku' },
       ],
     });
 
@@ -82,6 +83,7 @@ describe('prompt', () => {
       { template: 'sentinel', name: 'sentinel', model: 'haiku' },
       { template: 'oracle', name: 'oracle', model: 'opus' },
       { template: 'architect', name: 'architect', model: 'opus' },
+      { template: 'keymaker', name: 'keymaker', model: 'haiku' },
     ]);
   });
 
@@ -89,7 +91,7 @@ describe('prompt', () => {
     mockAnswers.push(
       { provider: 'opencode-go' },
       { build_model: 'b', plan_model: 'c' },
-      { sentinel: 'a', oracle: 'b', architect: 'c' }
+      { sentinel: 'a', oracle: 'b', architect: 'c', keymaker: 'a' }
     );
 
     const section = await promptForSection(openCodeAdapter, {
@@ -100,6 +102,7 @@ describe('prompt', () => {
         { template: 'sentinel', name: 'sentinel', model: 'a' },
         { template: 'oracle', name: 'oracle', model: 'b' },
         { template: 'architect', name: 'architect', model: 'c' },
+        { template: 'keymaker', name: 'keymaker', model: 'a' },
       ],
     } as OpenCodeConfig);
 
@@ -110,6 +113,7 @@ describe('prompt', () => {
       { template: 'sentinel', name: 'sentinel', model: 'a' },
       { template: 'oracle', name: 'oracle', model: 'b' },
       { template: 'architect', name: 'architect', model: 'c' },
+      { template: 'keymaker', name: 'keymaker', model: 'a' },
     ]);
   });
 
@@ -138,11 +142,11 @@ describe('prompt', () => {
     } } as unknown as typeof import('inquirer').default;
     const original: SimpleConfig = {
       default_model: 'custom-model',
-      agents: ['sentinel', 'oracle', 'architect'].map(name => ({ name, template: name, model: 'custom-agent' })) as SimpleConfig['agents'],
+      agents: ['sentinel', 'oracle', 'architect', 'keymaker'].map(name => ({ name, template: name, model: 'custom-agent' })) as SimpleConfig['agents'],
     };
     const result = await codexAdapter.promptSection(prompt, original) as SimpleConfig;
     expect(result.default_model).toBe('custom-model');
-    expect(result.agents.map(a => a.model)).toEqual(['custom-agent', 'custom-agent', 'custom-agent']);
+    expect(result.agents.map(a => a.model)).toEqual(['custom-agent', 'custom-agent', 'custom-agent', 'custom-agent']);
     expect(result.build_thinking).toBeUndefined();
     expect(result.plan_thinking).toBeUndefined();
     expect(result.agents.every(a => a.thinking === undefined)).toBe(true);

@@ -19,7 +19,8 @@
       "agents": [
         "./agents/oracle.md",
         "./agents/architect.md",
-        "./agents/sentinel.md"
+        "./agents/sentinel.md",
+        "./agents/keymaker.md"
       ],
       "skills": [
         "./skills/spec-brainstorm",

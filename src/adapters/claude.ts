@@ -17,6 +17,7 @@ const DEFAULT_MODELS = {
   sentinel: 'haiku',
   oracle: 'fable',
   architect: 'opus',
+  keymaker: 'haiku',
 } as const;
 
 export const claudeAdapter: HarnessAdapter = {
@@ -41,7 +42,7 @@ function defaultSection(): ClaudeConfig {
       template: name,
       name,
       model: DEFAULT_MODELS[name],
-      thinking: name === 'sentinel' ? 'default' : 'high',
+      thinking: name === 'sentinel' || name === 'keymaker' ? 'default' : 'high',
     })),
   };
 }

@@ -70,6 +70,12 @@ A harness-specific persona definition generated from a single Agent Template. Th
 
 _Avoid_: persona, role, assistant
 
+**Agent Selection**
+
+The harness chooses which agent handles delegated work by matching the task against each agent's description. Workflows may authorise delegation but do not name agents.
+
+_Avoid_: routing, dispatch table, agent assignment
+
 **AtelierConfig**
 
 The CLI's own persisted JSON configuration. It records the package version, skills source, skills path, and a per-harness section containing provider choice, model selections, and agent list.
@@ -96,6 +102,8 @@ _Avoid_: mode model, build model (for Cursor)
 - **Agent discovery** was previously proposed as dynamic scanning of `agents/*.md`. The CLI uses a static list of agent templates; dynamic scanning is not needed for this refactor.
 - **AtelierConfig vs HarnessConfig** is now explicit: `AtelierConfig` is the CLI's persisted state; `HarnessConfig` is the harness's native file, written only by the adapter.
 - **fileList and remove** use the same canonical list of Atelier-managed files. `fileList` reports existence; `remove` deletes those files.
+- **Agent Selection** was previously hard-coded per workflow step (`/code-review` named `oracle` for every reviewer persona). Selection now belongs to the harness, which matches the task to agent descriptions; descriptions are therefore the only routing surface.
+- **Agent Template** set is `sentinel` (read-only recon), `oracle` (critical analysis), `architect` (technical design) and `keymaker` (cheap scaffolder, the only template installed with write access in Codex).
 - **Cursor Default Model** is user-owned. Atelier configures Cursor subagent models only; it does not read, write, or model Cursor's primary model or native configuration.
 
 ## Example dialogue

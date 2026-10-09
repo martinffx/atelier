@@ -24,6 +24,7 @@ const DEFAULT_MODELS = {
   sentinel: 'composer-2.5',
   oracle: 'claude-opus-4-8-high',
   architect: 'gpt-5.6-sol-medium',
+  keymaker: 'composer-2.5',
 } as const;
 
 export const cursorAdapter: HarnessAdapter = {

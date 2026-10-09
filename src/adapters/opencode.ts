@@ -41,20 +41,24 @@ const PROVIDER_MODELS: Record<OpenCodeProvider, readonly string[]> = {
 const DEFAULT_MODELS: Record<OpenCodeProvider, Record<'build' | 'plan' | typeof AGENT_NAMES[number], string>> = {
   'opencode-zen': {
     sentinel: 'opencode/glm-5.3-flash', oracle: 'opencode/kimi-k3', architect: 'opencode/glm-5.3',
+    keymaker: 'opencode/glm-5.3-flash',
     build: 'opencode/deepseek-v4.1-flash', plan: 'opencode/glm-5.3',
   },
   'opencode-go': {
     sentinel: 'opencode-go/glm-5.3-flash', oracle: 'opencode-go/mimo-v2.6-pro', architect: 'opencode-go/glm-5.3',
+    keymaker: 'opencode-go/glm-5.3-flash',
     build: 'opencode-go/deepseek-v4.1-flash', plan: 'opencode-go/glm-5.3',
   },
   'amazon-bedrock': {
     sentinel: 'amazon-bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0',
     oracle: 'amazon-bedrock/us.anthropic.claude-fable-5-1',
     architect: 'amazon-bedrock/us.anthropic.claude-opus-5-5',
+    keymaker: 'amazon-bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0',
     build: 'amazon-bedrock/us.anthropic.claude-sonnet-5-5', plan: 'amazon-bedrock/us.anthropic.claude-opus-5-5',
   },
   openai: {
     sentinel: 'openai/gpt-6-luna', oracle: 'openai/gpt-6-astra', architect: 'openai/gpt-6-astra',
+    keymaker: 'openai/gpt-6-luna',
     build: 'openai/gpt-6-sol', plan: 'openai/gpt-6-astra',
   },
 };
@@ -87,7 +91,7 @@ function defaultSection(provider?: Provider): OpenCodeConfig {
       template: name,
       name,
       model: defaults[name],
-      thinking: name === 'sentinel' ? (selectedProvider === 'amazon-bedrock' ? 'default' : 'low')
+      thinking: name === 'sentinel' || name === 'keymaker' ? (selectedProvider === 'amazon-bedrock' ? 'default' : 'low')
         : name === 'oracle' && selectedProvider === 'opencode-go' ? 'on'
         : name === 'architect' && selectedProvider === 'openai' ? 'xhigh' : 'high',
     })),

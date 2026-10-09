@@ -18,6 +18,7 @@ describe('cursor adapter', () => {
       'composer-2.5',
       'claude-opus-4-8-high',
       'gpt-5.6-sol-medium',
+      'composer-2.5',
     ]);
     expect(cursorAdapter.modelsForProvider()).toEqual(expect.arrayContaining([
       'cursor-grok-4.5-high',
