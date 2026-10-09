@@ -32,6 +32,7 @@
         "./skills/oracle-debug",
         "./skills/oracle-grill-me",
         "./skills/oracle-domain-modelling",
+        "./skills/oracle-codebase-design",
         "./skills/code-commit",
         "./skills/code-handoff",
         "./skills/code-pull-request",
