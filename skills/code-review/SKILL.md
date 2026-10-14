@@ -43,8 +43,9 @@ need:
 
 Reviewer names such as `Security`, `Correctness`, `Maintainability`, and `PerformanceOperator` are prompt personas, not agent types.
 
-`Simplicity` is a mandatory reviewer persona for migrations, refactors, and architectural
-changes. Run it before the other reviewers; do not include it in the parallel reviewer batch.
+`Simplicity` is a mandatory reviewer persona on every review. For migrations, refactors, and
+architectural changes it is a gate: run it before the other reviewers. Otherwise it runs in
+parallel with them. It runs once and is never listed in triage's `reviewers`.
 
 ## Review Priority
 
@@ -65,11 +66,10 @@ review fix.
 | Step | Parallel | Purpose |
 |------|----------|---------|
 | 1. Triage | No | Detect context, select reviewers, identify relevant skills to look for |
-| 2. Simplicity | No | Mandatory necessity and deletion review for migrations, refactors, and architectural changes |
-| 3. Reviewers | Yes (per reviewer) | Correctness, security, and other specialty analysis |
-| 4. Synthesis | No | Deduplicate findings inline |
-| 5. Architect | No | Architecture review |
-| 6. SDD + Challenge | No | Check SDD compliance last, then validate findings |
+| 2. Reviewers | Yes (per reviewer) | Simplicity (gate first for migrations, refactors, and architectural changes; otherwise in parallel), correctness, security, and other specialty analysis |
+| 3. Synthesis | No | Deduplicate findings inline |
+| 4. Architect | No | Architecture review |
+| 5. SDD + Challenge | No | Check SDD compliance last, then validate findings |
 
 ### rs (Respond to Review)
 
@@ -97,7 +97,7 @@ Synthesis is performed inline by the main agent.
 |-----------|---------|
 | [rq.md](./references/rq.md) | Request review workflow - detailed steps with prompts |
 | [rs.md](./references/rs.md) | Respond to review workflow - interview mode |
-| [reviewers.md](./references/reviewers.md) | Reviewer definitions and prompts |
+| [reviewers.md](./references/reviewers.md) | Dispatch template and reviewer definitions (single source for prompts) |
 | [output.md](./references/output.md) | Output format specification |
 ## Workflow Routing
 

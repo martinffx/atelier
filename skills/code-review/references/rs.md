@@ -18,11 +18,24 @@ Ask me questions 1 by 1, multiple choice.
 ## Behavior
 
 1. Load the review findings from the current conversation context
-2. Begin interviewing the user — one question at a time, always multiple choice
-3. Classify each finding as fix, intentional/accepted risk, false positive, or deferred
-4. Capture the rationale and reconsideration condition for every non-fix resolution
-5. Present one plan containing the exact fixes and proposed decision comments
-6. **Always ask the user before applying fixes or adding, changing, or removing comments**
+2. Offer every active finding marked **Mechanical** as one batch (see below)
+3. Begin interviewing the user about the remaining findings — one question at a time, always multiple choice
+4. Classify each finding as fix, intentional/accepted risk, false positive, or deferred
+5. Capture the rationale and reconsideration condition for every non-fix resolution
+6. Present one plan containing the exact fixes and proposed decision comments
+7. **Always ask the user before applying fixes or adding, changing, or removing comments**
+
+## Mechanical Batch
+
+Findings marked **Mechanical** keep behavior identical, stay local, and need no judgment. List
+them together, each with its location and exact change, and ask one question:
+
+- a) Apply all
+- b) Pick which to apply (the rest join the interview)
+- c) Interview each one
+
+Applied mechanical fixes join the final plan like any other fix. A finding that requires user
+approval or reopens a recorded decision is never batched.
 
 ## Resolution Rules
 
@@ -56,10 +69,10 @@ For example:
 
 ## Guidelines
 
-- One question at a time — never batch questions
+- One question at a time — never batch questions (the mechanical batch is a single question)
 - Always provide multiple choice answers (a, b, c, d...)
 - Start with the most ambiguous findings first
-- Skip findings that are clearly actionable without input
+- Skip findings that are clearly actionable without input (mechanical findings go through the batch)
 - For a non-fix choice, ask for the rationale or reconsideration condition only when the
   conversation and repository do not already provide it
 - After all questions are answered, show exact proposed comments with the fix plan and confirm

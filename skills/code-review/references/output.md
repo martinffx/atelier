@@ -46,6 +46,7 @@
   </details>
 - **Suggestion**: {How to fix}
 - **Requires user approval**: {Yes when the suggestion expands behavior or infrastructure; otherwise No}
+- **Mechanical**: {Yes when the fix keeps behavior identical, stays local, and needs no judgment; otherwise No}
 - **Prior decision reopened**: {Why the recorded rationale no longer applies; omit when not applicable}
 
 ## High Priority
@@ -89,6 +90,7 @@ Issue: {Brief description}
 Reasoning: {Why this matters}
 Suggestion: {Fix}
 Requires user approval: {Yes/No}
+Mechanical: {Yes/No}
 Prior decision reopened: {Why the recorded rationale no longer applies; omit when not applicable}
 ```
 
