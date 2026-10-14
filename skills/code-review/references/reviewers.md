@@ -77,8 +77,10 @@ prompt: |
   }
 
   `mechanical` is true only when the fix keeps behavior identical, stays local to the cited
-  code, and needs no judgment: delete dead code, inline a one-consumer wrapper, replace a
-  helper with the existing one. When unsure, false.
+  code, and needs no judgment: delete dead code, inline a one-consumer wrapper, swap a helper
+  for an existing one that you verified does the same thing. If the replacement would change
+  what the code does (for example the duplicate holds different data), it is not mechanical.
+  When unsure, false.
 ```
 
 `{user_goal}`, `{prior_behavior}`, and `{sdd_context}` are filled for every reviewer when
