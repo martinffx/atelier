@@ -30,9 +30,7 @@ Uses explicit subagent dispatch patterns from [code-subagents](../code-subagents
 
 ## Agent Selection
 
-Dispatch each step as a subagent, but never name a specific agent. The harness chooses the
-available agent whose description best fits the step's task. Steps and the kind of work they
-need:
+Dispatch each step as a subagent and select the agent explicitly (see Delegation in `atelier-orchestrator`). Match the step's kind of work:
 
 | Step | Kind of work |
 |------|--------------|
@@ -87,7 +85,7 @@ Follows [code-subagents](../code-subagents/SKILL.md) patterns:
 
 ## Agent Dispatch
 
-Every step except synthesis and output uses a harness-selected agent (see Agent Selection).
+Every step except synthesis and output uses an explicitly selected agent (see Agent Selection).
 
 Synthesis is performed inline by the main agent.
 

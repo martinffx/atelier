@@ -50,7 +50,7 @@ older comments.
 
 **Purpose:** Analyze diff to determine context, select reviewers, identify relevant skills to look for.
 
-**Agent:** harness-selected (see Agent Selection in SKILL.md). Triage is read-only recon.
+**Agent:** explicitly selected (see Agent Selection in SKILL.md). Triage is read-only recon.
 
 ### Subagent Invocation
 
@@ -137,7 +137,7 @@ dispatch.
 
 **Purpose:** Analyze the diff from the selected perspectives, with Simplicity on every review.
 
-**Agent:** harness-selected per reviewer (see Agent Selection in SKILL.md).
+**Agent:** explicitly selected per reviewer (see Agent Selection in SKILL.md).
 
 Dispatch, prompts, aggregation, and error handling are defined once in
 [reviewers.md](./reviewers.md). Fill its dispatch template for each reviewer; do not restate
@@ -202,7 +202,7 @@ Performance.
 
 **Purpose:** Review architecture-specific concerns.
 
-**Agent:** harness-selected (see Agent Selection in SKILL.md); architecture review.
+**Agent:** explicitly selected (see Agent Selection in SKILL.md); architecture review.
 
 ### Subagent Invocation
 
@@ -267,7 +267,7 @@ prompt: |
 
 **Purpose:** Validate findings by challenging assumptions.
 
-**Agent:** harness-selected (see Agent Selection in SKILL.md); critical challenge.
+**Agent:** explicitly selected (see Agent Selection in SKILL.md); critical challenge.
 
 ### Subagent Invocation
 
@@ -387,9 +387,9 @@ Display findings in terminal per [output.md](./output.md).
 | Step | Subagent | Uses | Parallel? | Purpose |
 |------|----------|------|----------|---------|
 | 1 | Get Context | inline | — | User goal, prior behavior, diff, SDD, and recorded decisions |
-| 2 | Triage | harness-selected | No | Classify the change and select reviewers |
-| 3 | Reviewers | harness-selected | Yes (per reviewer) | Simplicity (gate or parallel), correctness, security, and specialty analysis |
+| 2 | Triage | explicitly selected | No | Classify the change and select reviewers |
+| 3 | Reviewers | explicitly selected | Yes (per reviewer) | Simplicity (gate or parallel), correctness, security, and specialty analysis |
 | 4 | Synthesis | inline | No | Deduplicate and group |
-| 5 | Architect | harness-selected | No | Architecture review |
-| 6 | SDD + Challenge | harness-selected | No | Reconcile the SDD last and validate findings |
+| 5 | Architect | explicitly selected | No | Architecture review |
+| 6 | SDD + Challenge | explicitly selected | No | Reconcile the SDD last and validate findings |
 | 7 | Output | inline | — | Format and display findings |

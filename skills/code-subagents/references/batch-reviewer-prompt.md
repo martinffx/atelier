@@ -1,8 +1,8 @@
 # Batch Reviewer Prompt Template
 
 Use this template after all tasks in an implementation batch report completion. Review the
-captured task patches, not a commit range. Do not name an agent; let the harness choose the
-available agent whose description best fits a read-only critical review.
+captured task patches, not a commit range. Select the agent explicitly (see Delegation in
+`atelier-orchestrator`); the work is a read-only critical review.
 
 ## Template
 

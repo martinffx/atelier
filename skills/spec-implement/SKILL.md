@@ -93,7 +93,7 @@ file just needs to be made**, as defined by the **code-subagents** "When to Use"
 
 - Invoke **code-subagents** for eligibility, dispatch patterns, and the implementer template
 - Paste the relevant design excerpt into the dispatch so the subagent makes no design decisions
-- Never name an agent; the harness chooses from agent descriptions
+- Select the agent explicitly (see Delegation in `atelier-orchestrator`)
 - Keep coupled, exploratory, or design-sensitive tasks in the main thread
 - The main agent runs the combined plan and code-quality review per completed batch, and the
   validation commands itself
