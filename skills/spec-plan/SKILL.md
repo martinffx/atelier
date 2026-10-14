@@ -54,8 +54,7 @@ substantially larger than the behavior being changed, stop and simplify it.
 ### Challenge Gate
 
 Before presenting a plan, dispatch two read-only subagents in parallel with the draft plan and
-its design context. Do not name agents; describe the work so the harness matches it to agent
-descriptions (see Delegation in `atelier-orchestrator`):
+its design context. Select each agent explicitly (see Delegation in `atelier-orchestrator`):
 
 1. **Design review:** check architectural fit, layer and data-model boundaries, API contracts,
    and whether task ordering respects the dependencies.

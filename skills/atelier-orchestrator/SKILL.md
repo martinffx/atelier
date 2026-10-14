@@ -124,10 +124,15 @@ choice to review. If any choice exists, use an Inline Plan.
 
 Delegate bounded, read-only work to a subagent when it would otherwise flood the main context:
 wide codebase research, finding comparable code, or independent review. Ask for a concise,
-file:line-cited summary, and read the key cited files yourself before deciding. Never name a
-specific agent; the harness chooses from agent descriptions. Do not delegate interviews or
-design dialogue with the human, lookups of a few files, or stateful debug and implementation
-loops.
+file:line-cited summary, and read the key cited files yourself before deciding. Do not delegate
+interviews or design dialogue with the human, lookups of a few files, or stateful debug and
+implementation loops.
+
+Every subagent launch must explicitly select an agent. Match the work to the descriptions of
+Atelier's agents (Sentinel, Oracle, Architect, Keymaker) and choose one. Never launch without a
+selection or rely on the harness default. Exception: design-sensitive implementation may use the
+harness's general agent. If Atelier's agents are not installed, explicitly choose the closest
+available agent by description and state the choice in the output.
 
 ## Hard Transitions
 

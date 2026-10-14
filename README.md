@@ -84,7 +84,7 @@ Grill me on this migration plan
 
 ## Review the code
 
-[`code-review`](skills/code-review/SKILL.md) runs a multi-agent review rather than asking one agent for a general opinion. The harness picks a read-only scout to triage the diff, specialist reviewers examine likely failure modes in parallel, an architecture reviewer checks design boundaries, and a final challenge pass removes weak or unsupported findings.
+[`code-review`](skills/code-review/SKILL.md) runs a multi-agent review rather than asking one agent for a general opinion. Each step selects a read-only scout to triage the diff, specialist reviewers examine likely failure modes in parallel, an architecture reviewer checks design boundaries, and a final challenge pass removes weak or unsupported findings.
 
 ```text
 rq             # Review the diff to main
@@ -113,7 +113,7 @@ The CLI also configures four specialist agents for Claude Code, OpenCode, Codex,
 | **Architect** | Domain modelling, system design, and architecture review |
 | **Keymaker** | Fast scaffolding of files and boilerplate from templates and existing patterns |
 
-The harness picks an agent by matching the task to its description, so workflows never name one. Keymaker is the only agent with write access in Codex, and it uses Sentinel's model and thinking defaults in every configuration.
+Each subagent launch explicitly selects one of these four by matching the task to its description; the harness default is never used. Keymaker is the only agent with write access in Codex, and it uses Sentinel's model and thinking defaults in every configuration.
 
 Run `npx @martinffx/atelier@latest --help` for CLI commands and options. Each skill contains its own operating instructions and loads when its context applies.
 

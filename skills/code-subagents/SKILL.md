@@ -69,10 +69,11 @@ For shared-tree parallel work:
 
 ## Agent Selection
 
-Never name an agent; the harness chooses the available agent whose description best fits the
-work (see Delegation in `atelier-orchestrator`). Give implementers the design excerpt so they
-make no design decisions: mechanical file creation should match a scaffolder, design-sensitive
-implementation the harness's general writer. The batch reviewer is a read-only critical review.
+Select the agent explicitly for every dispatch (see Delegation in `atelier-orchestrator`). Give
+implementers the design excerpt so they make no design decisions: mechanical file creation should
+match a scaffolder; design-sensitive implementation may use the harness's general agent, the one
+permitted exception to selecting from Atelier's agents. The batch reviewer is a read-only
+critical review.
 
 ---
 

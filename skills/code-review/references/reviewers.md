@@ -4,8 +4,8 @@ This file is the single source for reviewer dispatch. [rq.md](./rq.md) decides *
 reviewers run; this file defines *how* each one is dispatched and *what* it examines.
 
 Reviewer names such as `Simplicity`, `Security`, `Correctness`, `Maintainability`, and
-`PerformanceOperator` are personas inside the prompt. They are not agent types. Do not name a
-specific agent; let the harness choose (see Agent Selection in SKILL.md).
+`PerformanceOperator` are personas inside the prompt. They are not agent types. For each
+reviewer, select the agent explicitly (see Delegation in `atelier-orchestrator`); see Agent Selection in SKILL.md.
 
 ## Dispatch
 

@@ -32,6 +32,12 @@ user-invocable: false  # or true if user can call directly
 
 Skills are auto-invoked based on description match to current context.
 
+### Subagent Dispatch in Skills
+
+Skills describe the work a subagent does; they never name a specific agent. Runtime agent
+selection is defined once in the Delegation section of `atelier-orchestrator`. Other skills
+point to it rather than restating it.
+
 ## Namespace Philosophy
 
 Skills are organized into three namespaces based on their role:
