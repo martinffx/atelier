@@ -26,6 +26,7 @@
         "./skills/spec-brainstorm",
         "./skills/spec-finish",
         "./skills/spec-implement",
+        "./skills/spec-loop",
         "./skills/spec-plan",
         "./skills/atelier-orchestrator",
         "./skills/atelier-setup",

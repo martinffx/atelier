@@ -14,7 +14,8 @@ Create, comment on, and merge GitHub pull requests or GitLab merge requests for 
 current branch. Assumes the relevant CLI (`gh` or `glab`) is installed and authenticated.
 
 This skill is **create/read + write-gated**. Every write action (create PR, leave
-comment, respond to comment, merge) requires explicit human confirmation before running.
+comment, respond to comment, merge) requires explicit human confirmation before running. A prior explicit
+authorization that names the action, such as one given at the start of **spec-loop**, counts.
 
 ---
 

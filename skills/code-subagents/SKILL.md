@@ -31,6 +31,10 @@ the independence check below passes.
 - Failures are related (fixing one might fix others)
 - Exploratory work where the problem isn't well-defined yet
 
+**Batch implementer (spec-loop):** `spec-loop` may give one fresh subagent a whole batch,
+including dependent tasks, implemented in `depends_on` order, when `design.md` has settled the
+design. The subagent returns BLOCKED with the question instead of making a design decision.
+
 ## Dispatch Modes
 
 ### Sequential (dependent tasks)
