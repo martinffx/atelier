@@ -97,6 +97,7 @@ spec-brainstorm   → Spec-backed discovery + design → only design.md → stop
 spec-plan         → Inline conversation or only plan.json → stop
 spec-implement    → Execute approved Spec-backed Plans; track tasks
 spec-finish       → Post-implementation validation for Spec-backed Plans
+spec-loop         → Run an approved Spec-backed Plan through review and fixes to a PR
 code-subagents    → Parallel dispatch for Spec-backed Plan tasks
 ```
 
@@ -131,7 +132,7 @@ implementation loops.
 Every subagent launch must explicitly select an agent. Match the work to the descriptions of
 Atelier's agents (Sentinel, Oracle, Architect, Keymaker) and choose one. Never launch without a
 selection or rely on the harness default. Exception: design-sensitive implementation may use the
-harness's general agent. If Atelier's agents are not installed, explicitly choose the closest
+harness's general agent, including the whole-batch implementer in `spec-loop`. If Atelier's agents are not installed, explicitly choose the closest
 available agent by description and state the choice in the output.
 
 ## Hard Transitions
@@ -142,6 +143,7 @@ available agent by description and state the choice in the output.
 | approved Inline Plan | Stop; wait for a separate implementation request |
 | approved Spec-backed Plan | Stop; wait for a separate spec-implement request |
 | spec-implement | spec-finish |
+| spec-loop | code-pull-request (replaces spec-implement and spec-finish) |
 
 Do not begin implementation without an approved written plan. Spec-backed work must not
 jump from research to implementation.

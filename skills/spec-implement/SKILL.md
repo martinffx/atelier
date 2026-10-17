@@ -77,6 +77,7 @@ If the human has not specified an execution style, ask.
 - Track progress when the Spec-backed Plan has tracker entries
 - Run type checking / linting continuously
 - Only stop if blocked
+- For per-batch review and commits through to a PR, use **spec-loop**
 
 ### Batched Mode (default)
 
