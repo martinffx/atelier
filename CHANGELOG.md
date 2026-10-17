@@ -4,6 +4,19 @@
 
 - **breaking:** rename the `recon` agent to `sentinel`. Existing Atelier configuration is migrated automatically and legacy generated files are removed during the next command.
 
+## [3.5.0](https://github.com/martinffx/atelier/compare/v3.4.0...v3.5.0) (2026-10-17)
+
+
+### Features
+
+* **code-review:** run simplicity on every review and consolidate reviewer prompts ([35b5927](https://github.com/martinffx/atelier/commit/35b59278eb6b690baa9cd95d68095e92e11d39e9))
+* **skills:** require explicit agent selection for subagents ([81dd276](https://github.com/martinffx/atelier/commit/81dd2764006b3af292cb7fb0893e091da81bba4e))
+
+
+### Bug Fixes
+
+* **code-review:** narrow when a finding counts as mechanical ([80551b7](https://github.com/martinffx/atelier/commit/80551b7002f6f1911f029e3710e6beb602abfa1a))
+
 ## [3.4.0](https://github.com/martinffx/atelier/compare/v3.3.0...v3.4.0) (2026-10-09)
 
 
