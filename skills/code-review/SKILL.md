@@ -84,16 +84,9 @@ Severity applies to issues only. Details in [output.md](./references/output.md).
 
 ### rq (Request Review) Steps
 
-| Step | Parallel | Purpose |
-|------|----------|---------|
-| 1. Context | — | Goal, prior behavior, diff, SDD, intent, recorded decisions, snapshot |
-| 2. Triage | No | Classify the change, pick personas, name skills and checks |
-| 3. Critique | Yes (per persona) | Raise findings |
-| 4. Merge + Verify | — | Dedupe, check citations, audit activity logs |
-| 5. Defense | No | The Author answers every finding |
-| 6. Rebuttal | Yes (per raising persona) | Concede, maintain, accept; one round |
-| 7. Ruling | No | Only when something is contested or needs audit |
-| 8. Output | — | Format findings and the audit |
+Context, Triage, Critique, Merge, Verify, Defense, Rebuttal, Settlement, Ruling (only when
+something is contested), Close audit, Output. Numbered steps, inputs and rules are in
+[rq.md](./references/rq.md).
 
 ### rs (Respond to Review)
 
@@ -115,9 +108,8 @@ Follows [code-subagents](../code-subagents/SKILL.md) patterns:
 
 ## Agent Dispatch
 
-Every step except Merge, Verify and Output uses an explicitly selected agent (see Agent
-Selection). Merge, Verify, settlement, the audit, and Output are performed inline by the main
-agent.
+Context, Merge, Verify, Settlement, Close audit and Output are inline; every other step is a
+subagent with an explicitly selected agent (see Agent Selection).
 
 ## References
 

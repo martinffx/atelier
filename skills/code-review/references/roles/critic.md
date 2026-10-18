@@ -156,7 +156,9 @@ prompt: |
     check the Author cited (for example, "that guard is not on this path"). Restating your
     original argument is not a refutation and counts as `concede`.
   - `accept_revision`: you accept the Author's revised kind, severity, blocking value or fix.
-  - `escalate` (suggestion or question only): you now have evidence that it is an issue.
+  - `escalate` (suggestion or question only): you now have evidence that it is an issue. Give
+    its `escalated` severity and blocking value. For a suggestion or question, `maintain`
+    without `escalate` does not keep it alive.
 
   State what you did not check.
 
@@ -168,6 +170,7 @@ prompt: |
         "stance": "concede|maintain|accept_revision|escalate",
         "argument": "why",
         "evidence": [{"kind": "code|test|skill|sdd|decision", "ref": "...", "quote": "..."}],
+        "escalated": {"severity": "Critical|High|Medium|Low", "blocking": false},
         "not_checked": "what you did not verify"
       }
     ],

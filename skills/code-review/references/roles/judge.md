@@ -50,9 +50,8 @@ prompt: |
   reason it is here):
   {items}
 
-  Reasons an item can be here: `contested` (the sides did not converge), `decision_dispute`
-  (the Author relied on a recorded decision), `audit_withdrawn` (a blocking, Critical or High
-  issue was withdrawn), `audit_single_raiser` (a blocking issue confirmed by only one Critic).
+  Reasons an item can be here: `contested` (the sides did not converge) or `decision_dispute`
+  (the Author relied on a recorded decision).
 
   Method, in this order, for each item:
   1. Does the finding preserve the user goal and prior behavior?
@@ -66,8 +65,6 @@ prompt: |
   Reason first, then give the verdict. Rank evidence: executed check, then verified code, then
   skill guidance (only if that turn loaded the skill), then SDD/decision/intent. Bare assertion
   carries no weight. A side with no verified evidence loses a factual dispute.
-  Reinstate an audited withdrawal (`audit_withdrawn`) only with verified `code` or `test`
-  evidence. A finding with `audit_single_raiser` survives only with verified evidence.
 
   Return JSON (no markdown, no code blocks):
   {
