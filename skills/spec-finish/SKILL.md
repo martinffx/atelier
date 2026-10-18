@@ -118,7 +118,7 @@ show the affected range and ask for separate approval before rebasing.
 ## Step 6: Prepare the PR
 
 Steps 1-5 (simplification, documentation, validation, review, commits) must all be complete
-before proceeding. **If code-review found blocking or scope-changing issues, stop and return
+before proceeding. **If code-review found blocking findings or ones requiring user approval, stop and return
 to spec-implement to fix them. Do not proceed to Step 6b.**
 
 ### Step 6a: Present Completion Summary
@@ -163,5 +163,5 @@ This skill orchestrates other skills:
 
 - If implementation is still in progress, use spec-implement
 - If tests are failing, go back to spec-implement
-- If review found blocking or scope-changing issues, go back to spec-implement
+- If review found blocking findings or ones requiring user approval, go back to spec-implement
 - If the implementation follows an unnecessarily large design, go back to spec-plan

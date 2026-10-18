@@ -19,13 +19,14 @@ Ask me questions 1 by 1, multiple choice.
 
 1. Load the review findings from the current conversation context
 2. Offer every active finding marked **Mechanical** as one batch (see below)
-3. Offer the nitpicks the Author took as one batch: apply all, pick which, or interview each
+3. Offer the nitpicks whose Debate field reads `Author took` as one batch: apply all, pick
+   which, or interview each
 4. Interview blocking findings first, then non-blocking ones — one question at a time, always
    multiple choice. Answered questions need no interview; list their answers for confirmation.
 5. Classify each finding as fix, intentional/accepted risk, false positive, or deferred.
    Findings marked **Follow-up** go to a follow-up list and are not fixed here.
 6. Capture the rationale and reconsideration condition for every non-fix resolution
-7. For a finding withdrawn in debate on `intent`, `sdd` or `test` evidence, offer a
+7. For a finding under Withdrawn in debate whose evidence is `intent`, `sdd` or `test`, offer a
    `review-decision:` comment recording that context. The user approves each one. Do not offer a
    comment when a plain code refutation withdrew it.
 8. Present one plan containing the exact fixes and proposed decision comments

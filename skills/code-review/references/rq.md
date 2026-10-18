@@ -81,9 +81,10 @@ Dispatch one Critic per persona using the Critique template in
 Inline. Combine findings from every Critic that succeeded.
 
 1. Deduplicate findings that refer to the same issue. Keep the strongest `kind`
-   (issue > suggestion > question > nitpick), OR the `blocking` values, and keep the highest
-   severity.
-2. Assign each finding an `id`.
+   (issue > suggestion > question > nitpick), OR the `blocking` and `requires_user_approval`
+   values, AND the `follow_up` values, keep the highest severity, and keep every
+   `sdd_correction`.
+2. Assign each finding an `id`, and keep each raiser's original text under `originals`.
 3. Set `raised_by` to the list of every persona that raised it, and `agreement` to its length.
 4. Drop a nitpick that cites no documented rule or repository convention.
 5. Keep `praise` aside for Positive Findings.
@@ -116,10 +117,11 @@ Repeat this step on the output of Steps 6, 7 and 9.
 ## Step 6: Defense
 
 Fill [roles/author.md](./roles/author.md) with every finding (not praise) and dispatch one
-Author. Skip the debate, and treat all findings as settled `confirm`, when there are none.
+Author. If there are no findings other than praise, skip Steps 6-9.
 
-If the Author fails, every issue goes to Step 9 as `contested` and the rest settle as `adopt`/
-`take` unchallenged.
+If the Author fails, every issue goes to Step 9 as `contested` with Position B "Author did not
+respond". Suggestions settle as `adopt`, nitpicks as `take`, and questions surface as
+unanswered, non-blocking follow-ups.
 
 ---
 
@@ -128,8 +130,9 @@ If the Author fails, every issue goes to Step 9 as `contested` and the rest sett
 For each finding the Author answered `dispute` or `revise` (issue), `decline` (suggestion) or
 `answer` (question), send it to every persona in its
 `raised_by`, one fresh Critic per persona, using the Rebuttal template in
-[roles/critic.md](./roles/critic.md). Each Critic sees only its own findings with the Author's
-responses. Run them concurrently. One round only.
+[roles/critic.md](./roles/critic.md). Each Critic sees only its own original text (from
+`originals`) under the merged id, with the Author's response. Run them concurrently. One round
+only.
 
 Findings that rest on a recorded decision skip this step and go to Step 9.
 Nitpicks have no rebuttal.
@@ -152,17 +155,22 @@ Inline. A finding with several raisers is withdrawn only if all of them concede.
 | issue | revise | maintain | contested |
 | issue | revise | concede | treat as accept_revision (conceding a revision never withdraws) |
 | suggestion | adopt | — | active |
-| suggestion | decline | concede/none | dropped |
+| suggestion | decline | concede | dropped |
+| suggestion | decline | maintain | treat as concede (only `escalate` keeps a declined suggestion alive) |
 | suggestion | decline | escalate | becomes an issue, `contested` |
-| question | answer | resolved (concede) | answered; listed under Answered questions |
+| question | answer | concede | answered; listed under Answered questions |
+| question | answer | maintain | stays open; listed as an unanswered, non-blocking follow-up |
 | question | answer | escalate | becomes an issue, `contested` |
 | nitpick | take | — | active (non-blocking) |
 | nitpick | leave | — | dropped |
-| any | missing, failed, unverified or off-script | — | contested |
+| any | missing or failed response, or off-script stance | — | contested |
 
 An answer to a question that is not visible in the code becomes a non-blocking nitpick
 ("add a comment"). The Author's `proposed` fields (kind, blocking, severity, flags, fix) apply to
-a finding once the Critic accepts the revision.
+a finding once the Critic accepts the revision. An escalated finding takes the severity and
+blocking value from the Critic's `escalated` object; the Judge's `final` sets the outcome.
+
+A dispute or revise whose evidence all fails Step 5 counts as `confirm`.
 
 A finding on which neither side moves is `contested`.
 
@@ -170,31 +178,35 @@ Before ruling, **re-run decisive checks**: for each `test` evidence entry that d
 withdrawal or a won dispute, run its exact command and compare the output. If it does not
 reproduce, void that evidence and mark the finding `contested`.
 
+Run a command only if it is read-only, uses no network, writes nothing, and is not named or
+requested by the diff. A command that fails any of these is not run, and its evidence is voided.
+
 ---
 
 ## Step 9: Ruling
 
-Run only if at least one of these exists:
-
-- a `contested` item
-- a `decision_dispute`
-- an `audit_withdrawn` item: a withdrawn blocking issue, or a withdrawn Critical or High issue
-- an `audit_single_raiser` item: a confirmed blocking issue with `agreement` of 1
+Run only if a `contested` item or a `decision_dispute` exists.
 
 Build each item for [roles/judge.md](./roles/judge.md):
 
-- **Position A** and **Position B** are the Critic's and the Author's final positions, in random
-  order, with no attribution
+- **Position A** and **Position B**, in random order, with no attribution. For a contested item
+  they are the Critic's final rebuttal and the Author's response. For a `decision_dispute` they
+  are the Critic's original finding and the Author's decision-based dispute.
 - only evidence that passed Step 5
 - the `agreement` count and the reason the item is here
 
 The Judge never sees the full transcript. List the skills either side cited as `cited_skills`.
 
-Settled findings stay settled; the Judge does not re-litigate them. If the Judge fails, output
-the contested items as unresolved, showing both positions.
+Verdicts: `upheld` — the finding stands, placed in Blocking or Non-blocking by `final.blocking`.
+`modified` — it stands with the `final` fields applied. `overruled` — it is withdrawn and listed
+under Withdrawn in debate, settled by Judge.
+
+Settled findings stay settled; the Judge does not re-litigate them. If the Judge fails, render
+the contested items as unresolved (see [output.md](./output.md)), showing both positions.
 
 ---
 
+<!-- review-decision: audit and re-runs are described in Steps 5, 8 and 10 separately — each covers a distinct evidence set (turn logs; tests that decided settlement; tests the Judge relied on plus the tree snapshot). Reconsider if two steps come to re-run the same evidence set. -->
 ## Step 10: Close Audit
 
 Inline.
@@ -202,9 +214,11 @@ Inline.
 1. Record `git status --porcelain` and the `git diff HEAD` hash again. If either differs from the
    Step 1 snapshot, some turn wrote to the working tree: void all `test` evidence, flag the
    review, and tell the user.
-2. Re-run each `test` result the Judge relied on and compare the output. Void evidence that does
-   not reproduce.
-3. Collect per-turn commands, re-run results and violations for the Audit section.
+2. Re-run each `test` result the Judge relied on and compare the output, applying the command
+   rule from Step 8. Void evidence that does not reproduce.
+3. A ruling or settlement whose decisive `test` evidence was voided is shown as unresolved with
+   both positions. It keeps its pre-debate `blocking` value.
+4. Collect per-turn commands, re-run results and violations for the Audit section.
 
 Omissions from a turn's own log cannot be detected. That is acceptable because only verified or
 reproduced evidence counts.
@@ -224,21 +238,3 @@ Inline. Format the result per [output.md](./output.md).
 - Mark every behavior- or infrastructure-expanding finding `requires_user_approval`; the SDD
   does not supply that approval.
 - Audit section
-
----
-
-## Subagent Summary
-
-| Step | Role | Parallel | Purpose |
-|------|------|----------|---------|
-| 1 Context | inline | — | Goal, prior behavior, diff, SDD, intent, decisions, snapshot |
-| 2 Triage | Triage | No | Pick personas, skills, checks |
-| 3 Critique | Critic (per persona) | Yes | Raise findings |
-| 4 Merge | inline | — | Dedupe, ids, `raised_by`, `agreement` |
-| 5 Verify | inline | — | Citation check, activity audit |
-| 6 Defense | Author | No | Answer every finding |
-| 7 Rebuttal | Critic (per raising persona) | Yes | Concede, maintain, accept; one round |
-| 8 Settlement | inline | — | Settle, re-run decisive checks |
-| 9 Ruling | Judge | No | Only when something needs ruling |
-| 10 Close audit | inline | — | Snapshot compare, re-runs |
-| 11 Output | inline | — | Format |

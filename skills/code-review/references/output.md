@@ -77,7 +77,7 @@ Issues ordered by severity, then suggestions, then nitpicks.
 
 ## Withdrawn in debate
 
-- `{id}` {Title} — {reason} (settled by {Critic concession | Judge})
+- `{id}` {Title} — {reason} (evidence: {code|test|sdd|intent|decision}; settled by {Critic concession | Judge})
 
 ## Positive Findings
 
@@ -97,9 +97,13 @@ Issues ordered by severity, then suggestions, then nitpicks.
 - Working tree: {unchanged | changed — all `test` evidence voided}
 - Turns: {per turn: commands run, re-runs matched / total, violations}
 - Evidence voided: {what and why, or none}
-- Unresolved: {contested items shown with both positions, or none}
+- Unresolved: {ids of contested or unruled items, rendered in Blocking or Non-blocking, or none}
 </details>
 ```
+
+An unresolved item (Judge failed, or its decisive evidence was voided) renders in Blocking or
+Non-blocking by its `blocking` value, with `**Debate**: contested, unruled` and both positions in
+the reasoning. A nitpick's Debate field reads `Author took` or `Author left`.
 
 Omit **Follow-ups**, **Answered questions**, **Withdrawn in debate**, **Honored Decisions** and
 the nitpick group when they have no items. Keep **Audit** short: one line per turn.
@@ -219,9 +223,9 @@ Implements OAuth login flow with token refresh. Generally well-structured with p
 
 ## Statistics
 - Files reviewed: 1
-- Findings: 1 blocking, 3 non-blocking (2 issue, 0 suggestion, 1 nitpick)
+- Findings: 1 blocking, 2 non-blocking (2 issue, 0 suggestion, 1 nitpick)
 - Issues by severity: 1 Critical, 1 High, 0 Medium, 0 Low
-- Pre-existing: 1 | Introduced: 3
+- Pre-existing: 1 | Introduced: 2
 - Debated: 2 (upheld 1, modified 0, withdrawn 1)
 - Honored decisions: 0
 
@@ -297,7 +301,7 @@ None
 
 ## Withdrawn in debate
 
-- `f4` Inconsistent naming: userId vs user_id — Critic conceded: `.eslintrc` allows both.
+- `f4` Inconsistent naming: userId vs user_id — Critic conceded: `.eslintrc` allows both (evidence: code; settled by Critic concession).
 
 ## Positive Findings
 
