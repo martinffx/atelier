@@ -72,9 +72,33 @@ _Avoid_: persona, role, assistant
 
 **Agent Selection**
 
-The harness chooses which agent handles delegated work by matching the task against each agent's description. Workflows may authorise delegation but do not name agents.
+The main agent explicitly selects the agent for each delegated step by matching the work to the agents' descriptions (see Delegation in `atelier-orchestrator`). Skills describe the kind of work and do not name agents.
 
 _Avoid_: routing, dispatch table, agent assignment
+
+**Debate**
+
+The code-review phase in which an Author defends the change against the Critics' findings, Critics answer once, and a Judge rules on what stays contested. One round only. Turns are the **Defense** (Author), **Rebuttal** (Critic) and **Ruling** (Judge).
+
+_Avoid_: challenge, second opinion
+
+**Critic**
+
+A prompt persona (Security, Correctness, Simplicity, Architecture, and others) that raises findings during Critique and answers the Author in Rebuttal. Not an agent type.
+
+_Avoid_: reviewer (for the role; "review" means the whole run)
+
+**Author** / **Judge**
+
+Prompt personas in a Debate. The Author tests each finding against the code and defends the change; the Judge is impartial and rules on contested items shown as anonymous positions. Neither is an agent type.
+
+_Avoid_: defender, prosecutor, moderator
+
+**Finding Kind**
+
+A finding's classification: issue, suggestion, question, nitpick or praise, combined with **blocking** (the change should not merge until it is resolved). The kind decides how far a finding goes in the Debate. Severity applies to issues only.
+
+_Avoid_: priority, category
 
 **AtelierConfig**
 
@@ -102,7 +126,7 @@ _Avoid_: mode model, build model (for Cursor)
 - **Agent discovery** was previously proposed as dynamic scanning of `agents/*.md`. The CLI uses a static list of agent templates; dynamic scanning is not needed for this refactor.
 - **AtelierConfig vs HarnessConfig** is now explicit: `AtelierConfig` is the CLI's persisted state; `HarnessConfig` is the harness's native file, written only by the adapter.
 - **fileList and remove** use the same canonical list of Atelier-managed files. `fileList` reports existence; `remove` deletes those files.
-- **Agent Selection** was previously hard-coded per workflow step (`/code-review` named `oracle` for every reviewer persona). Selection now belongs to the harness, which matches the task to agent descriptions; descriptions are therefore the only routing surface.
+- **Agent Selection** was previously hard-coded per workflow step (`/code-review` named `oracle` for every reviewer persona). Selection is now explicit and made by the main agent from the kind of work, per `atelier-orchestrator`; skills never name an agent, so descriptions are the routing surface.
 - **Agent Template** set is `sentinel` (read-only recon), `oracle` (critical analysis), `architect` (technical design) and `keymaker` (cheap scaffolder, the only template installed with write access in Codex).
 - **Cursor Default Model** is user-owned. Atelier configures Cursor subagent models only; it does not read, write, or model Cursor's primary model or native configuration.
 
