@@ -102,7 +102,8 @@ comprehensive review of the final change.
 
 ### If code-review finds issues
 - Minor fixes may be made here, then re-validated and reviewed.
-- Blocking or scope-changing fixes return to `spec-implement`.
+- Findings with `blocking: true` or `requires_user_approval`, and scope-changing fixes, return to
+  `spec-implement`. Non-blocking findings and follow-ups do not.
 
 ---
 

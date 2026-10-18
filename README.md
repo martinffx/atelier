@@ -70,7 +70,7 @@ flowchart TD
 
 The workflow is deliberately harder to rush than an unstructured agent session. `spec-brainstorm` writes only `design.md`, and `spec-plan` writes only its selected plan output. Each skill then stops. The developer starts planning and implementation with separate requests. This records decisions when they need to survive the conversation, keeps implementation tied to an approved plan, and requires evidence before calling the work complete.
 
-Before a plan is presented, `spec-plan` runs a design review and a critical challenge as parallel subagents and notes what changed. During implementation, `spec-implement` hands tasks whose design is already settled to a subagent, keeping design-sensitive work in the main thread. Which agent handles each step is left to the harness.
+Before a plan is presented, `spec-plan` runs a design review and a critical challenge as parallel subagents and notes what changed. During implementation, `spec-implement` hands tasks whose design is already settled to a subagent, keeping design-sensitive work in the main thread. The main agent explicitly selects the agent for each step by the kind of work, per `atelier-orchestrator`.
 
 ## Grill the idea
 
@@ -84,7 +84,7 @@ Grill me on this migration plan
 
 ## Review the code
 
-[`code-review`](skills/code-review/SKILL.md) runs a multi-agent review rather than asking one agent for a general opinion. Each step selects a read-only scout to triage the diff, specialist reviewers examine likely failure modes in parallel, an architecture reviewer checks design boundaries, and a final challenge pass removes weak or unsupported findings.
+[`code-review`](skills/code-review/SKILL.md) runs a review as a debate rather than asking one agent for a general opinion. A read-only scout triages the diff, specialist Critics (always including a simplicity check) raise findings in parallel, an Author defends the change against each one, and Critics concede or maintain with evidence. A Judge rules only on what is still contested. Findings are labelled issue, suggestion, question, nitpick or praise, and as blocking or not; quotes are checked mechanically and the main agent audits what each turn did. See [the research notes](docs/research/multi-agent-debate.md).
 
 ```text
 rq             # Review the diff to main

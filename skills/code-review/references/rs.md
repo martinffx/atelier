@@ -19,11 +19,17 @@ Ask me questions 1 by 1, multiple choice.
 
 1. Load the review findings from the current conversation context
 2. Offer every active finding marked **Mechanical** as one batch (see below)
-3. Begin interviewing the user about the remaining findings — one question at a time, always multiple choice
-4. Classify each finding as fix, intentional/accepted risk, false positive, or deferred
-5. Capture the rationale and reconsideration condition for every non-fix resolution
-6. Present one plan containing the exact fixes and proposed decision comments
-7. **Always ask the user before applying fixes or adding, changing, or removing comments**
+3. Offer the nitpicks the Author took as one batch: apply all, pick which, or interview each
+4. Interview blocking findings first, then non-blocking ones — one question at a time, always
+   multiple choice. Answered questions need no interview; list their answers for confirmation.
+5. Classify each finding as fix, intentional/accepted risk, false positive, or deferred.
+   Findings marked **Follow-up** go to a follow-up list and are not fixed here.
+6. Capture the rationale and reconsideration condition for every non-fix resolution
+7. For a finding withdrawn in debate on `intent`, `sdd` or `test` evidence, offer a
+   `review-decision:` comment recording that context. The user approves each one. Do not offer a
+   comment when a plain code refutation withdrew it.
+8. Present one plan containing the exact fixes and proposed decision comments
+9. **Always ask the user before applying fixes or adding, changing, or removing comments**
 
 ## Mechanical Batch
 
@@ -73,6 +79,7 @@ For example:
 - Always provide multiple choice answers (a, b, c, d...)
 - Start with the most ambiguous findings first
 - Skip findings that are clearly actionable without input (mechanical findings go through the batch)
+- Skip nitpicks the Author left and findings withdrawn in debate, except as in step 7
 - For a non-fix choice, ask for the rationale or reconsideration condition only when the
   conversation and repository do not already provide it
 - After all questions are answered, show exact proposed comments with the fix plan and confirm
