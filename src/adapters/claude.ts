@@ -5,7 +5,7 @@ import { readTemplate } from '../utils/templates.js';
 import type { ClaudeConfig, HarnessAdapter, FileEntry, Provider, HarnessSection } from '../types.js';
 import { FileWriteError, HarnessConfigError } from '../utils/errors.js';
 import { shortPath } from '../services/paths.js';
-import { ClaudeConfigSchema } from '../utils/schemas.js';
+import { ClaudeConfigSchema, CLAUDE_OPTIONAL_BUILTINS } from '../utils/schemas.js';
 import { claudeModeModels } from '../utils/thinking.js';
 import { promptForSimpleModels } from '../services/prompt.js';
 import { AGENT_NAMES, LEGACY_AGENT_NAME } from '../constants.js';
@@ -25,6 +25,32 @@ const CLAUDE_AI_OPT_OUTS = {
   syncClaudeAiSkills: false,
   syncClaudeAiPlugins: false,
 } as const;
+
+type OptionalBuiltin = typeof CLAUDE_OPTIONAL_BUILTINS[number];
+
+// What Atelier writes to disable a Claude Code built-in. Every part is removed again only while it
+// still matches, so settings the user changed afterwards are left alone.
+interface BuiltinPatch {
+  settings?: Record<string, unknown>;
+  env?: Record<string, string>;
+  deny?: string[];
+  deniedMcpServers?: string[];
+  skillOverrides?: string[];
+}
+
+// Built-ins that clash with Atelier skills or cannot work without the bundled skills disabled here.
+const CONFLICTING_BUILTINS: BuiltinPatch = {
+  settings: { disableBundledSkills: true, enableArtifact: false, disableWorkflows: true },
+  deny: ['Artifact', 'ArtifactComments', 'ArtifactData', 'Workflow', 'DesignSync'],
+  // Built-in commands stay typable under disableBundledSkills; code-review is left alone as it now resolves to Atelier's skill.
+  skillOverrides: ['security-review', 'ultrareview'],
+};
+
+const OPTIONAL_BUILTINS: Record<OptionalBuiltin, BuiltinPatch> = {
+  cron: { env: { CLAUDE_CODE_DISABLE_CRON: '1' } },
+  chrome: { deniedMcpServers: ['claude-in-chrome'] },
+  'remote-trigger': { deny: ['RemoteTrigger'] },
+};
 
 export const claudeAdapter: HarnessAdapter = {
   name: 'claude',
@@ -58,7 +84,15 @@ function modelsForProvider(_provider?: Provider): readonly string[] {
 }
 
 async function promptSection(prompt: typeof inquirer, section: HarnessSection): Promise<HarnessSection> {
-  return promptForSimpleModels(prompt, section as ClaudeConfig, modelsForProvider());
+  const claude = section as ClaudeConfig;
+  const result = await promptForSimpleModels(prompt, claude, modelsForProvider());
+  const { disabled } = await prompt.prompt<{ disabled: OptionalBuiltin[] }>([{
+    type: 'checkbox',
+    name: 'disabled',
+    message: 'Disable optional Claude Code built-ins',
+    choices: CLAUDE_OPTIONAL_BUILTINS.map(value => ({ name: value, value, checked: claude.disabled_builtins?.includes(value) ?? false })),
+  }]);
+  return { ...result, disabled_builtins: disabled };
 }
 
 function installAgents(section: HarnessSection, basePath: string): void {
@@ -98,6 +132,11 @@ function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
     model: config.default_model || DEFAULT_MODELS.default_model,
   };
   applyModeThinking(settings, config);
+  applyBuiltins(settings, CONFLICTING_BUILTINS);
+  for (const name of CLAUDE_OPTIONAL_BUILTINS) {
+    if (config.disabled_builtins?.includes(name)) applyBuiltins(settings, OPTIONAL_BUILTINS[name]);
+    else removeBuiltins(settings, OPTIONAL_BUILTINS[name]);
+  }
 
   try {
     mkdirSync(claudeDir, { recursive: true });
@@ -162,6 +201,8 @@ function removeAtelierSettings(claudeDir: string, config: ClaudeConfig): void {
     if (content[key] === value) delete content[key];
   }
   applyModeThinking(content, config, true);
+  removeBuiltins(content, CONFLICTING_BUILTINS);
+  for (const patch of Object.values(OPTIONAL_BUILTINS)) removeBuiltins(content, patch);
   writeOrDeleteSettings(settingsPath, content);
 }
 
@@ -179,6 +220,64 @@ function applyModeThinking(settings: Record<string, unknown>, config: ClaudeConf
   }
   if (Object.keys(modelSettings).length) settings.modelSettings = modelSettings;
   else delete settings.modelSettings;
+}
+
+function applyBuiltins(settings: Record<string, unknown>, patch: BuiltinPatch): void {
+  Object.assign(settings, patch.settings);
+  if (patch.env) settings.env = { ...(settings.env as Record<string, string> | undefined), ...patch.env };
+  if (patch.deny) {
+    const permissions = { ...(settings.permissions as Record<string, unknown> | undefined) };
+    const deny = (permissions.deny as string[] | undefined) ?? [];
+    permissions.deny = [...deny, ...patch.deny.filter(rule => !deny.includes(rule))];
+    settings.permissions = permissions;
+  }
+  if (patch.skillOverrides) {
+    const overrides = { ...(settings.skillOverrides as Record<string, string> | undefined) };
+    for (const name of patch.skillOverrides) overrides[name] = 'off';
+    settings.skillOverrides = overrides;
+  }
+  if (patch.deniedMcpServers) {
+    const denied = (settings.deniedMcpServers as { serverName?: string }[] | undefined) ?? [];
+    const missing = patch.deniedMcpServers.filter(name => !denied.some(entry => entry.serverName === name));
+    settings.deniedMcpServers = [...denied, ...missing.map(serverName => ({ serverName }))];
+  }
+}
+
+function removeBuiltins(settings: Record<string, unknown>, patch: BuiltinPatch): void {
+  for (const [key, value] of Object.entries(patch.settings ?? {})) {
+    if (settings[key] === value) delete settings[key];
+  }
+  if (patch.env) {
+    const env = { ...(settings.env as Record<string, string> | undefined) };
+    for (const [key, value] of Object.entries(patch.env)) {
+      if (env[key] === value) delete env[key];
+    }
+    if (Object.keys(env).length) settings.env = env;
+    else delete settings.env;
+  }
+  if (patch.deny && settings.permissions) {
+    const permissions = { ...(settings.permissions as Record<string, unknown>) };
+    const deny = ((permissions.deny as string[] | undefined) ?? []).filter(rule => !patch.deny!.includes(rule));
+    if (deny.length) permissions.deny = deny;
+    else delete permissions.deny;
+    if (Object.keys(permissions).length) settings.permissions = permissions;
+    else delete settings.permissions;
+  }
+  if (patch.skillOverrides && settings.skillOverrides) {
+    const overrides = { ...(settings.skillOverrides as Record<string, string>) };
+    for (const name of patch.skillOverrides) {
+      if (overrides[name] === 'off') delete overrides[name];
+    }
+    if (Object.keys(overrides).length) settings.skillOverrides = overrides;
+    else delete settings.skillOverrides;
+  }
+  if (patch.deniedMcpServers && settings.deniedMcpServers) {
+    const denied = (settings.deniedMcpServers as { serverName?: string }[]).filter(
+      entry => !patch.deniedMcpServers!.includes(entry.serverName ?? ''),
+    );
+    if (denied.length) settings.deniedMcpServers = denied;
+    else delete settings.deniedMcpServers;
+  }
 }
 
 function parseSettingsJson(settingsPath: string): Record<string, unknown> {

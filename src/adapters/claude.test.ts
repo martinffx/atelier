@@ -135,6 +135,75 @@ describe('claude adapter', () => {
     expect(remaining.syncClaudeAiSkills).toBeUndefined();
   });
 
+  const settingsFile = () => join(basePath, '.claude', 'settings.json');
+  const readSettings = () => JSON.parse(readFileSync(settingsFile(), 'utf-8'));
+
+  it('mergeHarnessConfig disables conflicting built-ins and keeps user deny rules', () => {
+    mkdirSync(join(basePath, '.claude'), { recursive: true });
+    writeFileSync(settingsFile(), JSON.stringify({ permissions: { allow: ['Bash(ls)'], deny: ['Bash(rm:*)'] }, skillOverrides: { cloudflare: 'off' } }));
+
+    claudeAdapter.mergeHarnessConfig(section(), basePath);
+    claudeAdapter.mergeHarnessConfig(section(), basePath);
+
+    const content = readSettings();
+    expect(content.disableBundledSkills).toBe(true);
+    expect(content.enableArtifact).toBe(false);
+    expect(content.disableWorkflows).toBe(true);
+    expect(content.permissions.allow).toEqual(['Bash(ls)']);
+    expect(content.permissions.deny).toEqual(['Bash(rm:*)', 'Artifact', 'ArtifactComments', 'ArtifactData', 'Workflow', 'DesignSync']);
+    expect(content.env).toBeUndefined();
+    expect(content.deniedMcpServers).toBeUndefined();
+    expect(content.skillOverrides).toEqual({ cloudflare: 'off', 'security-review': 'off', ultrareview: 'off' });
+  });
+
+  it('mergeHarnessConfig applies and later removes selected optional built-ins', () => {
+    mkdirSync(join(basePath, '.claude'), { recursive: true });
+    writeFileSync(settingsFile(), JSON.stringify({ env: { KEEP: '1' }, deniedMcpServers: [{ serverName: 'other' }] }));
+
+    claudeAdapter.mergeHarnessConfig({ ...section(), disabled_builtins: ['cron', 'chrome', 'remote-trigger'] }, basePath);
+    let content = readSettings();
+    expect(content.env).toEqual({ KEEP: '1', CLAUDE_CODE_DISABLE_CRON: '1' });
+    expect(content.deniedMcpServers).toEqual([{ serverName: 'other' }, { serverName: 'claude-in-chrome' }]);
+    expect(content.permissions.deny).toContain('RemoteTrigger');
+
+    claudeAdapter.mergeHarnessConfig({ ...section(), disabled_builtins: ['chrome'] }, basePath);
+    content = readSettings();
+    expect(content.env).toEqual({ KEEP: '1' });
+    expect(content.deniedMcpServers).toEqual([{ serverName: 'other' }, { serverName: 'claude-in-chrome' }]);
+    expect(content.permissions.deny).not.toContain('RemoteTrigger');
+  });
+
+  it('remove strips built-in entries, drops empty containers and keeps user changes', () => {
+    const s = { ...section(), disabled_builtins: ['cron', 'chrome', 'remote-trigger'] as ('cron' | 'chrome' | 'remote-trigger')[] };
+    claudeAdapter.mergeHarnessConfig(s, basePath);
+    const content = readSettings();
+    content.disableWorkflows = false;
+    content.customKey = 'value';
+    writeFileSync(settingsFile(), JSON.stringify(content));
+
+    claudeAdapter.remove(s, basePath);
+
+    expect(readSettings()).toEqual({ customKey: 'value', disableWorkflows: false });
+  });
+
+  it('remove keeps user skill overrides and ones switched on', () => {
+    mkdirSync(join(basePath, '.claude'), { recursive: true });
+    writeFileSync(settingsFile(), JSON.stringify({ skillOverrides: { cloudflare: 'off' } }));
+    claudeAdapter.mergeHarnessConfig(section(), basePath);
+    const content = readSettings();
+    content.skillOverrides.ultrareview = 'on';
+    writeFileSync(settingsFile(), JSON.stringify(content));
+
+    claudeAdapter.remove(section(), basePath);
+
+    expect(readSettings().skillOverrides).toEqual({ cloudflare: 'off', ultrareview: 'on' });
+  });
+
+  it('config schema accepts known optional built-ins and rejects unknown ones', () => {
+    expect(claudeAdapter.configSchema.safeParse({ ...section(), disabled_builtins: ['cron'] }).success).toBe(true);
+    expect(claudeAdapter.configSchema.safeParse({ ...section(), disabled_builtins: ['bogus'] }).success).toBe(false);
+  });
+
   it('remove leaves user-created files in the agents directory', () => {
     const s = section();
     claudeAdapter.mergeHarnessConfig(s, basePath);

@@ -58,6 +58,20 @@ A persisted implementation plan for substantial work that benefits from durable 
 
 _Avoid_: full plan, formal plan, big plan
 
+**Built-in**
+
+A skill, tool, or integration that a harness ships itself, rather than one installed by Atelier or the user. Each harness has its own Built-ins; there is no list shared across harnesses.
+
+_Avoid_: bundled skill, native feature, default
+
+**Conflicting Built-in**
+
+A Built-in that clashes with an Atelier skill, or cannot work once the harness's bundled skills are disabled. Atelier always disables it.
+
+**Optional Built-in**
+
+A Built-in that works on its own and that the user may choose to disable. Atelier leaves it enabled by default.
+
 **Agent Template**
 
 An agnostic persona definition stored in `agents/{name}.md` inside the Atelier package. It is the source material that adapters translate.
