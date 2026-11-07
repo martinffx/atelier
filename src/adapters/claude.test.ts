@@ -21,7 +21,7 @@ describe('claude adapter', () => {
     const section = claudeAdapter.defaultSection();
     expect(section.provider).toBe('anthropic');
     expect(section.default_model).toBe('opus');
-    expect(section.build_thinking).toBe('high');
+    expect(section.build_thinking).toBe('medium');
     expect('plan_thinking' in section).toBe(false);
     expect(section.agents.map(a => a.model)).toEqual(['haiku', 'opus', 'opus', 'sonnet']);
   });
@@ -37,7 +37,7 @@ describe('claude adapter', () => {
     const content = JSON.parse(readFileSync(settingsPath, 'utf-8'));
     expect(content.$schema).toBeDefined();
     expect(content.model).toBe('opus');
-    expect(content.modelSettings).toEqual({ 'claude-opus-5-5': { effortLevel: 'high' } });
+    expect(content.modelSettings).toEqual({ 'claude-opus-5-5': { effortLevel: 'medium' } });
     expect(content.disableClaudeAiConnectors).toBe(true);
     expect(content.syncClaudeAiSkills).toBe(false);
     expect(content.syncClaudeAiPlugins).toBe(false);
@@ -234,7 +234,7 @@ describe('claude adapter', () => {
 
     const content = readSettings();
     expect(content.modelSettings['claude-sonnet-5-5']).toBeUndefined();
-    expect(content.modelSettings['claude-opus-5-5']).toEqual({ autoCompactWindow: 150000, effortLevel: 'high' });
+    expect(content.modelSettings['claude-opus-5-5']).toEqual({ autoCompactWindow: 150000, effortLevel: 'medium' });
   });
 
   it('remove clears the session effort level and keeps user settings', () => {

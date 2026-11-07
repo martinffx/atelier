@@ -77,7 +77,7 @@ function modelsForProvider(_provider?: Provider): readonly string[] {
 }
 
 async function promptSection(prompt: typeof inquirer, section: HarnessSection): Promise<HarnessSection> {
-  return promptForSimpleModels(prompt, section as CodexConfig, modelsForProvider(), 'codex');
+  return promptForSimpleModels(prompt, section as CodexConfig, modelsForProvider(), 'codex', defaultSection());
 }
 
 function installAgents(section: HarnessSection, basePath: string): void {

@@ -137,7 +137,7 @@ async function promptSection(prompt: typeof inquirer, section: HarnessSection): 
     await promptForOpenCodeProvider(prompt, OPENCODE_PROVIDERS, openCodeSection.provider)
   );
   const models = modelsForProvider(provider);
-  return promptForOpenCodeModels(prompt, provider === openCodeSection.provider ? openCodeSection : defaultSection(provider), models, provider);
+  return promptForOpenCodeModels(prompt, provider === openCodeSection.provider ? openCodeSection : defaultSection(provider), models, provider, defaultSection(provider));
 }
 
 function installAgents(section: HarnessSection, basePath: string, sharedConfig?: SharedConfig): void {

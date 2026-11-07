@@ -9,15 +9,16 @@ import { codexAdapter } from './codex.js';
 import { opencodeAdapter } from './opencode.js';
 import { ClaudeConfigSchema, CodexConfigSchema, OpenCodeConfigSchema } from '../utils/schemas.js';
 import { thinkingChoices, openCodeThinkingOptions, recommendedThinking, defaultThinking, avoidsProviderDefault } from '../utils/thinking.js';
+import { AGENT_NAMES } from '../constants.js';
 import type { Harness, HarnessAdapter, SimpleConfig, CodexConfig, OpenCodeConfig, Provider } from '../types.js';
 
 // Each row: the four agent models then the single session model; the four agent levels then the build thinking;
 // then the plan thinking (Claude has no plan setting).
 const cases: Array<[HarnessAdapter, Provider, string[], string[], string | undefined]> = [
-  [claudeAdapter, 'anthropic', ['haiku', 'opus', 'opus', 'sonnet', 'claude-opus-5-5'], ['low', 'xhigh', 'high', 'default', 'high'], undefined],
+  [claudeAdapter, 'anthropic', ['haiku', 'opus', 'opus', 'sonnet', 'claude-opus-5-5'], ['low', 'xhigh', 'high', 'default', 'medium'], undefined],
   [codexAdapter, 'openai', ['gpt-6-luna', 'gpt-6-astra', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-astra'], ['low', 'xhigh', 'high', 'medium', 'high'], 'high'],
   [opencodeAdapter, 'openai', ['openai/gpt-6-luna', 'openai/gpt-6-astra', 'openai/gpt-6-astra', 'openai/gpt-6-sol', 'openai/gpt-6-astra'], ['low', 'xhigh', 'high', 'medium', 'high'], 'high'],
-  [opencodeAdapter, 'amazon-bedrock', ['amazon-bedrock/us.anthropic.claude-haiku-5-5', 'amazon-bedrock/us.anthropic.claude-fable-5-1', 'amazon-bedrock/us.anthropic.claude-opus-5-5', 'amazon-bedrock/us.anthropic.claude-sonnet-5-5', 'amazon-bedrock/us.anthropic.claude-opus-5-5'], ['low', 'xhigh', 'high', 'default', 'high'], 'high'],
+  [opencodeAdapter, 'amazon-bedrock', ['amazon-bedrock/us.anthropic.claude-haiku-5-5', 'amazon-bedrock/us.anthropic.claude-fable-5-1', 'amazon-bedrock/us.anthropic.claude-opus-5-5', 'amazon-bedrock/us.anthropic.claude-sonnet-5-5', 'amazon-bedrock/us.anthropic.claude-opus-5-5'], ['low', 'xhigh', 'high', 'default', 'medium'], 'high'],
   [opencodeAdapter, 'opencode-zen', ['opencode/glm-5.3-flash', 'opencode/kimi-k3', 'opencode/glm-5.3', 'opencode/deepseek-v4.1-flash', 'opencode/kimi-k3'], ['low', 'high', 'high', 'high', 'low'], 'high'],
   [opencodeAdapter, 'opencode-go', ['opencode-go/glm-5.3-flash', 'opencode-go/mimo-v2.6-pro', 'opencode-go/glm-5.3', 'opencode-go/deepseek-v4.1-flash', 'opencode-go/kimi-k3.1-pro'], ['low', 'on', 'high', 'high', 'low'], 'high'],
   [opencodeAdapter, 'openrouter', ['openrouter/z-ai/glm-5.3-flash', 'openrouter/moonshotai/kimi-k3.1-pro', 'openrouter/z-ai/glm-5.3', 'openrouter/deepseek/deepseek-v4.1-flash-1017', 'openrouter/moonshotai/kimi-k3.1-pro'], ['low', 'high', 'high', 'high', 'low'], 'high'],
@@ -32,6 +33,23 @@ const effortOf = (provider: Provider, o: any): unknown =>
     : o.reasoningEffort;
 
 describe('model and thinking settings', () => {
+  it('every role default appears in its adapter catalog', () => {
+    const roles = ['default_model', ...AGENT_NAMES.map(n => `agent:${n}`)];
+    const sections: Array<[HarnessAdapter, Provider | undefined]> = [[claudeAdapter, undefined], [codexAdapter, undefined], ...(['opencode-zen', 'opencode-go', 'amazon-bedrock', 'openai', 'openrouter', 'google'] as Provider[]).map(p => [opencodeAdapter, p] as [HarnessAdapter, Provider])];
+    for (const [adapter, provider] of sections) {
+      const section = adapter.defaultSection(provider) as SimpleConfig;
+      const catalog = adapter.modelsForProvider(provider);
+      for (const role of roles) {
+        const model = role === 'default_model' ? section.default_model : section.agents.find(a => `agent:${a.name}` === role)!.model;
+        expect(catalog, `${adapter.name}/${provider}/${role}`).toContain(model);
+      }
+    }
+  });
+
+  it('recommends medium for an Opus session', () => {
+    expect(recommendedThinking('opus', 'session')).toEqual(['medium']);
+  });
+
   for (const [adapter, provider, models, levels, plan] of cases) {
     it(`${adapter.name}/${provider}: generates four agent assignments, one session model, build and plan thinking, then removes them`, () => {
       const root = mkdtempSync(join(tmpdir(), 'atelier-models-'));
@@ -266,7 +284,7 @@ describe('model and thinking settings', () => {
       writeFileSync(file, JSON.stringify({ modelSettings: { custom: { effortLevel: 'low' }, 'claude-opus-5-5': { maxEffortLevel: 'xhigh' } } }));
       const config = claudeAdapter.defaultSection();
       claudeAdapter.mergeHarnessConfig(config, root);
-      expect(JSON.parse(readFileSync(file, 'utf8')).modelSettings['claude-opus-5-5']).toEqual({ maxEffortLevel: 'xhigh', effortLevel: 'high' });
+      expect(JSON.parse(readFileSync(file, 'utf8')).modelSettings['claude-opus-5-5']).toEqual({ maxEffortLevel: 'xhigh', effortLevel: 'medium' });
       claudeAdapter.remove(config, root);
       expect(JSON.parse(readFileSync(file, 'utf8')).modelSettings).toEqual({ custom: { effortLevel: 'low' }, 'claude-opus-5-5': { maxEffortLevel: 'xhigh' } });
     } finally { rmSync(root, { recursive: true, force: true }); }
@@ -301,7 +319,7 @@ describe('model and thinking settings', () => {
       });
       claudeAdapter.mergeHarnessConfig(claudeAdapter.defaultSection(), root);
       const settings = modelSettingsOf(root);
-      expect(settings['claude-opus-5-5']).toEqual({ effortLevel: 'high' });
+      expect(settings['claude-opus-5-5']).toEqual({ effortLevel: 'medium' });
       expect(settings['claude-sonnet-5-5']).toEqual({ effortLevel: 'low' });
       expect(settings['claude-haiku-5-5']).toEqual({ autoCompactWindow: 190000 });
     }));
@@ -310,7 +328,7 @@ describe('model and thinking settings', () => {
       seed(root, { 'claude-opus-5-5': { autoCompactWindow: 250000 }, 'claude-sonnet-5-5': { autoCompactWindow: 190000 } });
       const config = claudeAdapter.defaultSection();
       claudeAdapter.mergeHarnessConfig(config, root);
-      expect(modelSettingsOf(root)['claude-opus-5-5']).toEqual({ autoCompactWindow: 250000, effortLevel: 'high' });
+      expect(modelSettingsOf(root)['claude-opus-5-5']).toEqual({ autoCompactWindow: 250000, effortLevel: 'medium' });
       expect(modelSettingsOf(root)['claude-sonnet-5-5']).toBeUndefined();
       claudeAdapter.remove(config, root);
       expect(modelSettingsOf(root)).toEqual({ 'claude-opus-5-5': { autoCompactWindow: 250000 } });
@@ -371,7 +389,7 @@ describe('model and thinking settings', () => {
       let native = JSON.parse(readFileSync(file, 'utf8'));
       expect(native.agent.build.effort).toBeUndefined();
       expect(native.agent.build.thinking).toBeUndefined();
-      expect(native.agent.build.reasoningConfig.maxReasoningEffort).toBe('high');
+      expect(native.agent.build.reasoningConfig.maxReasoningEffort).toBe('medium');
       opencodeAdapter.remove(config, root);
       native = JSON.parse(readFileSync(file, 'utf8'));
       expect(native.agent.build).toEqual({ permission: { bash: 'ask' } });

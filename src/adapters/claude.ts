@@ -84,7 +84,7 @@ function modelsForProvider(_provider?: Provider): readonly string[] {
 
 async function promptSection(prompt: typeof inquirer, section: HarnessSection): Promise<HarnessSection> {
   const claude = section as ClaudeConfig;
-  const result = await promptForSimpleModels(prompt, claude, modelsForProvider());
+  const result = await promptForSimpleModels(prompt, claude, modelsForProvider(), 'claude', defaultSection());
   const { disabled } = await prompt.prompt<{ disabled: OptionalBuiltin[] }>([{
     type: 'checkbox',
     name: 'disabled',

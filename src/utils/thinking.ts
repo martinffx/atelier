@@ -53,7 +53,7 @@ const RECOMMENDED: Array<[RegExp, Thinking[][]]> = [
   [/^gpt-6(\.1)?-sol$/, [['medium'], ['low'], ['xhigh', 'high'], ['high'], ['medium']]],
   [/^gpt-6(\.1)?-(terra|luna)$/, [['medium'], ['low'], ['high'], ['high'], ['medium']]],
   [/^gpt-6(\.1)?-astra$/, [['high'], ['low'], ['xhigh'], ['high'], ['medium']]],
-  [/^(opus|fable|best)$|(^|\.)claude-(opus|fable)-/, [['high'], ['low'], ['xhigh'], ['high'], ['medium']]],
+  [/^(opus|fable|best)$|(^|\.)claude-(opus|fable)-/, [['medium'], ['low'], ['xhigh'], ['high'], ['medium']]],
   [/^(sonnet|haiku)$|(^|\.)claude-(sonnet|haiku)-/, [['medium'], ['low', 'default'], ['high'], ['high'], ['default']]],
   [/^glm-5\.3(-flash)?$/, [['high'], ['low'], ['high'], ['high'], ['high']]],
   [/^muse-(wonder(-1\.0)?|spark-1\.3(-contributor)?)$/, [['medium'], ['low'], ['xhigh', 'high'], ['high'], ['high', 'medium']]],
