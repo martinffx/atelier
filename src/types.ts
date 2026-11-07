@@ -1,7 +1,7 @@
 import type { z } from 'zod';
 import type inquirer from 'inquirer';
 import { AGENT_NAMES, Harness } from './constants.js';
-import { SimpleConfigSchema, ClaudeConfigSchema, OpenCodeConfigSchema, CursorConfigSchema } from './utils/schemas.js';
+import { SimpleConfigSchema, ClaudeConfigSchema, CodexConfigSchema, OpenCodeConfigSchema } from './utils/schemas.js';
 
 export type Harness = typeof Harness[number];
 export type AgentName = typeof AGENT_NAMES[number];
@@ -17,14 +17,13 @@ export interface ProviderChoice {
 export type AgentConfig = z.infer<typeof SimpleConfigSchema>['agents'][number];
 export type SimpleConfig = z.infer<typeof SimpleConfigSchema>;
 
-// Codex uses the simple config shape; Claude extends it with its optional built-in opt-outs.
+// Claude extends the simple config shape with its optional built-in opt-outs; Codex adds plan_thinking.
 export type ClaudeConfig = z.infer<typeof ClaudeConfigSchema>;
-export type CodexConfig = SimpleConfig;
-export type CursorConfig = z.infer<typeof CursorConfigSchema>;
+export type CodexConfig = z.infer<typeof CodexConfigSchema>;
 
 export type OpenCodeConfig = z.infer<typeof OpenCodeConfigSchema>;
 
-export type HarnessSection = SimpleConfig | ClaudeConfig | OpenCodeConfig | CursorConfig;
+export type HarnessSection = SimpleConfig | ClaudeConfig | CodexConfig | OpenCodeConfig;
 
 export type AtelierConfig = {
   version: string;

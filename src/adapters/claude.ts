@@ -6,14 +6,14 @@ import type { ClaudeConfig, HarnessAdapter, FileEntry, Provider, HarnessSection 
 import { FileWriteError, HarnessConfigError } from '../utils/errors.js';
 import { shortPath } from '../services/paths.js';
 import { ClaudeConfigSchema, CLAUDE_OPTIONAL_BUILTINS } from '../utils/schemas.js';
-import { claudeModeModels } from '../utils/thinking.js';
+import { claudeModel, defaultThinking } from '../utils/thinking.js';
 import { promptForSimpleModels } from '../services/prompt.js';
 import { AGENT_NAMES, LEGACY_AGENT_NAME } from '../constants.js';
 
-const ANTHROPIC_MODELS = ['haiku', 'sonnet', 'opus', 'fable', 'best', 'opusplan'] as const;
+const ANTHROPIC_MODELS = ['haiku', 'sonnet', 'opus', 'fable', 'best'] as const;
 
 const DEFAULT_MODELS = {
-  default_model: 'opusplan',
+  default_model: 'opus',
   sentinel: 'haiku',
   oracle: 'opus',
   architect: 'opus',
@@ -68,13 +68,12 @@ function defaultSection(): ClaudeConfig {
   return {
     provider: 'anthropic',
     default_model: DEFAULT_MODELS.default_model,
-    build_thinking: 'high',
-    plan_thinking: 'high',
+    build_thinking: defaultThinking(DEFAULT_MODELS.default_model, 'session'),
     agents: AGENT_NAMES.map(name => ({
       template: name,
       name,
       model: DEFAULT_MODELS[name],
-      thinking: name === 'sentinel' || name === 'keymaker' ? 'default' : name === 'oracle' ? 'xhigh' : 'high',
+      thinking: defaultThinking(DEFAULT_MODELS[name], name),
     })),
   };
 }
@@ -85,7 +84,7 @@ function modelsForProvider(_provider?: Provider): readonly string[] {
 
 async function promptSection(prompt: typeof inquirer, section: HarnessSection): Promise<HarnessSection> {
   const claude = section as ClaudeConfig;
-  const result = await promptForSimpleModels(prompt, claude, modelsForProvider());
+  const result = await promptForSimpleModels(prompt, claude, modelsForProvider(), 'claude', defaultSection());
   const { disabled } = await prompt.prompt<{ disabled: OptionalBuiltin[] }>([{
     type: 'checkbox',
     name: 'disabled',
@@ -125,14 +124,15 @@ function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
   const existing = readExistingSettings(settingsPath);
   const isNew = Object.keys(existing).length === 0;
 
+  removeLegacySonnetEffort(existing);
   const settings: ExistingSettings = {
     ...existing,
     $schema: 'https://json.schemastore.org/claude-code-settings.json',
     ...CLAUDE_AI_OPT_OUTS,
     model: config.default_model || DEFAULT_MODELS.default_model,
   };
-  applyModeThinking(settings, config);
-  applyAutoCompactWindow(settings, config);
+  applySessionThinking(settings, config);
+  removeLegacyAutoCompactWindow(settings);
   applyBuiltins(settings, CONFLICTING_BUILTINS);
   for (const name of CLAUDE_OPTIONAL_BUILTINS) {
     if (config.disabled_builtins?.includes(name)) applyBuiltins(settings, OPTIONAL_BUILTINS[name]);
@@ -196,51 +196,60 @@ function removeAtelierSettings(claudeDir: string, config: ClaudeConfig): void {
   }
 
   const content = parseSettingsJson(settingsPath);
+  removeLegacySonnetEffort(content);
   delete content.$schema;
   delete content.model;
   for (const [key, value] of Object.entries(CLAUDE_AI_OPT_OUTS)) {
     if (content[key] === value) delete content[key];
   }
-  applyModeThinking(content, config, true);
-  applyAutoCompactWindow(content, config, true);
+  applySessionThinking(content, config, true);
+  removeLegacyAutoCompactWindow(content);
   removeBuiltins(content, CONFLICTING_BUILTINS);
   for (const patch of Object.values(OPTIONAL_BUILTINS)) removeBuiltins(content, patch);
   writeOrDeleteSettings(settingsPath, content);
 }
 
-function applyModeThinking(settings: Record<string, unknown>, config: ClaudeConfig, remove = false): void {
-  const models = claudeModeModels(config.default_model);
+// Copies settings.modelSettings, lets `edit` change each listed model's entry, and drops entries and the
+// whole object once they are empty.
+function editModelSettings(settings: Record<string, unknown>, models: readonly string[], edit: (entry: Record<string, unknown>) => void): void {
   const modelSettings = { ...(settings.modelSettings as Record<string, Record<string, unknown>> | undefined) };
-  for (const mode of ['build', 'plan'] as const) {
-    const thinking = config[`${mode}_thinking`];
-    if (thinking === undefined) continue;
-    const entry = { ...modelSettings[models[mode]] };
-    if (remove || thinking === 'default') delete entry.effortLevel;
-    else entry.effortLevel = thinking;
-    if (Object.keys(entry).length) modelSettings[models[mode]] = entry;
-    else delete modelSettings[models[mode]];
-  }
-  if (Object.keys(modelSettings).length) settings.modelSettings = modelSettings;
-  else delete settings.modelSettings;
-}
-
-// opusplan plans on Sonnet once a turn passes 200k tokens, but auto-compaction only fires near 967k
-// (anthropics/claude-code#95206). Compact earlier so plan mode keeps using Opus.
-export const OPUSPLAN_AUTO_COMPACT_WINDOW = 190_000;
-
-function applyAutoCompactWindow(settings: Record<string, unknown>, config: ClaudeConfig, remove = false): void {
-  const models = claudeModeModels('opusplan');
-  const enabled = !remove && config.default_model === 'opusplan';
-  const modelSettings = { ...(settings.modelSettings as Record<string, Record<string, unknown>> | undefined) };
-  for (const model of new Set([models.build, models.plan])) {
+  for (const model of models) {
     const entry = { ...modelSettings[model] };
-    if (enabled) entry.autoCompactWindow ??= OPUSPLAN_AUTO_COMPACT_WINDOW;
-    else if (entry.autoCompactWindow === OPUSPLAN_AUTO_COMPACT_WINDOW) delete entry.autoCompactWindow;
+    edit(entry);
     if (Object.keys(entry).length) modelSettings[model] = entry;
     else delete modelSettings[model];
   }
   if (Object.keys(modelSettings).length) settings.modelSettings = modelSettings;
   else delete settings.modelSettings;
+}
+
+// Claude Code has one session model and one session effort level, keyed by the model id.
+function applySessionThinking(settings: Record<string, unknown>, config: ClaudeConfig, remove = false): void {
+  const thinking = config.build_thinking;
+  if (thinking === undefined) return;
+  editModelSettings(settings, [claudeModel(config.default_model)], entry => {
+    if (remove || thinking === 'default') delete entry.effortLevel;
+    else entry.effortLevel = thinking;
+  });
+}
+
+// Earlier Atelier versions under opusplan wrote Sonnet's effort for build thinking. Only the single session
+// model's effort is written now, so drop the Sonnet effort. Runs only while model is 'opusplan', so callers
+// must call it before model is replaced or deleted. The id is literal: it must match what old versions wrote.
+function removeLegacySonnetEffort(settings: Record<string, unknown>): void {
+  if (settings.model !== 'opusplan') return;
+  editModelSettings(settings, ['claude-sonnet-5-5'], entry => { delete entry.effortLevel; });
+}
+
+// Earlier Atelier versions wrote a 190k auto-compact window for the plan-swapping model pair. Claude Code no
+// longer swaps models for plan mode, so that window is stale. Remove only the exact value Atelier wrote.
+const LEGACY_AUTO_COMPACT_WINDOW = 190_000;
+const LEGACY_AUTO_COMPACT_MODELS = ['claude-sonnet-5-5', 'claude-opus-5-5'] as const;
+
+function removeLegacyAutoCompactWindow(settings: Record<string, unknown>): void {
+  editModelSettings(settings, LEGACY_AUTO_COMPACT_MODELS, entry => {
+    if (entry.autoCompactWindow === LEGACY_AUTO_COMPACT_WINDOW) delete entry.autoCompactWindow;
+  });
 }
 
 function applyBuiltins(settings: Record<string, unknown>, patch: BuiltinPatch): void {

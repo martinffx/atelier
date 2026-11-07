@@ -141,8 +141,7 @@ available agent by description and state the choice in the output.
 ### Parent context
 
 The main conversation holds the human's decisions and is the scarcest context. Quality degrades
-as it grows, compaction loses detail, and under `opusplan` planning silently drops to Sonnet once
-a turn passes 200k tokens. Keep it lean:
+as it grows, and compaction loses detail. Keep it lean:
 
 - Send work that produces bulky output to subagents and keep only their summaries. That covers
   broad search, test and build runs, log reading, and implementation batches through

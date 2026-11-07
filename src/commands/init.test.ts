@@ -93,7 +93,7 @@ describe('init', () => {
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
     expect(config.codex).toBeDefined();
     expect(config.codex.provider).toBe('openai');
-    expect(config.codex.default_model).toBe('gpt-6-sol');
+    expect(config.codex.default_model).toBe('gpt-6-astra');
     expect(config.codex.agents).toHaveLength(4);
   });
 
@@ -123,8 +123,7 @@ describe('init', () => {
   test('prompts for provider and creates config', async () => {
     inquirerAnswers = {
       provider: 'opencode-go',
-      build_model: 'opencode-go/deepseek-v4-flash',
-      plan_model: 'opencode-go/deepseek-v4-pro',
+      default_model: 'opencode-go/kimi-k3.1-pro',
       sentinel: 'opencode-go/deepseek-v4-flash',
       oracle: 'opencode-go/kimi-k2.6',
       architect: 'opencode-go/deepseek-v4-pro',
@@ -144,11 +143,10 @@ describe('init', () => {
   test('prints the OpenAI authentication command after initialization', async () => {
     inquirerAnswers = {
       provider: 'openai',
-      build_model: 'openai/gpt-5.6-terra',
-      plan_model: 'openai/gpt-5.6-sol',
-      sentinel: 'openai/gpt-5.6-luna',
-      oracle: 'openai/gpt-5.6-sol',
-      architect: 'openai/gpt-5.6-sol',
+      default_model: 'openai/gpt-6-astra',
+      sentinel: 'openai/gpt-6-luna',
+      oracle: 'openai/gpt-6-sol',
+      architect: 'openai/gpt-6-sol',
       confirm: true,
     };
     const logs: string[] = [];
@@ -166,23 +164,23 @@ describe('init', () => {
 
   test('throws when --yes is used without --harness', async () => {
     await expect(init({ yes: true })).rejects.toThrow(
-       '`--yes` requires `--harness` (claude, opencode, codex, or cursor).'
+       '`--yes` requires `--harness` (claude, opencode, or codex).'
     );
   });
 
   test('throws when invalid --harness is provided', async () => {
     await expect(init({ harness: 'foobar' })).rejects.toThrow(
-       'Invalid harness "foobar". Must be claude, opencode, codex, or cursor.'
+       'Invalid harness "foobar". Must be claude, opencode, or codex.'
     );
   });
 
   test('prompts for harness and creates config interactively', async () => {
     inquirerAnswers = {
       harness: 'codex',
-      default_model: 'gpt-5.6-terra',
-      sentinel: 'gpt-5.6-luna',
-      oracle: 'gpt-5.6-sol',
-      architect: 'gpt-5.6-sol',
+      default_model: 'gpt-6.1-terra',
+      sentinel: 'gpt-6-luna',
+      oracle: 'gpt-6-sol',
+      architect: 'gpt-6-sol',
       confirm: true,
     };
 
@@ -193,29 +191,13 @@ describe('init', () => {
 
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
     expect(config.codex).toBeDefined();
-    expect(config.codex.default_model).toBe('gpt-5.6-terra');
-  });
-
-  test('creates Cursor agents without modifying native Cursor config', async () => {
-    const nativeConfig = join(tempDir, '.cursor/cli-config.json');
-    mkdirSync(join(tempDir, '.cursor'), { recursive: true });
-    writeFileSync(nativeConfig, '{"model":"user-managed"}\n');
-    await init({ yes: true, harness: 'cursor' });
-
-    expect(readFileSync(nativeConfig, 'utf-8')).toBe('{"model":"user-managed"}\n');
-    expect(existsSync(join(tempDir, '.cursor/agents/sentinel.md'))).toBe(true);
-    expect(existsSync(join(tempDir, '.cursor/agents/oracle.md'))).toBe(true);
-    expect(existsSync(join(tempDir, '.cursor/agents/architect.md'))).toBe(true);
-    expect(existsSync(join(tempDir, '.cursor/agents/keymaker.md'))).toBe(true);
-
-    const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
-    expect(config.cursor.agents).toHaveLength(4);
+    expect(config.codex.default_model).toBe('gpt-6.1-terra');
   });
 
   test('cancels when confirm prompt is false', async () => {
     inquirerAnswers = {
       harness: 'claude',
-      default_model: 'opusplan',
+      default_model: 'opus',
       sentinel: 'haiku',
       oracle: 'opus',
       architect: 'opus',
@@ -246,7 +228,7 @@ describe('update', () => {
     expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(false);
 
     inquirerAnswers = {
-      default_model: 'opusplan',
+      default_model: 'opus',
       sentinel: 'haiku',
       oracle: 'opus',
       architect: 'sonnet',
@@ -267,8 +249,7 @@ describe('update', () => {
 
     inquirerAnswers = {
       provider: 'opencode-zen',
-      build_model: 'opencode/deepseek-v4-flash',
-      plan_model: 'opencode/deepseek-v4-pro',
+      default_model: 'opencode/kimi-k3',
       sentinel: 'opencode/minimax-m2.7',
       oracle: 'opencode/kimi-k2.6',
       architect: 'opencode/deepseek-v4-pro',

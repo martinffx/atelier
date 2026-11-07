@@ -7,7 +7,7 @@ import { AGENT_NAMES, LEGACY_AGENT_NAME } from '../constants.js';
 import { FileWriteError, HarnessConfigError } from '../utils/errors.js';
 import { shortPath, getGlobalOpencodeDir, resolveSkillsPath } from '../services/paths.js';
 import { OpenCodeConfigSchema } from '../utils/schemas.js';
-import { openCodeThinkingOptions, OPENCODE_THINKING_KEYS } from '../utils/thinking.js';
+import { defaultThinking, openCodeThinkingOptions, OPENCODE_THINKING_KEYS } from '../utils/thinking.js';
 import { promptForOpenCodeProvider, promptForOpenCodeModels, guardProvider } from '../services/prompt.js';
 
 const OPENCODE_PROVIDERS: { name: string; value: OpenCodeProvider }[] = [
@@ -23,24 +23,25 @@ const PROVIDER_MODELS: Record<OpenCodeProvider, readonly string[]> = {
   'opencode-zen': [
     'gpt-6.1-sol', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna',
     'claude-opus-5-5', 'claude-fable-5-1', 'claude-sonnet-5-5', 'claude-haiku-5-5',
-    'glm-5.3', 'glm-5.3-flash', 'kimi-k3', 'kimi-k2.7-code',
+    'glm-5.3', 'glm-5.3-flash', 'kimi-k3',
     'deepseek-v4.1-flash', 'deepseek-v4-pro', 'minimax-m3',
     'qwen3.8-max', 'qwen3.8-flash', 'mimo-v2.6-flash-free',
     'gemini-4-argon', 'gemini-3.8-flash', 'grok-4.7', 'mistral-large-4',
     'muse-spark-1.3', 'muse-wonder-1.0',
-    'inkling-2-small-free', 'nemotron-3.5-super-vl-free', 'nemotron-3.5-lightning-free',
+    'inkling-2-small-free', 'nemotron-3.5-super-vl-free', 'nemotron-3.5-lightning-free', 'beam-free',
   ].map(id => `opencode/${id}`),
   'opencode-go': [
     'glm-5.3', 'glm-5.3-flash', 'kimi-k3.1-pro', 'kimi-k3',
     'deepseek-v4.1-flash', 'deepseek-v4-pro', 'minimax-m3.1-flash', 'minimax-m3',
     'qwen3.8-max', 'qwen3.8-flash', 'mimo-v2.6-pro', 'mimo-v2.6-flash',
     'gpt-6-luna', 'claude-haiku-5-5', 'gemini-4-argon', 'grok-4.7', 'muse-spark-1.3-contributor',
+    'hy4', 'step-5-preview', 'beam-free',
   ].map(id => `opencode-go/${id}`),
   'amazon-bedrock': [
     'us.anthropic.claude-opus-5-5', 'us.anthropic.claude-fable-5-1',
     'us.anthropic.claude-sonnet-5-5', 'us.anthropic.claude-haiku-5-5',
   ].map(id => `amazon-bedrock/${id}`),
-  openai: ['gpt-6.1-sol', 'gpt-6.1-terra', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna', 'gpt-5.3-codex-spark'].map(id => `openai/${id}`),
+  openai: ['gpt-6.1-sol', 'gpt-6.1-terra', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna'].map(id => `openai/${id}`),
   openrouter: [
     'anthropic/claude-opus-5.5', 'anthropic/claude-fable-5.1', 'anthropic/claude-sonnet-5.5', 'anthropic/claude-haiku-5.5',
     'openai/gpt-6.1-sol', 'openai/gpt-6.1-terra', 'openai/gpt-6-astra', 'openai/gpt-6-sol', 'openai/gpt-6-luna',
@@ -49,46 +50,47 @@ const PROVIDER_MODELS: Record<OpenCodeProvider, readonly string[]> = {
     'moonshotai/kimi-k3.1-pro', 'moonshotai/kimi-k3',
     'deepseek/deepseek-v4.1-flash-1017', 'deepseek/deepseek-v4.1-flash', 'deepseek/deepseek-v4-pro',
     'x-ai/grok-4.7', 'minimax/minimax-m3.1-flash', 'minimax/minimax-m3',
-    'qwen/qwen3.8-flash', 'xiaomi/mimo-v2.6-pro', 'mistralai/mistral-large-4-0',
+    'qwen/qwen3.8-flash', 'qwen/qwen3.8-max-0902', 'qwen/qwen3.8-max-prime', 'xiaomi/mimo-v2.6-pro', 'mistralai/mistral-large-4-0',
     'thinkingmachines/inkling', 'thinkingmachines/inkling-small',
     'nvidia/nemotron-3.5-super-vl', 'nvidia/nemotron-3.5-lightning',
+    'tencent/hy4', 'stepfun/step-5-preview', 'inclusionai/ling-3.1-flash', 'reflection/beam-1.0-501b-a23b',
     'meta/muse-spark-1.3', 'meta/muse-spark-open', 'meta/muse-wonder',
   ].map(id => `openrouter/${id}`),
-  google: ['gemini-4-argon', 'gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.5-flash-lite'].map(id => `google/${id}`),
+  google: ['gemini-4-argon', 'gemini-3.8-flash', 'gemini-3.5-flash-lite'].map(id => `google/${id}`),
 };
 
-const DEFAULT_MODELS: Record<OpenCodeProvider, Record<'build' | 'plan' | typeof AGENT_NAMES[number], string>> = {
+const DEFAULT_MODELS: Record<OpenCodeProvider, Record<'default' | typeof AGENT_NAMES[number], string>> = {
   'opencode-zen': {
     sentinel: 'opencode/glm-5.3-flash', oracle: 'opencode/kimi-k3', architect: 'opencode/glm-5.3',
     keymaker: 'opencode/deepseek-v4.1-flash',
-    build: 'opencode/deepseek-v4.1-flash', plan: 'opencode/glm-5.3',
+    default: 'opencode/kimi-k3',
   },
   'opencode-go': {
     sentinel: 'opencode-go/glm-5.3-flash', oracle: 'opencode-go/mimo-v2.6-pro', architect: 'opencode-go/glm-5.3',
     keymaker: 'opencode-go/deepseek-v4.1-flash',
-    build: 'opencode-go/deepseek-v4.1-flash', plan: 'opencode-go/glm-5.3',
+    default: 'opencode-go/kimi-k3.1-pro',
   },
   'amazon-bedrock': {
     sentinel: 'amazon-bedrock/us.anthropic.claude-haiku-5-5',
     oracle: 'amazon-bedrock/us.anthropic.claude-fable-5-1',
     architect: 'amazon-bedrock/us.anthropic.claude-opus-5-5',
     keymaker: 'amazon-bedrock/us.anthropic.claude-sonnet-5-5',
-    build: 'amazon-bedrock/us.anthropic.claude-sonnet-5-5', plan: 'amazon-bedrock/us.anthropic.claude-opus-5-5',
+    default: 'amazon-bedrock/us.anthropic.claude-opus-5-5',
   },
   openai: {
     sentinel: 'openai/gpt-6-luna', oracle: 'openai/gpt-6-astra', architect: 'openai/gpt-6-astra',
     keymaker: 'openai/gpt-6-sol',
-    build: 'openai/gpt-6-sol', plan: 'openai/gpt-6-astra',
+    default: 'openai/gpt-6-astra',
   },
   openrouter: {
     sentinel: 'openrouter/z-ai/glm-5.3-flash', oracle: 'openrouter/moonshotai/kimi-k3.1-pro', architect: 'openrouter/z-ai/glm-5.3',
     keymaker: 'openrouter/deepseek/deepseek-v4.1-flash-1017',
-    build: 'openrouter/deepseek/deepseek-v4.1-flash-1017', plan: 'openrouter/z-ai/glm-5.3',
+    default: 'openrouter/moonshotai/kimi-k3.1-pro',
   },
   google: {
     sentinel: 'google/gemini-3.5-flash-lite', oracle: 'google/gemini-4-argon', architect: 'google/gemini-4-argon',
     keymaker: 'google/gemini-3.8-flash',
-    build: 'google/gemini-3.8-flash', plan: 'google/gemini-4-argon',
+    default: 'google/gemini-4-argon',
   },
 };
 
@@ -112,18 +114,14 @@ function defaultSection(provider?: Provider): OpenCodeConfig {
   const defaults = DEFAULT_MODELS[selectedProvider];
   return {
     provider: selectedProvider,
-    build_model: defaults.build,
-    plan_model: defaults.plan,
-    build_thinking: 'high',
-    plan_thinking: selectedProvider === 'openai' ? 'xhigh' : 'high',
+    default_model: defaults.default,
+    build_thinking: defaultThinking(defaults.default, 'session'),
+    plan_thinking: defaultThinking(defaults.default, 'plan'),
     agents: AGENT_NAMES.map(name => ({
       template: name,
       name,
       model: defaults[name],
-      thinking: name === 'keymaker' ? (selectedProvider === 'amazon-bedrock' ? 'default' : 'high')
-        : name === 'sentinel' ? 'low'
-        : name === 'oracle' && selectedProvider === 'opencode-go' ? 'on'
-        : name === 'architect' && selectedProvider === 'openai' ? 'xhigh' : 'high',
+      thinking: defaultThinking(defaults[name], name),
     })),
   };
 }
@@ -139,7 +137,7 @@ async function promptSection(prompt: typeof inquirer, section: HarnessSection): 
     await promptForOpenCodeProvider(prompt, OPENCODE_PROVIDERS, openCodeSection.provider)
   );
   const models = modelsForProvider(provider);
-  return promptForOpenCodeModels(prompt, provider === openCodeSection.provider ? openCodeSection : defaultSection(provider), models, provider);
+  return promptForOpenCodeModels(prompt, provider === openCodeSection.provider ? openCodeSection : defaultSection(provider), models, provider, defaultSection(provider));
 }
 
 function installAgents(section: HarnessSection, basePath: string, sharedConfig?: SharedConfig): void {
@@ -210,28 +208,42 @@ function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
     throw new FileWriteError(basePath, err instanceof Error ? err.message : String(err));
   }
 
-  const sentinel = config.agents.find(a => a.name === 'sentinel');
-  const architect = config.agents.find(a => a.name === 'architect');
-
   // Explicit thinking selections replace stale settings from the previous model.
   const existingAgents = existing.agent as Record<string, Record<string, unknown>> | undefined;
-  for (const mode of ['build', 'plan'] as const) {
-    if (config[`${mode}_thinking`] === undefined || !existingAgents?.[mode]) continue;
-    for (const key of OPENCODE_THINKING_KEYS) delete existingAgents[mode][key];
+  if (config.build_thinking !== undefined && existingAgents?.build) {
+    for (const key of OPENCODE_THINKING_KEYS) delete existingAgents.build[key];
   }
 
+  // agent.plan is Atelier's only when marked mode 'primary'; any other entry belongs to the user and is untouched.
+  const existingPlan = existingAgents?.plan;
+  const userOwnsPlan = existingPlan !== undefined && !isAtelierPlan(existingPlan);
+  if (config.plan_thinking !== undefined && userOwnsPlan) {
+    console.log(`Skipped agent.plan in ${shortPath(opencodeJsonPath)} because it is not managed by Atelier.`);
+  }
+  if (config.plan_thinking === undefined) {
+    // No plan setting: drop a stale Atelier entry (its model may differ from the session model), keep user keys.
+    if (existingAgents && typeof existingAgents === 'object' && !Array.isArray(existingAgents)) stripModeEntry(existingAgents, 'plan');
+  } else if (!userOwnsPlan && existingAgents?.plan) {
+    for (const key of OPENCODE_THINKING_KEYS) delete existingAgents.plan[key];
+  }
+
+  // Top-level model is what every agent without its own model falls back to, so the
+  // session model must be set there too or "one model" doesn't hold.
   const atelierFields: Record<string, unknown> = {
+    model: config.default_model,
     agent: {
       build: {
         mode: 'primary',
-        model: config.build_model || sentinel?.model || DEFAULT_MODELS[config.provider].build,
-        ...openCodeThinkingOptions(config.build_model, config.build_thinking),
+        model: config.default_model,
+        ...openCodeThinkingOptions(config.default_model, config.build_thinking),
       },
-      plan: {
-        mode: 'primary',
-        model: config.plan_model || architect?.model || DEFAULT_MODELS[config.provider].plan,
-        ...openCodeThinkingOptions(config.plan_model, config.plan_thinking),
-      },
+      ...(config.plan_thinking === undefined || userOwnsPlan ? {} : {
+        plan: {
+          mode: 'primary',
+          model: config.default_model,
+          ...openCodeThinkingOptions(config.default_model, config.plan_thinking),
+        },
+      }),
     },
   };
 
@@ -243,6 +255,22 @@ function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
         },
       },
     };
+  }
+
+  const legacyProvider = existing.provider;
+  const hasLegacyOpenrouter = !!legacyProvider && typeof legacyProvider === 'object' && !Array.isArray(legacyProvider)
+    && (legacyProvider as Record<string, unknown>).openrouter !== undefined;
+
+  if (config.provider === 'openrouter' && config.warming === true && hasLegacyOpenrouter) {
+    // OpenCode replaces a legacy provider.openrouter block wholesale when warming is set; that block is the user's.
+    removeWarming(existing);
+    console.log(`Skipped providers.openrouter.settings.cache.warming in ${shortPath(opencodeJsonPath)} because provider.openrouter is present; warming was not applied.`);
+  } else if (config.provider === 'openrouter' && config.warming === true) {
+    const warming = ['providers', 'openrouter', 'settings', 'cache', 'warming'].reduce<unknown>((node, key) => (node && typeof node === 'object' ? (node as Record<string, unknown>)[key] : undefined), existing);
+    // A custom object value (for example an interval) is the user's own; do not overwrite it.
+    if (typeof warming !== 'object' || warming === null) atelierFields.providers = { openrouter: { settings: { cache: { warming: true } } } };
+  } else if (config.provider !== 'openrouter' || config.warming === false) {
+    removeWarming(existing);
   }
 
   const merged = deepMerge(existing, atelierFields);
@@ -415,6 +443,7 @@ function writeOrDeleteOpenCodeJson(basePath: string, config: OpenCodeConfig): vo
   const content = stripOpenCodeConfig(
     readExistingOpenCodeJson(opencodeJsonPath),
     config.provider,
+    config.default_model,
   );
 
   try {
@@ -440,14 +469,30 @@ function readExistingOpenCodeJson(opencodeJsonPath: string): Record<string, unkn
   }
 }
 
-function stripOpenCodeConfig(content: Record<string, unknown>, provider: OpenCodeProvider): Record<string, unknown> {
+// agent.plan is Atelier's only when marked mode 'primary'; any other entry belongs to the user.
+function isAtelierPlan(entry: unknown): boolean {
+  return typeof entry === 'object' && entry !== null && !Array.isArray(entry) && (entry as Record<string, unknown>).mode === 'primary';
+}
+
+// agent.build is always Atelier's. agent.plan is Atelier's only when marked mode 'primary';
+// any other agent.plan belongs to the user and is left intact.
+function stripModeEntry(agent: Record<string, unknown>, mode: 'build' | 'plan'): void {
+  const entry = agent[mode];
+  if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return;
+  const record = entry as Record<string, unknown>;
+  if (mode === 'plan' && !isAtelierPlan(record)) return;
+  for (const key of ['mode', 'model', ...OPENCODE_THINKING_KEYS]) delete record[key];
+  if (!Object.keys(record).length) delete agent[mode];
+}
+
+function stripOpenCodeConfig(content: Record<string, unknown>, provider: OpenCodeProvider, sessionModel: string): Record<string, unknown> {
+  // Only clear the top-level model while it still holds the value Atelier wrote.
+  if (content.model === sessionModel) delete content.model;
+
   if (content.agent && typeof content.agent === 'object' && !Array.isArray(content.agent)) {
     const agent = content.agent as Record<string, unknown>;
-    for (const mode of ['build', 'plan']) {
-      const entry = agent[mode];
-      if (!entry || typeof entry !== 'object' || Array.isArray(entry)) continue;
-      for (const key of ['mode', 'model', ...OPENCODE_THINKING_KEYS]) delete (entry as Record<string, unknown>)[key];
-      if (!Object.keys(entry).length) delete agent[mode];
+    for (const mode of ['build', 'plan'] as const) {
+      stripModeEntry(agent, mode);
     }
     if (Object.keys(agent).length === 0) {
       delete content.agent;
@@ -468,7 +513,27 @@ function stripOpenCodeConfig(content: Record<string, unknown>, provider: OpenCod
     }
   }
 
+  removeWarming(content);
+
   return content;
+}
+
+// Removes providers.openrouter.settings.cache.warming only when it is exactly true (an object is a
+// user's custom interval), then prunes parents left empty. Tolerates non-object values at any level.
+function removeWarming(content: Record<string, unknown>): void {
+  const path = ['providers', 'openrouter', 'settings', 'cache'];
+  const chain: Record<string, unknown>[] = [content];
+  for (const key of path) {
+    const next = chain[chain.length - 1][key];
+    if (!next || typeof next !== 'object' || Array.isArray(next)) return;
+    chain.push(next as Record<string, unknown>);
+  }
+  const cache = chain[chain.length - 1];
+  if (cache.warming !== true) return;
+  delete cache.warming;
+  for (let i = chain.length - 1; i > 0 && !Object.keys(chain[i]).length; i--) {
+    delete chain[i - 1][path[i - 1]];
+  }
 }
 
 export function getOpencodeRoot(basePath: string): string {

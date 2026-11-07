@@ -17,10 +17,9 @@ describe('paths', () => {
     expect(getGlobalOpencodeDir()).toBe(join(homedir(), '.config', 'opencode'));
   });
 
-  it('resolveBasePath uses homedir for claude, codex, and cursor', () => {
+  it('resolveBasePath uses homedir for claude and codex', () => {
     expect(resolveBasePath('claude')).toBe(homedir());
     expect(resolveBasePath('codex')).toBe(homedir());
-    expect(resolveBasePath('cursor')).toBe(homedir());
   });
 
   it('resolveBasePath uses global opencode dir for opencode', () => {

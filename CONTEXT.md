@@ -28,6 +28,24 @@ Examples: `opus`, `gpt-5.6-sol`, `opencode/kimi-k2.6`
 
 _Avoid_: engine, instance
 
+**Session Model**
+
+The one model a harness runs its main session on, stored as `default_model` in the harness section of `AtelierConfig`. Plan mode does not swap it. OpenCode's older `build_model` and `plan_model` are migrated into it.
+
+_Avoid_: build model, plan model, default agent model
+
+**Session Thinking**
+
+The thinking level for the Session Model, stored as `build_thinking`. Claude has this one level only; Codex and OpenCode also have Plan Thinking. Per-agent levels are separate, in `agents[].thinking`.
+
+_Avoid_: build mode thinking, main effort
+
+**Plan Thinking**
+
+A separate thinking level for plan mode on the same Session Model, stored as `plan_thinking` (Codex and OpenCode only). It is not a plan model: it never selects a different model.
+
+_Avoid_: plan model, plan effort setting, plan mode model
+
 **Adapter**
 
 A harness-specific module that installs and removes Atelier-managed artifacts for one harness. It translates agnostic agent templates into harness-native agent files and merges Atelier-managed settings into the harness's native configuration file. Adapters perform their own file I/O.
@@ -126,12 +144,6 @@ A harness's native configuration file (e.g. `opencode.json`, `.claude/settings.j
 
 _Avoid_: client config, IDE config
 
-**Default Model**
-
-The single global model Cursor CLI applies across its native Agent, Plan, Ask, and Debug modes. It is distinct from a Cursor subagent's independently configured model.
-
-_Avoid_: mode model, build model (for Cursor)
-
 ## Resolutions
 
 - **Provider** was previously overloaded to mean both the model family for simple harnesses and the OpenCode provider selection. Provider is now always the model-hosting service. It is persisted explicitly in `OpenCodeConfig` and optionally in `SimpleConfig` with harness defaults (`anthropic` for Claude, `openai` for Codex).
@@ -142,7 +154,6 @@ _Avoid_: mode model, build model (for Cursor)
 - **fileList and remove** use the same canonical list of Atelier-managed files. `fileList` reports existence; `remove` deletes those files.
 - **Agent Selection** was previously hard-coded per workflow step (`/code-review` named `oracle` for every reviewer persona). Selection is now explicit and made by the main agent from the kind of work, per `atelier-orchestrator`; skills never name an agent, so descriptions are the routing surface.
 - **Agent Template** set is `sentinel` (read-only recon), `oracle` (critical analysis), `architect` (technical design) and `keymaker` (implementer of settled designs, the only template installed with write access in Codex).
-- **Cursor Default Model** is user-owned. Atelier configures Cursor subagent models only; it does not read, write, or model Cursor's primary model or native configuration.
 
 ## Example dialogue
 

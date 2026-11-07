@@ -1,8 +1,8 @@
 import inquirer from 'inquirer';
-import type { HarnessAdapter, HarnessSection, SimpleConfig, OpenCodeConfig, Provider, ProviderChoice } from '../types.js';
+import type { Harness, HarnessAdapter, HarnessSection, SimpleConfig, CodexConfig, OpenCodeConfig, Provider, ProviderChoice } from '../types.js';
 import { AGENT_NAMES } from '../constants.js';
 import { InvalidConfigError } from '../utils/errors.js';
-import { thinkingChoices, type Thinking, type ThinkingHarness } from '../utils/thinking.js';
+import { avoidsProviderDefault, recommendedThinking, thinkingChoices, type Slot, type Thinking } from '../utils/thinking.js';
 
 export async function promptForSection(adapter: HarnessAdapter, section: HarnessSection): Promise<HarnessSection> {
   return adapter.promptSection(inquirer, section);
@@ -25,44 +25,17 @@ export async function promptForOpenCodeProvider(
   return answer.provider as OpenCodeConfig['provider'];
 }
 
+type AnyConfig = SimpleConfig | CodexConfig | OpenCodeConfig;
+
 export async function promptForSimpleModels(
   prompt: typeof inquirer,
   section: SimpleConfig,
   models: readonly string[],
   harness: 'claude' | 'codex' = 'claude',
+  recommended?: SimpleConfig,
 ): Promise<SimpleConfig> {
-  const answers = await prompt.prompt([
-    {
-      type: 'list',
-      name: 'default_model',
-      message: 'Select default model',
-      choices: modelChoices(models, section.default_model),
-      default: section.default_model,
-    },
-    ...AGENT_NAMES.map(name => ({
-      type: 'list' as const,
-      name,
-      message: `Select model for ${name}`,
-      choices: modelChoices(models, section.agents.find(a => a.name === name)?.model),
-      default: section.agents.find(a => a.name === name)?.model || models[0],
-    })),
-  ]);
-
-  const selectedModel = answers.default_model || section.default_model;
-  const result: SimpleConfig = {
-    ...section,
-    default_model: selectedModel,
-    agents: AGENT_NAMES.map(name => {
-      const agent = section.agents.find(a => a.name === name);
-      return {
-        ...agent,
-        template: name,
-        name,
-        model: answers[name] || agent?.model || models[0],
-      };
-    }),
-  };
-  await promptThinking(prompt, harness, result, section);
+  const result: SimpleConfig = { ...section };
+  await promptModelsAndThinking(prompt, harness, result, section, models, recommended);
   return result;
 }
 
@@ -71,82 +44,112 @@ export async function promptForOpenCodeModels(
   section: OpenCodeConfig,
   models: readonly string[],
   provider: OpenCodeConfig['provider'],
+  recommended?: OpenCodeConfig,
 ): Promise<OpenCodeConfig> {
-  const answers = await prompt.prompt([
-    {
-      type: 'list',
-      name: 'build_model',
-      message: 'Select model for build',
-      choices: modelChoices(models, section.build_model),
-      default: section.build_model,
-    },
-    {
-      type: 'list',
-      name: 'plan_model',
-      message: 'Select model for plan',
-      choices: modelChoices(models, section.plan_model),
-      default: section.plan_model,
-    },
-    ...AGENT_NAMES.map(name => ({
-      type: 'list' as const,
-      name,
-      message: `Select model for ${name}`,
-      choices: modelChoices(models, section.agents.find(a => a.name === name)?.model),
-      default: section.agents.find(a => a.name === name)?.model || models[0],
-    })),
-  ]);
-
-  const result: OpenCodeConfig = {
-    ...section,
-    provider,
-    build_model: answers.build_model || section.build_model,
-    plan_model: answers.plan_model || section.plan_model,
-    agents: AGENT_NAMES.map(name => {
-      const agent = section.agents.find(a => a.name === name);
-      return {
-        ...agent,
-        template: name,
-        name,
-        model: answers[name] || agent?.model || models[0],
-      };
-    }),
-  };
-  await promptThinking(prompt, 'opencode', result, section);
+  const result: OpenCodeConfig = { ...section, provider };
+  await promptModelsAndThinking(prompt, 'opencode', result, section, models, recommended);
+  if (provider === 'openrouter') {
+    const { warming } = await prompt.prompt([{
+      type: 'confirm',
+      name: 'warming',
+      message: 'Keep idle sessions warm? This sends keep-alive requests every few minutes, which cost money (requires OpenCode 2.2.6 or later)',
+      default: section.warming ?? false,
+    }]);
+    if (warming !== undefined) result.warming = warming;
+  }
   return result;
 }
 
-function modelChoices(models: readonly string[], saved?: string): string[] {
-  return [...new Set([...models, ...(saved ? [saved] : [])])];
+function modelChoices(models: readonly string[], saved?: string, recommended?: string): Array<{ name: string; value: string }> {
+  return [...new Set([...models, ...(saved ? [saved] : [])])].map(value => ({ name: value === recommended ? `${value} (recommended)` : value, value }));
 }
 
-async function promptThinking(prompt: typeof inquirer, harness: ThinkingHarness, config: SimpleConfig | OpenCodeConfig, previous: SimpleConfig | OpenCodeConfig): Promise<void> {
-  const modelFor = (section: SimpleConfig | OpenCodeConfig, mode: 'build' | 'plan') => 'default_model' in section ? section.default_model : section[`${mode}_model`];
-  const slots: Array<{ name: string; label: string; model: string; oldModel: string; saved?: Thinking; session: boolean; set: (value: Thinking | undefined) => void }> = (['build', 'plan'] as const).filter(mode => !(mode === 'plan' && harness === 'claude' && modelFor(config, mode) !== 'opusplan')).map(mode => ({
-    name: `${mode}_thinking`, label: mode,
-    model: modelFor(config, mode),
-    oldModel: modelFor(previous, mode),
-    saved: previous[`${mode}_thinking`], session: true,
-    set: (value: Thinking | undefined) => { config[`${mode}_thinking`] = value; },
-  }));
-  for (const agent of config.agents) {
-    const old = previous.agents.find(a => a.name === agent.name);
-    slots.push({ name: `${agent.name}_thinking`, label: agent.name, model: agent.model, oldModel: old?.model ?? '', saved: old?.thinking, session: false, set: value => { agent.thinking = value; } });
+// Walks the session then each agent: asks its model, then straight away its thinking. Updates `config` in place.
+async function promptModelsAndThinking(
+  prompt: typeof inquirer,
+  harness: Harness,
+  config: AnyConfig,
+  previous: AnyConfig,
+  models: readonly string[],
+  recommended?: AnyConfig,
+): Promise<void> {
+  const hasPlan = harness !== 'claude';
+  const sessionAnswer = await prompt.prompt([{
+    type: 'list',
+    name: 'default_model',
+    message: 'Select default model',
+    choices: modelChoices(models, previous.default_model, recommended?.default_model),
+    default: previous.default_model,
+  }]);
+  config.default_model = sessionAnswer.default_model || previous.default_model;
+  const planConfig = config as CodexConfig | OpenCodeConfig;
+  await promptThinking(prompt, [{
+    name: 'build_thinking', role: 'session', label: harness === 'claude' ? 'session' : 'build',
+    model: config.default_model,
+    oldModel: previous.default_model,
+    saved: previous.build_thinking, session: true,
+    set: value => { config.build_thinking = value; },
+  }, ...(hasPlan ? [{
+    name: 'plan_thinking', role: 'plan' as const, label: 'plan',
+    model: config.default_model,
+    oldModel: previous.default_model,
+    saved: (previous as CodexConfig | OpenCodeConfig).plan_thinking, session: false,
+    set: (value: Thinking | undefined) => { planConfig.plan_thinking = value; },
+  }] : [])], harness);
+
+  const agents: AnyConfig['agents'] = [];
+  for (const name of AGENT_NAMES) {
+    const old = previous.agents.find(a => a.name === name);
+    const answer = await prompt.prompt([{
+      type: 'list',
+      name,
+      message: `Select model for ${name}`,
+      choices: modelChoices(models, old?.model, recommended?.agents.find(a => a.name === name)?.model),
+      default: old?.model || models[0],
+    }]);
+    const agent = { ...old, template: name, name, model: answer[name] || old?.model || models[0] } as AnyConfig['agents'][number];
+    agents.push(agent);
+    await promptThinking(prompt, [{
+      name: `${name}_thinking`, role: name, label: name, model: agent.model, oldModel: old?.model ?? '', saved: old?.thinking, session: false,
+      set: value => { agent.thinking = value; },
+    }], harness);
   }
+  config.agents = agents;
+}
+
+interface ThinkingSlot {
+  name: string;
+  role: Slot;
+  label: string;
+  model: string;
+  oldModel: string;
+  saved?: Thinking;
+  session: boolean;
+  set: (value: Thinking | undefined) => void;
+}
+
+// One prompt call for the given slots. `role` picks the recommendation row; `label` is what the user reads.
+async function promptThinking(prompt: typeof inquirer, slots: ThinkingSlot[], harness: Harness): Promise<void> {
   const questions = slots.map(slot => {
     const choices = thinkingChoices(harness, slot.model, slot.session);
-    const saved = slot.model === slot.oldModel && (slot.saved === undefined || choices.includes(slot.saved)) ? slot.saved : 'default';
-    slot.set(saved);
+    const recommended = recommendedThinking(slot.model, slot.role).filter(level => choices.includes(level));
+    const fallback = recommended[0] ?? 'default';
+    const unchanged = slot.model === slot.oldModel && (slot.saved === undefined || choices.includes(slot.saved));
+    const preselected = unchanged ? (slot.saved === 'default' && avoidsProviderDefault(slot.model) ? fallback : slot.saved) : fallback;
+    slot.set(preselected);
     return {
       type: 'list' as const, name: slot.name, message: `Select thinking for ${slot.label} (${slot.model})`,
-      choices: saved === undefined ? [{ name: 'Keep existing behavior', value: 'keep' }, ...choices] : choices,
-      default: saved ?? 'keep',
+      choices: [
+        ...(preselected === undefined ? [{ name: 'Keep existing behavior', value: 'keep' }] : []),
+        ...choices.map(level => ({ name: recommended.includes(level) ? `${level} (recommended)` : level, value: level })),
+      ],
+      default: preselected ?? 'keep',
     };
   });
   const answers = await prompt.prompt(questions);
   for (const slot of slots) {
     if (answers[slot.name] !== undefined) slot.set(answers[slot.name] === 'keep' ? undefined : answers[slot.name] as Thinking);
   }
-  if (harness === 'claude' && 'default_model' in config && config.default_model !== 'opusplan') config.plan_thinking = config.build_thinking;
 }
 
 export function formatFileList(files: { path: string; exists: boolean; action?: 'delete' }[]): string {

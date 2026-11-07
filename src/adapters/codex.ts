@@ -8,25 +8,19 @@ import { AGENT_NAMES, LEGACY_AGENT_NAME } from '../constants.js';
 import { FileWriteError, HarnessConfigError } from '../utils/errors.js';
 import { shortPath } from '../services/paths.js';
 import { CodexConfigSchema } from '../utils/schemas.js';
-import { codexThinking } from '../utils/thinking.js';
+import { codexThinking, defaultThinking } from '../utils/thinking.js';
 import { promptForSimpleModels } from '../services/prompt.js';
 
 const OPENAI_MODELS = [
+  'gpt-6.1-sol',
+  'gpt-6.1-terra',
   'gpt-6-astra',
   'gpt-6-sol',
   'gpt-6-luna',
-  'gpt-5.6-sol',
-  'gpt-5.6-terra',
-  'gpt-5.6-luna',
-  'gpt-5.5',
-  'gpt-5.4',
-  'gpt-5.4-mini',
-  'gpt-5.4-nano',
-  'gpt-5.3-codex-spark',
 ] as const;
 
 const DEFAULT_MODELS = {
-  default_model: 'gpt-6-sol',
+  default_model: 'gpt-6-astra',
   sentinel: 'gpt-6-luna',
   oracle: 'gpt-6-astra',
   architect: 'gpt-6-astra',
@@ -67,13 +61,13 @@ function defaultSection(): CodexConfig {
   return {
     provider: 'openai',
     default_model: DEFAULT_MODELS.default_model,
-    build_thinking: 'high',
-    plan_thinking: 'xhigh',
+    build_thinking: defaultThinking(DEFAULT_MODELS.default_model, 'session'),
+    plan_thinking: defaultThinking(DEFAULT_MODELS.default_model, 'plan'),
     agents: AGENT_NAMES.map(name => ({
       template: name,
       name,
       model: DEFAULT_MODELS[name],
-      thinking: ({ sentinel: 'low', oracle: 'high', architect: 'xhigh', keymaker: 'medium' } as const)[name],
+      thinking: defaultThinking(DEFAULT_MODELS[name], name),
     })),
   };
 }
@@ -83,7 +77,7 @@ function modelsForProvider(_provider?: Provider): readonly string[] {
 }
 
 async function promptSection(prompt: typeof inquirer, section: HarnessSection): Promise<HarnessSection> {
-  return promptForSimpleModels(prompt, section as CodexConfig, modelsForProvider(), 'codex');
+  return promptForSimpleModels(prompt, section as CodexConfig, modelsForProvider(), 'codex', defaultSection());
 }
 
 function installAgents(section: HarnessSection, basePath: string): void {
@@ -135,7 +129,8 @@ function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
     ...existing,
     model: config.default_model,
     ...effortField('model_reasoning_effort', codexThinking(config.build_thinking, 'medium')),
-    ...effortField('plan_mode_reasoning_effort', codexThinking(config.plan_thinking, 'high')),
+    // An unset plan_thinking leaves any existing plan_mode_reasoning_effort alone.
+    ...effortField('plan_mode_reasoning_effort', codexThinking(config.plan_thinking)),
     sandbox_mode: 'danger-full-access',
     approval_policy: 'on-request',
     features: {

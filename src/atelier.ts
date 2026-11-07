@@ -13,7 +13,7 @@ const program = new Command();
 
 program
   .name('atelier')
-  .description('Atelier CLI - configure Claude Code, OpenCode, Codex, and Cursor for spec-driven development')
+  .description('Atelier CLI - configure Claude Code, OpenCode, and Codex for spec-driven development')
   .version('0.1.0');
 
 program
