@@ -69,10 +69,10 @@ describe('update', () => {
     expect(existsSync(join(tempDir, '.codex/agents/sentinel.toml'))).toBe(false);
 
     inquirerAnswers = {
-      default_model: 'gpt-5.6-terra',
-      sentinel: 'gpt-5.6-luna',
-      oracle: 'gpt-5.6-sol',
-      architect: 'gpt-5.6-sol',
+      default_model: 'gpt-6.1-terra',
+      sentinel: 'gpt-6-luna',
+      oracle: 'gpt-6-sol',
+      architect: 'gpt-6-sol',
       confirm: true,
     };
     await update({ harness: 'codex' });
@@ -92,10 +92,10 @@ describe('update', () => {
     const configBefore = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
 
     inquirerAnswers = {
-      default_model: 'gpt-5.6-luna',
-      sentinel: 'gpt-5.6-luna',
-      oracle: 'gpt-5.6-luna',
-      architect: 'gpt-5.6-luna',
+      default_model: 'gpt-6-luna',
+      sentinel: 'gpt-6-luna',
+      oracle: 'gpt-6-luna',
+      architect: 'gpt-6-luna',
       confirm: false,
     };
     await update({ harness: 'codex' });
@@ -112,10 +112,10 @@ describe('update', () => {
 
     inquirerAnswers = {
       harness: 'codex',
-      default_model: 'gpt-5.6-terra',
-      sentinel: 'gpt-5.6-luna',
-      oracle: 'gpt-5.6-sol',
-      architect: 'gpt-5.6-sol',
+      default_model: 'gpt-6.1-terra',
+      sentinel: 'gpt-6-luna',
+      oracle: 'gpt-6-sol',
+      architect: 'gpt-6-sol',
       confirm: true,
     };
     await update({});

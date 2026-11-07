@@ -8,7 +8,7 @@ import { claudeAdapter } from './claude.js';
 import { codexAdapter } from './codex.js';
 import { opencodeAdapter } from './opencode.js';
 import { ClaudeConfigSchema, CodexConfigSchema, OpenCodeConfigSchema } from '../utils/schemas.js';
-import { thinkingChoices, openCodeThinkingOptions, recommendedThinking, defaultThinking } from '../utils/thinking.js';
+import { thinkingChoices, openCodeThinkingOptions, recommendedThinking, defaultThinking, avoidsProviderDefault } from '../utils/thinking.js';
 import type { ThinkingHarness } from '../utils/thinking.js';
 import type { HarnessAdapter, SimpleConfig, OpenCodeConfig, Provider } from '../types.js';
 
@@ -163,6 +163,41 @@ describe('model and thinking settings', () => {
     expect(openCodeThinkingOptions('google/gemini-4-argon', 'medium')).toEqual({ thinkingConfig: { thinkingLevel: 'medium' } });
     expect(openCodeThinkingOptions('opencode/mistral-large-4', 'off')).toEqual({ reasoningEffort: 'none' });
     expect(openCodeThinkingOptions('openrouter/anthropic/claude-opus-5.5', 'default')).toEqual({});
+  });
+
+  it('supports Qwen 3.8 Max, Hy4, Step 5, Ling and Beam per catalog', () => {
+    expect(thinkingChoices('opencode', 'opencode/qwen3.8-max')).toEqual(['default', 'off', 'low', 'medium', 'xhigh']);
+    expect(thinkingChoices('opencode', 'opencode-go/qwen3.8-max')).toEqual(['default', 'off', 'low', 'medium', 'xhigh']);
+    for (const id of ['qwen3.8-max-0902', 'qwen3.8-max-prime']) {
+      expect(thinkingChoices('opencode', `openrouter/qwen/${id}`)).toEqual(['default', 'low', 'medium', 'high', 'xhigh']);
+    }
+    expect(thinkingChoices('opencode', 'opencode-go/hy4')).toEqual(['default', 'off', 'high']);
+    expect(thinkingChoices('opencode', 'openrouter/tencent/hy4')).toEqual(['default', 'off', 'high']);
+    expect(thinkingChoices('opencode', 'opencode-go/step-5-preview')).toEqual(['default', 'low', 'medium', 'high']);
+    expect(thinkingChoices('opencode', 'openrouter/stepfun/step-5-preview')).toEqual(['default', 'low', 'medium', 'high']);
+    expect(thinkingChoices('opencode', 'openrouter/inclusionai/ling-3.1-flash')).toEqual(['default', 'off', 'on']);
+    for (const id of ['opencode/beam-free', 'opencode-go/beam-free', 'openrouter/reflection/beam-1.0-501b-a23b']) {
+      expect(thinkingChoices('opencode', id)).toEqual(['default', 'low', 'medium', 'high', 'xhigh', 'max']);
+    }
+    expect(openCodeThinkingOptions('opencode-go/hy4', 'off')).toEqual({ reasoningEffort: 'none' });
+    expect(openCodeThinkingOptions('opencode-go/hy4', 'high')).toEqual({ reasoningEffort: 'high' });
+    // Beam defaults to max on OpenRouter, so a saved `default` is replaced like Kimi's.
+    expect(avoidsProviderDefault('openrouter/reflection/beam-1.0-501b-a23b')).toBe(true);
+    expect(avoidsProviderDefault('opencode/beam-free')).toBe(true);
+    expect(avoidsProviderDefault('opencode/glm-5.3')).toBe(false);
+  });
+
+  it('lists the current catalogs without superseded models', () => {
+    expect(codexAdapter.modelsForProvider()).toEqual(['gpt-6.1-sol', 'gpt-6.1-terra', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna']);
+    expect(opencodeAdapter.modelsForProvider('openai')).toEqual(['gpt-6.1-sol', 'gpt-6.1-terra', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna'].map(id => `openai/${id}`));
+    expect(opencodeAdapter.modelsForProvider('opencode-zen')).not.toContain('opencode/kimi-k2.7-code');
+    expect(opencodeAdapter.modelsForProvider('opencode-zen')).toContain('opencode/beam-free');
+    expect(opencodeAdapter.modelsForProvider('google')).toEqual(['gemini-4-argon', 'gemini-3.8-flash', 'gemini-3.5-flash-lite'].map(id => `google/${id}`));
+    expect(opencodeAdapter.modelsForProvider('opencode-go')).toEqual(expect.arrayContaining(['opencode-go/hy4', 'opencode-go/step-5-preview', 'opencode-go/beam-free']));
+    expect(opencodeAdapter.modelsForProvider('openrouter')).toEqual(expect.arrayContaining([
+      'openrouter/qwen/qwen3.8-max-0902', 'openrouter/qwen/qwen3.8-max-prime', 'openrouter/tencent/hy4',
+      'openrouter/stepfun/step-5-preview', 'openrouter/inclusionai/ling-3.1-flash', 'openrouter/reflection/beam-1.0-501b-a23b',
+    ]));
   });
 
   it('keeps old Codex models and implicit medium/high reasoning', () => {

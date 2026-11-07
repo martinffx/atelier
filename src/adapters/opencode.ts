@@ -23,24 +23,25 @@ const PROVIDER_MODELS: Record<OpenCodeProvider, readonly string[]> = {
   'opencode-zen': [
     'gpt-6.1-sol', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna',
     'claude-opus-5-5', 'claude-fable-5-1', 'claude-sonnet-5-5', 'claude-haiku-5-5',
-    'glm-5.3', 'glm-5.3-flash', 'kimi-k3', 'kimi-k2.7-code',
+    'glm-5.3', 'glm-5.3-flash', 'kimi-k3',
     'deepseek-v4.1-flash', 'deepseek-v4-pro', 'minimax-m3',
     'qwen3.8-max', 'qwen3.8-flash', 'mimo-v2.6-flash-free',
     'gemini-4-argon', 'gemini-3.8-flash', 'grok-4.7', 'mistral-large-4',
     'muse-spark-1.3', 'muse-wonder-1.0',
-    'inkling-2-small-free', 'nemotron-3.5-super-vl-free', 'nemotron-3.5-lightning-free',
+    'inkling-2-small-free', 'nemotron-3.5-super-vl-free', 'nemotron-3.5-lightning-free', 'beam-free',
   ].map(id => `opencode/${id}`),
   'opencode-go': [
     'glm-5.3', 'glm-5.3-flash', 'kimi-k3.1-pro', 'kimi-k3',
     'deepseek-v4.1-flash', 'deepseek-v4-pro', 'minimax-m3.1-flash', 'minimax-m3',
     'qwen3.8-max', 'qwen3.8-flash', 'mimo-v2.6-pro', 'mimo-v2.6-flash',
     'gpt-6-luna', 'claude-haiku-5-5', 'gemini-4-argon', 'grok-4.7', 'muse-spark-1.3-contributor',
+    'hy4', 'step-5-preview', 'beam-free',
   ].map(id => `opencode-go/${id}`),
   'amazon-bedrock': [
     'us.anthropic.claude-opus-5-5', 'us.anthropic.claude-fable-5-1',
     'us.anthropic.claude-sonnet-5-5', 'us.anthropic.claude-haiku-5-5',
   ].map(id => `amazon-bedrock/${id}`),
-  openai: ['gpt-6.1-sol', 'gpt-6.1-terra', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna', 'gpt-5.3-codex-spark'].map(id => `openai/${id}`),
+  openai: ['gpt-6.1-sol', 'gpt-6.1-terra', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna'].map(id => `openai/${id}`),
   openrouter: [
     'anthropic/claude-opus-5.5', 'anthropic/claude-fable-5.1', 'anthropic/claude-sonnet-5.5', 'anthropic/claude-haiku-5.5',
     'openai/gpt-6.1-sol', 'openai/gpt-6.1-terra', 'openai/gpt-6-astra', 'openai/gpt-6-sol', 'openai/gpt-6-luna',
@@ -49,12 +50,13 @@ const PROVIDER_MODELS: Record<OpenCodeProvider, readonly string[]> = {
     'moonshotai/kimi-k3.1-pro', 'moonshotai/kimi-k3',
     'deepseek/deepseek-v4.1-flash-1017', 'deepseek/deepseek-v4.1-flash', 'deepseek/deepseek-v4-pro',
     'x-ai/grok-4.7', 'minimax/minimax-m3.1-flash', 'minimax/minimax-m3',
-    'qwen/qwen3.8-flash', 'xiaomi/mimo-v2.6-pro', 'mistralai/mistral-large-4-0',
+    'qwen/qwen3.8-flash', 'qwen/qwen3.8-max-0902', 'qwen/qwen3.8-max-prime', 'xiaomi/mimo-v2.6-pro', 'mistralai/mistral-large-4-0',
     'thinkingmachines/inkling', 'thinkingmachines/inkling-small',
     'nvidia/nemotron-3.5-super-vl', 'nvidia/nemotron-3.5-lightning',
+    'tencent/hy4', 'stepfun/step-5-preview', 'inclusionai/ling-3.1-flash', 'reflection/beam-1.0-501b-a23b',
     'meta/muse-spark-1.3', 'meta/muse-spark-open', 'meta/muse-wonder',
   ].map(id => `openrouter/${id}`),
-  google: ['gemini-4-argon', 'gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.5-flash-lite'].map(id => `google/${id}`),
+  google: ['gemini-4-argon', 'gemini-3.8-flash', 'gemini-3.5-flash-lite'].map(id => `google/${id}`),
 };
 
 const DEFAULT_MODELS: Record<OpenCodeProvider, Record<'default' | typeof AGENT_NAMES[number], string>> = {

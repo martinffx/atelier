@@ -25,6 +25,12 @@ export function thinkingChoices(harness: ThinkingHarness, model: string, session
     if (/^muse-(spark-1\.3(-contributor)?|wonder(-1\.0)?)$/.test(id)) return ['default', 'low', 'medium', 'high', 'xhigh', 'max'];
     if (id === 'muse-spark-open') return ['default', 'low', 'medium', 'high', 'xhigh'];
     if (/^nemotron-3\.5-super-vl(-free)?$/.test(id)) return ['default', 'off', 'low', 'medium', 'high', 'xhigh'];
+    if (id === 'qwen3.8-max') return ['default', 'off', 'low', 'medium', 'xhigh'];
+    if (/^qwen3\.8-max-(0902|prime)$/.test(id)) return ['default', 'low', 'medium', 'high', 'xhigh'];
+    if (id === 'hy4') return ['default', 'off', 'high'];
+    if (id === 'step-5-preview') return ['default', 'low', 'medium', 'high'];
+    if (id === 'ling-3.1-flash') return ['default', 'off', 'on'];
+    if (/^beam-(free|1\.0-501b-a23b)$/.test(id)) return ['default', 'low', 'medium', 'high', 'xhigh', 'max'];
   }
   return ['default'];
 }
@@ -51,6 +57,11 @@ const RECOMMENDED: Array<[RegExp, Thinking[][]]> = [
   [/^minimax-m3\.1-flash$/, [['medium'], ['low'], ['high'], ['high'], ['high']]],
   [/^mistral-large-4(-0)?$/, [['high'], ['off'], ['high'], ['high'], ['high']]],
   [/^nemotron-3\.5-super-vl(-free)?$/, [['medium'], ['low'], ['high'], ['high'], ['high']]],
+  [/^qwen3\.8-max(-0902|-prime)?$/, [['medium'], ['low'], ['xhigh'], ['high', 'xhigh'], ['medium']]],
+  [/^hy4$/, [['high'], ['off'], ['high'], ['high'], ['high']]],
+  [/^step-5-preview$/, [['medium'], ['low'], ['high'], ['high'], ['high', 'medium']]],
+  [/^ling-3\.1-flash$/, [['on'], ['off'], ['on'], ['on'], ['on']]],
+  [/^beam-(free|1\.0-501b-a23b)$/, [['low'], ['low'], ['high'], ['high'], ['low', 'high']]],
 ];
 
 const modelId = (model: string): string => model.split('/').at(-1)!.toLowerCase();
@@ -67,9 +78,9 @@ export function defaultThinking(model: string, slot: string): Thinking {
   return recommendedThinking(model, slot)[0] ?? 'default';
 }
 
-// Kimi's provider default is max, so a saved `default` there is replaced rather than kept.
+// Kimi's and Beam's provider default is max, so a saved `default` there is replaced rather than kept.
 export function avoidsProviderDefault(model: string): boolean {
-  return /^kimi-k3(\.1-pro)?$/.test(modelId(model));
+  return /^(kimi-k3(\.1-pro)?|beam-(free|1\.0-501b-a23b))$/.test(modelId(model));
 }
 
 export function assertThinking(harness: ThinkingHarness, model: string, thinking?: Thinking, session = false): void {
@@ -103,7 +114,7 @@ export function openCodeThinkingOptions(model: string, thinking?: Thinking): Rec
   if (model.startsWith('google/')) return { thinkingConfig: { thinkingLevel: thinking } };
   if (model.includes('claude-')) return { effort: thinking };
   if (thinking === 'on' || thinking === 'off') {
-    if (/gpt-6|mistral-large|inkling|nemotron/.test(model)) return { reasoningEffort: 'none' };
+    if (/gpt-6|mistral-large|inkling|nemotron|hy4/.test(model)) return { reasoningEffort: 'none' };
     return { thinking: { type: thinking === 'off' ? 'disabled' : model.includes('minimax') ? 'adaptive' : 'enabled' } };
   }
   return { reasoningEffort: thinking };

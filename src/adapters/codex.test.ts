@@ -22,7 +22,8 @@ describe('codex adapter', () => {
   });
 
   it('modelsForProvider returns openai models', () => {
-    expect(codexAdapter.modelsForProvider()).toContain('gpt-5.6-sol');
+    expect(codexAdapter.modelsForProvider()).toContain('gpt-6.1-sol');
+    expect(codexAdapter.modelsForProvider()).not.toContain('gpt-5.6-sol');
   });
 
   it('mergeHarnessConfig writes config.toml', () => {

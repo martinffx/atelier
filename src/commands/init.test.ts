@@ -144,9 +144,9 @@ describe('init', () => {
     inquirerAnswers = {
       provider: 'openai',
       default_model: 'openai/gpt-6-astra',
-      sentinel: 'openai/gpt-5.6-luna',
-      oracle: 'openai/gpt-5.6-sol',
-      architect: 'openai/gpt-5.6-sol',
+      sentinel: 'openai/gpt-6-luna',
+      oracle: 'openai/gpt-6-sol',
+      architect: 'openai/gpt-6-sol',
       confirm: true,
     };
     const logs: string[] = [];
@@ -177,10 +177,10 @@ describe('init', () => {
   test('prompts for harness and creates config interactively', async () => {
     inquirerAnswers = {
       harness: 'codex',
-      default_model: 'gpt-5.6-terra',
-      sentinel: 'gpt-5.6-luna',
-      oracle: 'gpt-5.6-sol',
-      architect: 'gpt-5.6-sol',
+      default_model: 'gpt-6.1-terra',
+      sentinel: 'gpt-6-luna',
+      oracle: 'gpt-6-sol',
+      architect: 'gpt-6-sol',
       confirm: true,
     };
 
@@ -191,7 +191,7 @@ describe('init', () => {
 
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
     expect(config.codex).toBeDefined();
-    expect(config.codex.default_model).toBe('gpt-5.6-terra');
+    expect(config.codex.default_model).toBe('gpt-6.1-terra');
   });
 
   test('cancels when confirm prompt is false', async () => {
