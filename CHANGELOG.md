@@ -4,6 +4,15 @@
 
 - **breaking:** rename the `recon` agent to `sentinel`. Existing Atelier configuration is migrated automatically and legacy generated files are removed during the next command.
 
+## [3.7.0](https://github.com/martinffx/atelier/compare/v3.6.0...v3.7.0) (2026-11-07)
+
+
+### Features
+
+* **agents:** make keymaker the implementer of settled designs ([6c7fb33](https://github.com/martinffx/atelier/commit/6c7fb33463006d64f68f6bb2d7056347b3eb7bbf))
+* **claude:** set a 190k auto-compact window under opusplan ([a9f1ed1](https://github.com/martinffx/atelier/commit/a9f1ed156f10fbde547dcffe9b31b33409a204f3))
+* **opencode:** refresh model catalogs and add openrouter and google providers ([#90](https://github.com/martinffx/atelier/issues/90)) ([85ed86b](https://github.com/martinffx/atelier/commit/85ed86b5a070f08624c8f4dab2445ebeb8b73db3))
+
 ## [3.6.0](https://github.com/martinffx/atelier/compare/v3.5.0...v3.6.0) (2026-10-25)
 
 
