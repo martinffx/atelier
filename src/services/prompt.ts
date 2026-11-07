@@ -85,7 +85,7 @@ export async function promptForOpenCodeModels(
     const { warming } = await prompt.prompt([{
       type: 'confirm',
       name: 'warming',
-      message: 'Keep idle sessions warm? This sends keep-alive requests every few minutes, which cost money (requires OpenCode V2)',
+      message: 'Keep idle sessions warm? This sends keep-alive requests every few minutes, which cost money (requires OpenCode 2.2.6 or later)',
       default: section.warming ?? false,
     }]);
     if (warming !== undefined) result.warming = warming;

@@ -257,7 +257,15 @@ function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
     };
   }
 
-  if (config.provider === 'openrouter' && config.warming === true) {
+  const legacyProvider = existing.provider;
+  const hasLegacyOpenrouter = !!legacyProvider && typeof legacyProvider === 'object' && !Array.isArray(legacyProvider)
+    && (legacyProvider as Record<string, unknown>).openrouter !== undefined;
+
+  if (config.provider === 'openrouter' && config.warming === true && hasLegacyOpenrouter) {
+    // OpenCode replaces a legacy provider.openrouter block wholesale when warming is set; that block is the user's.
+    removeWarming(existing);
+    console.log(`Skipped providers.openrouter.settings.cache.warming in ${shortPath(opencodeJsonPath)} because provider.openrouter is present; warming was not applied.`);
+  } else if (config.provider === 'openrouter' && config.warming === true) {
     const warming = ['providers', 'openrouter', 'settings', 'cache', 'warming'].reduce<unknown>((node, key) => (node && typeof node === 'object' ? (node as Record<string, unknown>)[key] : undefined), existing);
     // A custom object value (for example an interval) is the user's own; do not overwrite it.
     if (typeof warming !== 'object' || warming === null) atelierFields.providers = { openrouter: { settings: { cache: { warming: true } } } };

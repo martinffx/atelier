@@ -93,6 +93,56 @@ describe('opencode adapter', () => {
       expect(read().providers).toEqual(custom.providers);
     });
 
+    describe('with a legacy provider.openrouter block', () => {
+      const legacy = { openrouter: { models: { custom: { name: 'Custom' } }, options: { order: ['x'] } } };
+
+      it('does not write the key and prints a skip line', () => {
+        seed({ provider: legacy });
+        const logs: string[] = [];
+        const orig = console.log;
+        console.log = (...args: unknown[]) => { logs.push(args.join(' ')); };
+        try {
+          opencodeAdapter.mergeHarnessConfig(orSection(true), basePath);
+        } finally {
+          console.log = orig;
+        }
+        expect(read().providers).toBeUndefined();
+        expect(read().provider).toEqual(legacy);
+        expect(logs.some(l => l.startsWith('Skipped providers.openrouter.settings.cache.warming in ') && l.includes('provider.openrouter'))).toBe(true);
+      });
+
+      it('clears an exact true and prunes empty parents', () => {
+        seed({ ...warm, provider: legacy });
+        opencodeAdapter.mergeHarnessConfig(orSection(true), basePath);
+        expect(read().providers).toBeUndefined();
+        expect(read().provider).toEqual(legacy);
+      });
+
+      it('leaves a custom warming object untouched', () => {
+        const custom = { providers: { openrouter: { settings: { cache: { warming: { interval: 60 } } } } } };
+        seed({ ...custom, provider: legacy });
+        opencodeAdapter.mergeHarnessConfig(orSection(true), basePath);
+        expect(read().providers).toEqual(custom.providers);
+      });
+
+      it('writes the key once the conflict is removed', () => {
+        seed({ provider: legacy });
+        opencodeAdapter.mergeHarnessConfig(orSection(true), basePath);
+        expect(read().providers).toBeUndefined();
+        const file = read();
+        delete file.provider;
+        seed(file);
+        opencodeAdapter.mergeHarnessConfig(orSection(true), basePath);
+        expect(read().providers).toEqual(warm.providers);
+      });
+
+      it('tolerates a non-object provider value', () => {
+        seed({ provider: 'x' });
+        opencodeAdapter.mergeHarnessConfig(orSection(true), basePath);
+        expect(read().providers).toEqual(warm.providers);
+      });
+    });
+
     it('clears it when switching away from OpenRouter', () => {
       seed(warm);
       opencodeAdapter.mergeHarnessConfig({ ...section('opencode-go'), warming: true }, basePath);
