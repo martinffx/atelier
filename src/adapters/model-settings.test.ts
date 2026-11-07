@@ -15,10 +15,19 @@ const cases: Array<[HarnessAdapter, Provider, string[], string[]]> = [
   [claudeAdapter, 'anthropic', ['haiku', 'opus', 'opus', 'sonnet', 'claude-opus-5-5', 'claude-sonnet-5-5'], ['default', 'xhigh', 'high', 'default', 'high', 'high']],
   [codexAdapter, 'openai', ['gpt-6-luna', 'gpt-6-astra', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-sol', 'gpt-6-sol'], ['low', 'high', 'xhigh', 'medium', 'xhigh', 'high']],
   [opencodeAdapter, 'openai', ['openai/gpt-6-luna', 'openai/gpt-6-astra', 'openai/gpt-6-astra', 'openai/gpt-6-sol', 'openai/gpt-6-astra', 'openai/gpt-6-sol'], ['low', 'high', 'xhigh', 'high', 'xhigh', 'high']],
-  [opencodeAdapter, 'amazon-bedrock', ['amazon-bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0', 'amazon-bedrock/us.anthropic.claude-fable-5-1', 'amazon-bedrock/us.anthropic.claude-opus-5-5', 'amazon-bedrock/us.anthropic.claude-sonnet-5-5', 'amazon-bedrock/us.anthropic.claude-opus-5-5', 'amazon-bedrock/us.anthropic.claude-sonnet-5-5'], ['default', 'high', 'high', 'default', 'high', 'high']],
+  [opencodeAdapter, 'amazon-bedrock', ['amazon-bedrock/us.anthropic.claude-haiku-5-5', 'amazon-bedrock/us.anthropic.claude-fable-5-1', 'amazon-bedrock/us.anthropic.claude-opus-5-5', 'amazon-bedrock/us.anthropic.claude-sonnet-5-5', 'amazon-bedrock/us.anthropic.claude-opus-5-5', 'amazon-bedrock/us.anthropic.claude-sonnet-5-5'], ['low', 'high', 'high', 'default', 'high', 'high']],
   [opencodeAdapter, 'opencode-zen', ['opencode/glm-5.3-flash', 'opencode/kimi-k3', 'opencode/glm-5.3', 'opencode/deepseek-v4.1-flash', 'opencode/glm-5.3', 'opencode/deepseek-v4.1-flash'], ['low', 'high', 'high', 'high', 'high', 'high']],
   [opencodeAdapter, 'opencode-go', ['opencode-go/glm-5.3-flash', 'opencode-go/mimo-v2.6-pro', 'opencode-go/glm-5.3', 'opencode-go/deepseek-v4.1-flash', 'opencode-go/glm-5.3', 'opencode-go/deepseek-v4.1-flash'], ['low', 'on', 'high', 'high', 'high', 'high']],
+  [opencodeAdapter, 'openrouter', ['openrouter/z-ai/glm-5.3-flash', 'openrouter/moonshotai/kimi-k3.1-pro', 'openrouter/z-ai/glm-5.3', 'openrouter/deepseek/deepseek-v4.1-flash-1017', 'openrouter/z-ai/glm-5.3', 'openrouter/deepseek/deepseek-v4.1-flash-1017'], ['low', 'high', 'high', 'high', 'high', 'high']],
+  [opencodeAdapter, 'google', ['google/gemini-3.5-flash-lite', 'google/gemini-4-argon', 'google/gemini-4-argon', 'google/gemini-3.8-flash', 'google/gemini-4-argon', 'google/gemini-3.8-flash'], ['low', 'high', 'high', 'high', 'high', 'high']],
 ];
+
+// Where each OpenCode provider carries the selected effort in its native options.
+const effortOf = (provider: Provider, o: any): unknown =>
+  provider === 'amazon-bedrock' ? o.reasoningConfig?.maxReasoningEffort
+    : provider === 'openrouter' ? o.reasoning?.effort
+    : provider === 'google' ? o.thinkingConfig?.thinkingLevel
+    : o.reasoningEffort;
 
 describe('model and thinking settings', () => {
   for (const [adapter, provider, models, levels] of cases) {
@@ -46,9 +55,8 @@ describe('model and thinking settings', () => {
           else if (adapter.name === 'claude') expect(data.effort).toBe(levels[index] === 'default' ? undefined : levels[index]);
           else {
             expect(data.temperature).toBeUndefined();
-            if (provider === 'amazon-bedrock') expect(data.reasoningConfig?.maxReasoningEffort).toBe(levels[index] === 'default' ? undefined : levels[index]);
-            else if (provider === 'opencode-go' && index === 1) expect(data.thinking).toEqual({ type: 'enabled' });
-            else expect(data.reasoningEffort).toBe(levels[index]);
+            if (provider === 'opencode-go' && index === 1) expect(data.thinking).toEqual({ type: 'enabled' });
+            else expect(effortOf(provider, data)).toBe(levels[index] === 'default' ? undefined : levels[index]);
           }
         });
         if (adapter.name === 'claude') {
@@ -63,7 +71,7 @@ describe('model and thinking settings', () => {
           for (const [mode, index] of [['plan', 4], ['build', 5]] as const) {
             expect(native.agent[mode].model).toBe(models[index]);
             expect(adapter.modelsForProvider(provider)).toContain(models[index]);
-            expect(provider === 'amazon-bedrock' ? native.agent[mode].reasoningConfig.maxReasoningEffort : native.agent[mode].reasoningEffort).toBe(levels[index]);
+            expect(effortOf(provider, native.agent[mode])).toBe(levels[index]);
           }
         }
         adapter.remove(config, root);
@@ -94,6 +102,30 @@ describe('model and thinking settings', () => {
     expect(openCodeThinkingOptions('openai/gpt-6-luna', 'off')).toEqual({ reasoningEffort: 'none' });
     expect(openCodeThinkingOptions('opencode-go/mimo-v2.6-pro', 'off')).toEqual({ thinking: { type: 'disabled' } });
     expect(openCodeThinkingOptions('opencode/claude-opus-5-5', 'high')).toEqual({ effort: 'high' });
+  });
+
+  it('supports the November 2026 catalog additions', () => {
+    // OpenRouter spells versions with dots; Astra and GPT 6.1 Sol always reason.
+    expect(thinkingChoices('opencode', 'openrouter/anthropic/claude-opus-5.5')).toContain('xhigh');
+    expect(thinkingChoices('opencode', 'openrouter/openai/gpt-6.1-sol')).not.toContain('off');
+    expect(thinkingChoices('opencode', 'openrouter/openai/gpt-6.1-terra')).toContain('off');
+    expect(thinkingChoices('opencode', 'opencode/gpt-6.1-sol')).not.toContain('off');
+    expect(thinkingChoices('opencode', 'opencode-go/kimi-k3.1-pro')).toEqual(['default', 'low', 'high', 'max']);
+    expect(thinkingChoices('opencode', 'openrouter/deepseek/deepseek-v4.1-flash-1017')).toEqual(['default', 'low', 'high', 'max']);
+    expect(thinkingChoices('opencode', 'opencode-go/minimax-m3.1-flash')).toContain('xhigh');
+    expect(thinkingChoices('opencode', 'google/gemini-4-argon')).toEqual(['default', 'low', 'medium', 'high']);
+    expect(thinkingChoices('opencode', 'opencode/grok-4.7')).toContain('xhigh');
+    expect(thinkingChoices('opencode', 'opencode/mistral-large-4')).toEqual(['default', 'off', 'high']);
+    expect(thinkingChoices('opencode', 'opencode/inkling-2-small-free')).toContain('max');
+    expect(thinkingChoices('opencode', 'opencode-go/muse-spark-1.3-contributor')).toContain('max');
+    expect(thinkingChoices('opencode', 'opencode/nemotron-3.5-super-vl-free')).toContain('off');
+    expect(thinkingChoices('opencode', 'opencode/nemotron-3.5-lightning-free')).toEqual(['default']);
+
+    expect(openCodeThinkingOptions('openrouter/anthropic/claude-opus-5.5', 'xhigh')).toEqual({ reasoning: { effort: 'xhigh' } });
+    expect(openCodeThinkingOptions('openrouter/xiaomi/mimo-v2.6-pro', 'off')).toEqual({ reasoning: { enabled: false } });
+    expect(openCodeThinkingOptions('google/gemini-4-argon', 'medium')).toEqual({ thinkingConfig: { thinkingLevel: 'medium' } });
+    expect(openCodeThinkingOptions('opencode/mistral-large-4', 'off')).toEqual({ reasoningEffort: 'none' });
+    expect(openCodeThinkingOptions('openrouter/anthropic/claude-opus-5.5', 'default')).toEqual({});
   });
 
   it('keeps old Codex models and implicit medium/high reasoning', () => {

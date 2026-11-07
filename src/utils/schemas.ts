@@ -24,7 +24,7 @@ export const CursorConfigSchema = z.object({
   agents: z.array(AgentSchema).min(1),
 }).strict();
 
-export const OPENCODE_PROVIDERS = ['opencode-zen', 'opencode-go', 'amazon-bedrock', 'openai'] as const;
+export const OPENCODE_PROVIDERS = ['opencode-zen', 'opencode-go', 'amazon-bedrock', 'openai', 'openrouter', 'google'] as const;
 
 export const OpenCodeConfigSchema = z.object({
   provider: z.enum(OPENCODE_PROVIDERS),

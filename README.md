@@ -122,16 +122,18 @@ Run `npx @martinffx/atelier@latest --help` for CLI commands and options. Each sk
 
 ## Models and thinking
 
-New configurations use the following defaults (September 2026). Each entry is **model / thinking**.
+New configurations use the following defaults (November 2026). Each entry is **model / thinking**.
 
 | Configuration | Sentinel | Oracle | Architect | Plan | Build |
 |---|---|---|---|---|---|
 | Claude Code | Haiku 5.5 / default | Opus 5.5 / xhigh | Opus 5.5 / high | Opus 5.5 / high | Sonnet 5 / high |
 | Codex | Luna 6 / low | Astra 6 / high | Astra 6 / xhigh | Sol 6 / xhigh | Sol 6 / high |
 | OpenCode / OpenAI | Luna 6 / low | Astra 6 / high | Astra 6 / xhigh | Astra 6 / xhigh | Sol 6 / high |
-| OpenCode / Bedrock | Haiku 4.5 / default | Fable 5.1 / high | Opus 5.5 / high | Opus 5.5 / high | Sonnet 5 / high |
+| OpenCode / Bedrock | Haiku 5.5 / low | Fable 5.1 / high | Opus 5.5 / high | Opus 5.5 / high | Sonnet 5 / high |
 | OpenCode / Zen | GLM 5.3 Flash / low | Kimi K3 / high | GLM 5.3 / high | GLM 5.3 / high | DeepSeek V4.1 Flash / high |
 | OpenCode / Go | GLM 5.3 Flash / low | MiMo V2.6 Pro / on | GLM 5.3 / high | GLM 5.3 / high | DeepSeek V4.1 Flash / high |
+| OpenCode / OpenRouter | GLM 5.3 Flash / low | Kimi K3.1 Pro / high | GLM 5.3 / high | GLM 5.3 / high | DeepSeek V4.1 Flash (1017) / high |
+| OpenCode / Google | Gemini 3.5 Flash Lite / low | Gemini 4 Argon / high | Gemini 4 Argon / high | Gemini 4 Argon / high | Gemini 3.8 Flash / high |
 
 Sentinel favors inexpensive reconnaissance. Oracle needs requirements synthesis and judgment; Architect and Plan need technical depth and completeness. Build balances capability and execution cost. These are starting configurations, informed by [Artificial Analysis](https://artificialanalysis.ai/models), rather than measured winners for Atelier's specific roles. Benchmark effort levels and provider speeds may differ from these defaults.
 
@@ -143,7 +145,7 @@ Thinking is stored as `agents[].thinking`, `build_thinking`, and `plan_thinking`
 
 - **Claude Code:** `opusplan` switches Opus/Sonnet by mode. Other session models share one thinking setting across modes. Atelier writes canonical `modelSettings.<model>.effortLevel` entries and subagent `effort`. Session `max` cannot be persisted, though supported subagents can use it. Under `opusplan`, Atelier also writes `modelSettings.<model>.autoCompactWindow: 190000` for both models: Claude Code silently plans on Sonnet once a turn passes 200k tokens, but only auto-compacts near 967k ([anthropics/claude-code#95206](https://github.com/anthropics/claude-code/issues/95206)). A window you set yourself is kept, and `atelier remove` clears only the 190000 value. Use Claude Code **2.1.280 or later** for Opus 5.5 and the current aliases. Atelier also sets `disableClaudeAiConnectors: true`, `syncClaudeAiSkills: false` and `syncClaudeAiPlugins: false` in `~/.claude/settings.json`, so nothing from claude.ai is synced into Claude Code; `atelier remove` clears them unless you changed them. It also disables the Claude Code built-ins that clash with Atelier skills (`disableBundledSkills`, `enableArtifact: false`, `disableWorkflows`, deny rules for `Artifact`, `ArtifactComments`, `ArtifactData`, `Workflow` and `DesignSync`, and `skillOverrides` turning off the `/security-review` and `/ultrareview` commands). Interactive `init` also offers a checklist of optional built-ins to disable, none selected by default: `cron` (`/loop` and the Cron tools), `chrome` (the claude-in-chrome MCP server) and `remote-trigger` (`RemoteTrigger`). `atelier remove` and unticking an option undo these the same way. [Claude configuration](https://code.claude.com/docs/en/model-config)
 - **Codex:** Plan and Build share the selected session model, with separate reasoning settings. Oracle and Architect use independent Astra configurations. `off` maps to native `none`, available on Sol/Luna but not Astra. [Codex configuration](https://developers.openai.com/codex/config-reference/)
-- **OpenCode:** all five assignments are independent. Use **1.18.30 or later** for GPT-6 integration. Atelier sends explicit provider options rather than relying on automatically discovered reasoning variants: `reasoningEffort` for OpenAI-compatible routes, `effort` for Anthropic, and `reasoningConfig` for Bedrock. GLM 5.3 supports low/high/max; it does not support medium. Bedrock defaults use US inference profiles with `us-east-1`. [OpenCode agents](https://opencode.ai/docs/agents/)
+- **OpenCode:** all five assignments are independent. Use **1.18.30 or later** for GPT-6 integration. Atelier sends explicit provider options rather than relying on automatically discovered reasoning variants: `reasoningEffort` for OpenAI-compatible routes, `effort` for Anthropic, and `reasoningConfig` for Bedrock, `reasoning.effort` for OpenRouter and `thinkingConfig.thinkingLevel` for Google. GLM 5.3 supports low/high/max; it does not support medium. Bedrock defaults use US inference profiles with `us-east-1`. Go's Muse Spark 1.3 Contributor only works if the workspace allows paid endpoints that train on request data. [OpenCode agents](https://opencode.ai/docs/agents/)
 - **MiMo:** `on`/`off` maps to `thinking.type: enabled`/`disabled`. There are no graded effort tiers. OpenCode agent files omit the old fixed temperature override so provider defaults apply. [MiMo API](https://mimo.mi.com/docs/en-US/api/chat/openai-api)
 
 Atelier does not upgrade installed harness CLIs. Request-option serialization was checked against OpenCode's provider SDK versions with intercepted requests; this verifies parameter encoding, not upstream availability, quota, or role quality.

@@ -15,27 +15,46 @@ const OPENCODE_PROVIDERS: { name: string; value: OpenCodeProvider }[] = [
   { name: 'OpenCode Go', value: 'opencode-go' },
   { name: 'Amazon Bedrock', value: 'amazon-bedrock' },
   { name: 'OpenAI', value: 'openai' },
+  { name: 'OpenRouter', value: 'openrouter' },
+  { name: 'Google Gemini', value: 'google' },
 ];
 
 const PROVIDER_MODELS: Record<OpenCodeProvider, readonly string[]> = {
   'opencode-zen': [
-    'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna',
-    'claude-opus-5-5', 'claude-fable-5-1', 'claude-sonnet-5-5', 'claude-haiku-4-5',
+    'gpt-6.1-sol', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna',
+    'claude-opus-5-5', 'claude-fable-5-1', 'claude-sonnet-5-5', 'claude-haiku-5-5',
     'glm-5.3', 'glm-5.3-flash', 'kimi-k3', 'kimi-k2.7-code',
     'deepseek-v4.1-flash', 'deepseek-v4-pro', 'minimax-m3',
     'qwen3.8-max', 'qwen3.8-flash', 'mimo-v2.6-flash-free',
-    'gemini-3.8-flash', 'gemini-3.1-pro',
+    'gemini-4-argon', 'gemini-3.8-flash', 'grok-4.7', 'mistral-large-4',
+    'muse-spark-1.3', 'muse-wonder-1.0',
+    'inkling-2-small-free', 'nemotron-3.5-super-vl-free', 'nemotron-3.5-lightning-free',
   ].map(id => `opencode/${id}`),
   'opencode-go': [
-    'glm-5.3', 'glm-5.3-flash', 'kimi-k3',
-    'deepseek-v4.1-flash', 'deepseek-v4-pro', 'minimax-m3',
-    'qwen3.8-max', 'qwen3.8-flash', 'mimo-v2.6-pro', 'mimo-v2.6-flash', 'gpt-6-luna',
+    'glm-5.3', 'glm-5.3-flash', 'kimi-k3.1-pro', 'kimi-k3',
+    'deepseek-v4.1-flash', 'deepseek-v4-pro', 'minimax-m3.1-flash', 'minimax-m3',
+    'qwen3.8-max', 'qwen3.8-flash', 'mimo-v2.6-pro', 'mimo-v2.6-flash',
+    'gpt-6-luna', 'claude-haiku-5-5', 'gemini-4-argon', 'grok-4.7', 'muse-spark-1.3-contributor',
   ].map(id => `opencode-go/${id}`),
   'amazon-bedrock': [
     'us.anthropic.claude-opus-5-5', 'us.anthropic.claude-fable-5-1',
-    'us.anthropic.claude-sonnet-5-5', 'us.anthropic.claude-haiku-4-5-20251001-v1:0',
+    'us.anthropic.claude-sonnet-5-5', 'us.anthropic.claude-haiku-5-5',
   ].map(id => `amazon-bedrock/${id}`),
-  openai: ['gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna', 'gpt-5.3-codex-spark'].map(id => `openai/${id}`),
+  openai: ['gpt-6.1-sol', 'gpt-6.1-terra', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna', 'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna', 'gpt-5.3-codex-spark'].map(id => `openai/${id}`),
+  openrouter: [
+    'anthropic/claude-opus-5.5', 'anthropic/claude-fable-5.1', 'anthropic/claude-sonnet-5.5', 'anthropic/claude-haiku-5.5',
+    'openai/gpt-6.1-sol', 'openai/gpt-6.1-terra', 'openai/gpt-6-astra', 'openai/gpt-6-sol', 'openai/gpt-6-luna',
+    'google/gemini-4-argon', 'google/gemini-3.8-flash',
+    'z-ai/glm-5.3', 'z-ai/glm-5.3-flash',
+    'moonshotai/kimi-k3.1-pro', 'moonshotai/kimi-k3',
+    'deepseek/deepseek-v4.1-flash-1017', 'deepseek/deepseek-v4.1-flash', 'deepseek/deepseek-v4-pro',
+    'x-ai/grok-4.7', 'minimax/minimax-m3.1-flash', 'minimax/minimax-m3',
+    'qwen/qwen3.8-flash', 'xiaomi/mimo-v2.6-pro', 'mistralai/mistral-large-4-0',
+    'thinkingmachines/inkling', 'thinkingmachines/inkling-small',
+    'nvidia/nemotron-3.5-super-vl', 'nvidia/nemotron-3.5-lightning',
+    'meta/muse-spark-1.3', 'meta/muse-spark-open', 'meta/muse-wonder',
+  ].map(id => `openrouter/${id}`),
+  google: ['gemini-4-argon', 'gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.5-flash-lite'].map(id => `google/${id}`),
 };
 
 const DEFAULT_MODELS: Record<OpenCodeProvider, Record<'build' | 'plan' | typeof AGENT_NAMES[number], string>> = {
@@ -50,7 +69,7 @@ const DEFAULT_MODELS: Record<OpenCodeProvider, Record<'build' | 'plan' | typeof 
     build: 'opencode-go/deepseek-v4.1-flash', plan: 'opencode-go/glm-5.3',
   },
   'amazon-bedrock': {
-    sentinel: 'amazon-bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0',
+    sentinel: 'amazon-bedrock/us.anthropic.claude-haiku-5-5',
     oracle: 'amazon-bedrock/us.anthropic.claude-fable-5-1',
     architect: 'amazon-bedrock/us.anthropic.claude-opus-5-5',
     keymaker: 'amazon-bedrock/us.anthropic.claude-sonnet-5-5',
@@ -60,6 +79,16 @@ const DEFAULT_MODELS: Record<OpenCodeProvider, Record<'build' | 'plan' | typeof 
     sentinel: 'openai/gpt-6-luna', oracle: 'openai/gpt-6-astra', architect: 'openai/gpt-6-astra',
     keymaker: 'openai/gpt-6-sol',
     build: 'openai/gpt-6-sol', plan: 'openai/gpt-6-astra',
+  },
+  openrouter: {
+    sentinel: 'openrouter/z-ai/glm-5.3-flash', oracle: 'openrouter/moonshotai/kimi-k3.1-pro', architect: 'openrouter/z-ai/glm-5.3',
+    keymaker: 'openrouter/deepseek/deepseek-v4.1-flash-1017',
+    build: 'openrouter/deepseek/deepseek-v4.1-flash-1017', plan: 'openrouter/z-ai/glm-5.3',
+  },
+  google: {
+    sentinel: 'google/gemini-3.5-flash-lite', oracle: 'google/gemini-4-argon', architect: 'google/gemini-4-argon',
+    keymaker: 'google/gemini-3.8-flash',
+    build: 'google/gemini-3.8-flash', plan: 'google/gemini-4-argon',
   },
 };
 
@@ -92,7 +121,7 @@ function defaultSection(provider?: Provider): OpenCodeConfig {
       name,
       model: defaults[name],
       thinking: name === 'keymaker' ? (selectedProvider === 'amazon-bedrock' ? 'default' : 'high')
-        : name === 'sentinel' ? (selectedProvider === 'amazon-bedrock' ? 'default' : 'low')
+        : name === 'sentinel' ? 'low'
         : name === 'oracle' && selectedProvider === 'opencode-go' ? 'on'
         : name === 'architect' && selectedProvider === 'openai' ? 'xhigh' : 'high',
     })),
