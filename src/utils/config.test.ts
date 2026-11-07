@@ -242,7 +242,7 @@ describe('config', () => {
     }
   });
 
-  test('readConfig drops legacy Codex plan_thinking', async () => {
+  test('readConfig keeps legacy Codex plan_thinking, which applied to the session model', async () => {
     const { writeFileSync, mkdirSync } = await import('fs');
     const { readConfig } = await import('./config.js');
     const configPath = join(tempDir, '.atelier/config.json');
@@ -264,11 +264,11 @@ describe('config', () => {
     if (result.ok) {
       expect(result.value.codex?.default_model).toBe('gpt-6-sol');
       expect(result.value.codex?.build_thinking).toBe('medium');
-      expect('plan_thinking' in (result.value.codex ?? {})).toBe(false);
+      expect((result.value.codex as { plan_thinking?: string }).plan_thinking).toBe('high');
     }
   });
 
-  test('readConfig migrates legacy OpenCode build_model to default_model and drops plan fields', async () => {
+  test('readConfig migrates legacy OpenCode build_model to default_model, drops plan_model and keeps a supported plan_thinking', async () => {
     const { writeFileSync, mkdirSync } = await import('fs');
     const { readConfig } = await import('./config.js');
     const configPath = join(tempDir, '.atelier/config.json');
@@ -295,6 +295,34 @@ describe('config', () => {
       expect(section.build_thinking).toBe('low');
       expect('build_model' in section).toBe(false);
       expect('plan_model' in section).toBe(false);
+      expect((section as { plan_thinking?: string }).plan_thinking).toBe('high');
+    }
+  });
+
+  test('readConfig drops legacy OpenCode plan_thinking that default_model does not support instead of failing', async () => {
+    const { writeFileSync, mkdirSync } = await import('fs');
+    const { readConfig } = await import('./config.js');
+    const configPath = join(tempDir, '.atelier/config.json');
+    mkdirSync(join(tempDir, '.atelier'), { recursive: true });
+    writeFileSync(configPath, JSON.stringify({
+      version: '1.0.0',
+      skills_source: 'martinffx/atelier',
+      skills_path: '~/.agents/skills',
+      opencode: {
+        provider: 'opencode-zen',
+        build_model: 'opencode/glm-5.3',
+        plan_model: 'opencode/gemini-4-argon',
+        build_thinking: 'low',
+        plan_thinking: 'medium',
+        agents: [{ template: 'sentinel', name: 'sentinel', model: 'opencode/glm-5.3-flash' }],
+      },
+    }));
+
+    const result = readConfig(configPath);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const section = result.value.opencode ?? {};
+      expect(section.default_model).toBe('opencode/glm-5.3');
       expect('plan_thinking' in section).toBe(false);
     }
   });

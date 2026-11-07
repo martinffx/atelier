@@ -57,7 +57,8 @@ describe('opencode adapter', () => {
     const content = JSON.parse(readFileSync(path, 'utf-8'));
     expect(content.agent.build.mode).toBe('primary');
     expect(content.agent.build.model).toBe(section().default_model);
-    expect(content.agent.plan).toBeUndefined();
+    expect(content.agent.plan.mode).toBe('primary');
+    expect(content.agent.plan.model).toBe(section().default_model);
     expect(content.model).toBe(section().default_model);
   });
 
@@ -87,7 +88,7 @@ describe('opencode adapter', () => {
     expect(content.model).toBe('openai/gpt-6-sol');
   });
 
-  it('mergeHarnessConfig removes stale Atelier keys from agent.plan and keeps user keys', () => {
+  it('mergeHarnessConfig rewrites an Atelier agent.plan with the session model, clearing stale thinking and keeping user keys', () => {
     mkdirSync(basePath, { recursive: true });
     writeFileSync(join(basePath, 'opencode.json'), JSON.stringify({
       agent: {
@@ -96,8 +97,19 @@ describe('opencode adapter', () => {
     }, null, 2));
     opencodeAdapter.mergeHarnessConfig(section(), basePath);
     const content = JSON.parse(readFileSync(join(basePath, 'opencode.json'), 'utf-8'));
-    expect(content.agent.plan).toEqual({ temperature: 0.2 });
+    expect(content.agent.plan).toEqual({ mode: 'primary', model: section().default_model, temperature: 0.2, reasoningEffort: 'high' });
     expect(content.agent.build.model).toBe(section().default_model);
+  });
+
+  it('mergeHarnessConfig strips a stale Atelier agent.plan when plan_thinking is unset', () => {
+    mkdirSync(basePath, { recursive: true });
+    writeFileSync(join(basePath, 'opencode.json'), JSON.stringify({
+      agent: { plan: { mode: 'primary', model: 'opencode/glm-5.3', temperature: 0.2 } },
+    }, null, 2));
+    const { plan_thinking: _omitted, ...withoutPlan } = section();
+    opencodeAdapter.mergeHarnessConfig(withoutPlan, basePath);
+    const content = JSON.parse(readFileSync(join(basePath, 'opencode.json'), 'utf-8'));
+    expect(content.agent.plan).toEqual({ temperature: 0.2 });
   });
 
   it('leaves a user-owned agent.plan without mode primary intact through merge and remove', () => {
@@ -114,6 +126,15 @@ describe('opencode adapter', () => {
     content = JSON.parse(readFileSync(join(basePath, 'opencode.json'), 'utf-8'));
     expect(content.agent.plan).toEqual(userPlan);
     expect(content.agent.build).toBeUndefined();
+  });
+
+  it('remove clears the agent.plan that merge wrote', () => {
+    mkdirSync(basePath, { recursive: true });
+    const s = section();
+    opencodeAdapter.mergeHarnessConfig(s, basePath);
+    expect(JSON.parse(readFileSync(join(basePath, 'opencode.json'), 'utf-8')).agent.plan).toBeDefined();
+    opencodeAdapter.remove(s, basePath);
+    expect(existsSync(join(basePath, 'opencode.json'))).toBe(false);
   });
 
   it('mergeHarnessConfig preserves user settings', () => {

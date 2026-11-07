@@ -1,5 +1,5 @@
 import inquirer from 'inquirer';
-import type { HarnessAdapter, HarnessSection, SimpleConfig, OpenCodeConfig, Provider, ProviderChoice } from '../types.js';
+import type { HarnessAdapter, HarnessSection, SimpleConfig, CodexConfig, OpenCodeConfig, Provider, ProviderChoice } from '../types.js';
 import { AGENT_NAMES } from '../constants.js';
 import { InvalidConfigError } from '../utils/errors.js';
 import { avoidsProviderDefault, recommendedThinking, thinkingChoices, type Thinking, type ThinkingHarness } from '../utils/thinking.js';
@@ -111,21 +111,33 @@ function modelChoices(models: readonly string[], saved?: string): string[] {
   return [...new Set([...models, ...(saved ? [saved] : [])])];
 }
 
-async function promptThinking(prompt: typeof inquirer, harness: ThinkingHarness, config: SimpleConfig | OpenCodeConfig, previous: SimpleConfig | OpenCodeConfig): Promise<void> {
-  const slots: Array<{ name: string; label: string; model: string; oldModel: string; saved?: Thinking; session: boolean; set: (value: Thinking | undefined) => void }> = [{
-    name: 'build_thinking', label: 'session',
+async function promptThinking(prompt: typeof inquirer, harness: ThinkingHarness, config: SimpleConfig | CodexConfig | OpenCodeConfig, previous: SimpleConfig | CodexConfig | OpenCodeConfig): Promise<void> {
+  // `role` picks the recommendation row; `label` is what the user reads. Claude has one session effort,
+  // while Codex and OpenCode have separate build and plan efforts on the same model.
+  const slots: Array<{ name: string; role: string; label: string; model: string; oldModel: string; saved?: Thinking; session: boolean; set: (value: Thinking | undefined) => void }> = [{
+    name: 'build_thinking', role: 'session', label: harness === 'claude' ? 'session' : 'build',
     model: config.default_model,
     oldModel: previous.default_model,
     saved: previous.build_thinking, session: true,
     set: (value: Thinking | undefined) => { config.build_thinking = value; },
   }];
+  if (harness !== 'claude') {
+    const planConfig = config as CodexConfig | OpenCodeConfig;
+    slots.push({
+      name: 'plan_thinking', role: 'plan', label: 'plan',
+      model: config.default_model,
+      oldModel: previous.default_model,
+      saved: (previous as CodexConfig | OpenCodeConfig).plan_thinking, session: false,
+      set: value => { planConfig.plan_thinking = value; },
+    });
+  }
   for (const agent of config.agents) {
     const old = previous.agents.find(a => a.name === agent.name);
-    slots.push({ name: `${agent.name}_thinking`, label: agent.name, model: agent.model, oldModel: old?.model ?? '', saved: old?.thinking, session: false, set: value => { agent.thinking = value; } });
+    slots.push({ name: `${agent.name}_thinking`, role: agent.name, label: agent.name, model: agent.model, oldModel: old?.model ?? '', saved: old?.thinking, session: false, set: value => { agent.thinking = value; } });
   }
   const questions = slots.map(slot => {
     const choices = thinkingChoices(harness, slot.model, slot.session);
-    const recommended = recommendedThinking(slot.model, slot.label).filter(level => choices.includes(level));
+    const recommended = recommendedThinking(slot.model, slot.role).filter(level => choices.includes(level));
     const fallback = recommended[0] ?? 'default';
     const keep = slot.model === slot.oldModel && (slot.saved === undefined || choices.includes(slot.saved));
     const saved = keep ? (slot.saved === 'default' && avoidsProviderDefault(slot.model) ? fallback : slot.saved) : fallback;

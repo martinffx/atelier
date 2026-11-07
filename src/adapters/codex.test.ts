@@ -32,7 +32,7 @@ describe('codex adapter', () => {
     expect(existsSync(path)).toBe(true);
     const content = TOML.parse(readFileSync(path, 'utf-8')) as Record<string, unknown>;
     expect(content.model).toBe('gpt-6-astra');
-    expect(content.plan_mode_reasoning_effort).toBeUndefined();
+    expect(content.plan_mode_reasoning_effort).toBe('high');
     expect(content.sandbox_mode).toBe('danger-full-access');
     expect(content.approval_policy).toBe('on-request');
     expect((content.features as Record<string, unknown>).multi_agent).toBe(true);
@@ -48,18 +48,32 @@ describe('codex adapter', () => {
     expect(content.model).toBe('gpt-6-astra');
   });
 
-  it('mergeHarnessConfig removes existing plan_mode_reasoning_effort', () => {
+  it('mergeHarnessConfig overwrites plan_mode_reasoning_effort from plan_thinking', () => {
     const codexDir = join(basePath, '.codex');
     mkdirSync(codexDir, { recursive: true });
     writeFileSync(
       join(codexDir, 'config.toml'),
       TOML.stringify({ model: 'gpt-5.5', plan_mode_reasoning_effort: 'xhigh', custom: 'value' }),
     );
-    codexAdapter.mergeHarnessConfig(section(), basePath);
+    codexAdapter.mergeHarnessConfig({ ...section(), plan_thinking: 'medium' }, basePath);
     const content = TOML.parse(readFileSync(join(codexDir, 'config.toml'), 'utf-8')) as Record<string, unknown>;
-    expect(content.plan_mode_reasoning_effort).toBeUndefined();
+    expect(content.plan_mode_reasoning_effort).toBe('medium');
     expect(content.model).toBe('gpt-6-astra');
     expect(content.custom).toBe('value');
+  });
+
+  it('mergeHarnessConfig deletes plan_mode_reasoning_effort for default and leaves it when undefined', () => {
+    const codexDir = join(basePath, '.codex');
+    const configPath = join(codexDir, 'config.toml');
+    mkdirSync(codexDir, { recursive: true });
+    writeFileSync(configPath, TOML.stringify({ plan_mode_reasoning_effort: 'xhigh' }));
+
+    const { plan_thinking: _omitted, ...withoutPlan } = section();
+    codexAdapter.mergeHarnessConfig(withoutPlan, basePath);
+    expect((TOML.parse(readFileSync(configPath, 'utf-8')) as Record<string, unknown>).plan_mode_reasoning_effort).toBe('xhigh');
+
+    codexAdapter.mergeHarnessConfig({ ...section(), plan_thinking: 'default' }, basePath);
+    expect((TOML.parse(readFileSync(configPath, 'utf-8')) as Record<string, unknown>).plan_mode_reasoning_effort).toBeUndefined();
   });
 
   it('mergeHarnessConfig throws on malformed config.toml', () => {

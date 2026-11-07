@@ -6,6 +6,7 @@ import type { AtelierConfig, Harness, SharedConfig, HarnessSection } from '../ty
 import { Harness as Harnesses, LEGACY_AGENT_NAME } from '../constants.js';
 import { listAdapters, getAdapter } from '../registry.js';
 import { InvalidConfigError } from './errors.js';
+import { thinkingChoices } from './thinking.js';
 import type { Result } from './result.js';
 import { ok, err } from './result.js';
 
@@ -141,9 +142,8 @@ function migrateLegacyPlanMode(config: unknown): unknown {
 
   const codex = migrated.codex;
   if (typeof codex === 'object' && codex !== null) {
-    const section = { ...(codex as Record<string, unknown>) };
-    delete section.plan_thinking;
-    migrated.codex = section;
+    // Codex's plan_thinking always applied to the session model, and now sets plan_mode_reasoning_effort.
+    migrated.codex = { ...(codex as Record<string, unknown>) };
   }
 
   const opencode = migrated.opencode;
@@ -154,7 +154,11 @@ function migrateLegacyPlanMode(config: unknown): unknown {
     }
     delete section.build_model;
     delete section.plan_model;
-    delete section.plan_thinking;
+    // The old plan_thinking belonged to plan_model, so keep it only if default_model also supports it.
+    const supported = typeof section.default_model === 'string'
+      ? thinkingChoices('opencode', section.default_model) as readonly unknown[]
+      : [];
+    if (!supported.includes(section.plan_thinking)) delete section.plan_thinking;
     migrated.opencode = section;
   }
 

@@ -67,8 +67,9 @@ const RECOMMENDED: Array<[RegExp, Thinking[][]]> = [
 const modelId = (model: string): string => model.split('/').at(-1)!.toLowerCase();
 
 // Levels recommended for a model in a slot; the first is the default. Empty when the model has no recommendation.
+// Plan is design work, so it follows the architect column.
 export function recommendedThinking(model: string, slot: string): Thinking[] {
-  const index = ROLES.indexOf(slot as Role);
+  const index = ROLES.indexOf((slot === 'plan' ? 'architect' : slot) as Role);
   const id = modelId(model);
   return index < 0 ? [] : RECOMMENDED.find(([pattern]) => pattern.test(id))?.[1][index] ?? [];
 }

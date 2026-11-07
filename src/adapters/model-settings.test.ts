@@ -10,18 +10,19 @@ import { opencodeAdapter } from './opencode.js';
 import { ClaudeConfigSchema, CodexConfigSchema, OpenCodeConfigSchema } from '../utils/schemas.js';
 import { thinkingChoices, openCodeThinkingOptions, recommendedThinking, defaultThinking, avoidsProviderDefault } from '../utils/thinking.js';
 import type { ThinkingHarness } from '../utils/thinking.js';
-import type { HarnessAdapter, SimpleConfig, OpenCodeConfig, Provider } from '../types.js';
+import type { HarnessAdapter, SimpleConfig, CodexConfig, OpenCodeConfig, Provider } from '../types.js';
 
-// Each row: the four agent models then the single session model; the four agent levels then the session thinking.
-const cases: Array<[HarnessAdapter, Provider, string[], string[]]> = [
-  [claudeAdapter, 'anthropic', ['haiku', 'opus', 'opus', 'sonnet', 'claude-opus-5-5'], ['low', 'xhigh', 'high', 'default', 'high']],
-  [codexAdapter, 'openai', ['gpt-6-luna', 'gpt-6-astra', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-astra'], ['low', 'xhigh', 'high', 'medium', 'high']],
-  [opencodeAdapter, 'openai', ['openai/gpt-6-luna', 'openai/gpt-6-astra', 'openai/gpt-6-astra', 'openai/gpt-6-sol', 'openai/gpt-6-astra'], ['low', 'xhigh', 'high', 'medium', 'high']],
-  [opencodeAdapter, 'amazon-bedrock', ['amazon-bedrock/us.anthropic.claude-haiku-5-5', 'amazon-bedrock/us.anthropic.claude-fable-5-1', 'amazon-bedrock/us.anthropic.claude-opus-5-5', 'amazon-bedrock/us.anthropic.claude-sonnet-5-5', 'amazon-bedrock/us.anthropic.claude-opus-5-5'], ['low', 'xhigh', 'high', 'default', 'high']],
-  [opencodeAdapter, 'opencode-zen', ['opencode/glm-5.3-flash', 'opencode/kimi-k3', 'opencode/glm-5.3', 'opencode/deepseek-v4.1-flash', 'opencode/kimi-k3'], ['low', 'high', 'high', 'high', 'low']],
-  [opencodeAdapter, 'opencode-go', ['opencode-go/glm-5.3-flash', 'opencode-go/mimo-v2.6-pro', 'opencode-go/glm-5.3', 'opencode-go/deepseek-v4.1-flash', 'opencode-go/kimi-k3.1-pro'], ['low', 'on', 'high', 'high', 'low']],
-  [opencodeAdapter, 'openrouter', ['openrouter/z-ai/glm-5.3-flash', 'openrouter/moonshotai/kimi-k3.1-pro', 'openrouter/z-ai/glm-5.3', 'openrouter/deepseek/deepseek-v4.1-flash-1017', 'openrouter/moonshotai/kimi-k3.1-pro'], ['low', 'high', 'high', 'high', 'low']],
-  [opencodeAdapter, 'google', ['google/gemini-3.5-flash-lite', 'google/gemini-4-argon', 'google/gemini-4-argon', 'google/gemini-3.8-flash', 'google/gemini-4-argon'], ['low', 'high', 'high', 'high', 'medium']],
+// Each row: the four agent models then the single session model; the four agent levels then the build thinking;
+// then the plan thinking (Claude has no plan setting).
+const cases: Array<[HarnessAdapter, Provider, string[], string[], string | undefined]> = [
+  [claudeAdapter, 'anthropic', ['haiku', 'opus', 'opus', 'sonnet', 'claude-opus-5-5'], ['low', 'xhigh', 'high', 'default', 'high'], undefined],
+  [codexAdapter, 'openai', ['gpt-6-luna', 'gpt-6-astra', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-astra'], ['low', 'xhigh', 'high', 'medium', 'high'], 'high'],
+  [opencodeAdapter, 'openai', ['openai/gpt-6-luna', 'openai/gpt-6-astra', 'openai/gpt-6-astra', 'openai/gpt-6-sol', 'openai/gpt-6-astra'], ['low', 'xhigh', 'high', 'medium', 'high'], 'high'],
+  [opencodeAdapter, 'amazon-bedrock', ['amazon-bedrock/us.anthropic.claude-haiku-5-5', 'amazon-bedrock/us.anthropic.claude-fable-5-1', 'amazon-bedrock/us.anthropic.claude-opus-5-5', 'amazon-bedrock/us.anthropic.claude-sonnet-5-5', 'amazon-bedrock/us.anthropic.claude-opus-5-5'], ['low', 'xhigh', 'high', 'default', 'high'], 'high'],
+  [opencodeAdapter, 'opencode-zen', ['opencode/glm-5.3-flash', 'opencode/kimi-k3', 'opencode/glm-5.3', 'opencode/deepseek-v4.1-flash', 'opencode/kimi-k3'], ['low', 'high', 'high', 'high', 'low'], 'high'],
+  [opencodeAdapter, 'opencode-go', ['opencode-go/glm-5.3-flash', 'opencode-go/mimo-v2.6-pro', 'opencode-go/glm-5.3', 'opencode-go/deepseek-v4.1-flash', 'opencode-go/kimi-k3.1-pro'], ['low', 'on', 'high', 'high', 'low'], 'high'],
+  [opencodeAdapter, 'openrouter', ['openrouter/z-ai/glm-5.3-flash', 'openrouter/moonshotai/kimi-k3.1-pro', 'openrouter/z-ai/glm-5.3', 'openrouter/deepseek/deepseek-v4.1-flash-1017', 'openrouter/moonshotai/kimi-k3.1-pro'], ['low', 'high', 'high', 'high', 'low'], 'high'],
+  [opencodeAdapter, 'google', ['google/gemini-3.5-flash-lite', 'google/gemini-4-argon', 'google/gemini-4-argon', 'google/gemini-3.8-flash', 'google/gemini-4-argon'], ['low', 'high', 'high', 'high', 'medium'], 'high'],
 ];
 
 // Where each OpenCode provider carries the selected effort in its native options.
@@ -32,14 +33,16 @@ const effortOf = (provider: Provider, o: any): unknown =>
     : o.reasoningEffort;
 
 describe('model and thinking settings', () => {
-  for (const [adapter, provider, models, levels] of cases) {
-    it(`${adapter.name}/${provider}: generates four agent assignments and one session model/thinking pair, then removes them`, () => {
+  for (const [adapter, provider, models, levels, plan] of cases) {
+    it(`${adapter.name}/${provider}: generates four agent assignments, one session model, build and plan thinking, then removes them`, () => {
       const root = mkdtempSync(join(tmpdir(), 'atelier-models-'));
       try {
         const config = adapter.defaultSection(provider) as SimpleConfig | OpenCodeConfig;
         expect(adapter.configSchema.safeParse(config).success).toBe(true);
         expect(config.agents.map(a => a.model)).toEqual(models.slice(0, 4));
         expect([...config.agents.map(a => a.thinking), config.build_thinking]).toEqual(levels);
+        if (adapter.name === 'claude') expect('plan_thinking' in config).toBe(false);
+        else expect((config as OpenCodeConfig).plan_thinking).toBe(plan);
         for (const agent of config.agents) expect(adapter.modelsForProvider(provider)).toContain(agent.model);
         expect(adapter.modelsForProvider(provider)).toContain(config.default_model);
         adapter.installAgents(config, root);
@@ -63,6 +66,7 @@ describe('model and thinking settings', () => {
           }
         });
         if (adapter.name === 'claude') {
+          expect(JSON.stringify(native)).not.toContain('plan');
           // Claude keys session effort by model id, and the session model is the bare alias.
           expect(native.model).toBe('opus');
           expect(native.modelSettings[models[4]].effortLevel).toBe(levels[4]);
@@ -70,9 +74,11 @@ describe('model and thinking settings', () => {
         } else if (adapter.name === 'codex') {
           expect(native.model).toBe(models[4]);
           expect(native.model_reasoning_effort).toBe(levels[4]);
-          expect(native.plan_mode_reasoning_effort).toBeUndefined();
+          expect(native.plan_mode_reasoning_effort).toBe(plan);
         } else {
-          expect(native.agent.plan).toBeUndefined();
+          expect(native.agent.plan.mode).toBe('primary');
+          expect(native.agent.plan.model).toBe(models[4]);
+          expect(effortOf(provider, native.agent.plan)).toBe(plan);
           expect(native.agent.build.model).toBe(models[4]);
           expect(effortOf(provider, native.agent.build)).toBe(levels[4]);
         }
@@ -85,14 +91,21 @@ describe('model and thinking settings', () => {
   it('rejects unsupported effort without inventing levels for custom models', () => {
     const zen = opencodeAdapter.defaultSection('opencode-zen') as OpenCodeConfig;
     expect(OpenCodeConfigSchema.safeParse({ ...zen, default_model: 'custom/unknown', build_thinking: 'high' }).success).toBe(false);
-    expect(OpenCodeConfigSchema.safeParse({ ...zen, default_model: 'custom/unknown', build_thinking: 'default' }).success).toBe(true);
+    expect(OpenCodeConfigSchema.safeParse({ ...zen, default_model: 'custom/unknown', build_thinking: 'default', plan_thinking: 'default' }).success).toBe(true);
     const mimo = opencodeAdapter.defaultSection('opencode-go') as OpenCodeConfig;
     mimo.agents[1].thinking = 'high';
     expect(OpenCodeConfigSchema.safeParse(mimo).success).toBe(false);
     // GLM 5.3 session thinking allows only default, low, high and max.
     expect(OpenCodeConfigSchema.safeParse({ ...zen, default_model: 'opencode/glm-5.3', build_thinking: 'high' }).success).toBe(true);
     expect(OpenCodeConfigSchema.safeParse({ ...zen, default_model: 'opencode/glm-5.3', build_thinking: 'medium' }).success).toBe(false);
+    // plan_thinking is checked against default_model on Codex and OpenCode.
+    expect(OpenCodeConfigSchema.safeParse({ ...zen, default_model: 'opencode/glm-5.3', plan_thinking: 'high' }).success).toBe(true);
+    expect(OpenCodeConfigSchema.safeParse({ ...zen, default_model: 'opencode/glm-5.3', plan_thinking: 'medium' }).success).toBe(false);
+    const codex = codexAdapter.defaultSection();
+    expect(CodexConfigSchema.safeParse({ ...codex, plan_thinking: 'off' }).success).toBe(false);
+    expect(CodexConfigSchema.safeParse({ ...codex, plan_thinking: 'xhigh' }).success).toBe(true);
     const claude = claudeAdapter.defaultSection() as SimpleConfig;
+    expect('plan_thinking' in ClaudeConfigSchema.parse({ ...claude, plan_thinking: 'high' })).toBe(false);
     expect(ClaudeConfigSchema.safeParse({ ...claude, build_thinking: 'max' }).success).toBe(false);
     claude.agents[0].thinking = 'low';
     expect(ClaudeConfigSchema.safeParse(claude).success).toBe(true);
@@ -122,13 +135,30 @@ describe('model and thinking settings', () => {
       ['opencode', 'opencode-go/minimax-m3.1-flash'], ['opencode', 'opencode/mistral-large-4-0'], ['opencode', 'opencode/nemotron-3.5-super-vl-free'],
     ];
     for (const [harness, model] of models) {
-      for (const slot of ['session', 'sentinel', 'oracle', 'architect', 'keymaker']) {
+      for (const slot of ['session', 'plan', 'sentinel', 'oracle', 'architect', 'keymaker']) {
         const recs = recommendedThinking(model, slot);
         expect(recs.length).toBeGreaterThan(0);
         for (const level of recs) expect(thinkingChoices(harness, model, slot === 'session')).toContain(level);
         expect(defaultThinking(model, slot)).toBe(recs[0]);
       }
     }
+    // Newer families list levels one catalog may lack (Qwen's high is not on Go), so at least one must be offered.
+    const added: Array<[ThinkingHarness, string]> = [
+      ['opencode', 'opencode/qwen3.8-max'], ['opencode', 'opencode-go/qwen3.8-max'], ['opencode', 'openrouter/qwen/qwen3.8-max-0902'], ['opencode', 'openrouter/qwen/qwen3.8-max-prime'],
+      ['opencode', 'opencode-go/hy4'], ['opencode', 'openrouter/tencent/hy4'],
+      ['opencode', 'opencode-go/step-5-preview'], ['opencode', 'openrouter/stepfun/step-5-preview'],
+      ['opencode', 'openrouter/inclusionai/ling-3.1-flash'],
+      ['opencode', 'opencode/beam-free'], ['opencode', 'opencode-go/beam-free'], ['opencode', 'openrouter/reflection/beam-1.0-501b-a23b'],
+    ];
+    for (const [harness, model] of added) {
+      for (const slot of ['session', 'plan', 'sentinel', 'oracle', 'architect', 'keymaker']) {
+        const recs = recommendedThinking(model, slot);
+        expect(recs.length).toBeGreaterThan(0);
+        expect(recs.some(level => thinkingChoices(harness, model, slot === 'session').includes(level))).toBe(true);
+      }
+    }
+    // Plan is design work, so it follows the architect column.
+    for (const [, model] of [...models, ...added]) expect(recommendedThinking(model, 'plan')).toEqual(recommendedThinking(model, 'architect'));
     expect(recommendedThinking('opus', 'oracle')).toEqual(['xhigh']);
     expect(recommendedThinking('amazon-bedrock/us.anthropic.claude-fable-5-1', 'oracle')).toEqual(['xhigh']);
     expect(recommendedThinking('sonnet', 'sentinel')).toEqual(['low', 'default']);
@@ -214,11 +244,14 @@ describe('model and thinking settings', () => {
       const agent = TOML.parse(readFileSync(join(root, '.codex/agents/oracle.toml'), 'utf8'));
       expect(agent.model).toBe('gpt-5.6-sol');
       expect(agent.model_reasoning_effort).toBe('medium');
-      // A plan_mode_reasoning_effort left by an older Atelier version is dropped on the next merge.
+      // Without plan_thinking an existing plan_mode_reasoning_effort is left alone; `default` deletes it.
       const configPath = join(root, '.codex/config.toml');
-      writeFileSync(configPath, TOML.stringify({ ...TOML.parse(readFileSync(configPath, 'utf8')), plan_mode_reasoning_effort: 'high' }));
-      const fresh = codexAdapter.defaultSection() as SimpleConfig;
+      writeFileSync(configPath, TOML.stringify({ ...TOML.parse(readFileSync(configPath, 'utf8')), plan_mode_reasoning_effort: 'xhigh' }));
+      codexAdapter.mergeHarnessConfig(old, root);
+      expect(TOML.parse(readFileSync(configPath, 'utf8')).plan_mode_reasoning_effort).toBe('xhigh');
+      const fresh = codexAdapter.defaultSection() as CodexConfig;
       fresh.build_thinking = 'default';
+      fresh.plan_thinking = 'default';
       codexAdapter.mergeHarnessConfig(fresh, root);
       const updated = TOML.parse(readFileSync(configPath, 'utf8'));
       expect(updated.model_reasoning_effort).toBeUndefined();

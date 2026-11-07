@@ -116,6 +116,7 @@ function defaultSection(provider?: Provider): OpenCodeConfig {
     provider: selectedProvider,
     default_model: defaults.default,
     build_thinking: defaultThinking(defaults.default, 'session'),
+    plan_thinking: defaultThinking(defaults.default, 'plan'),
     agents: AGENT_NAMES.map(name => ({
       template: name,
       name,
@@ -213,12 +214,17 @@ function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
     for (const key of OPENCODE_THINKING_KEYS) delete existingAgents.build[key];
   }
 
-  // agent.plan is no longer Atelier-managed: drop a stale Atelier entry (mode 'primary'), keep user keys.
-  if (existingAgents && typeof existingAgents === 'object' && !Array.isArray(existingAgents)) {
-    stripModeEntry(existingAgents, 'plan');
+  // agent.plan is Atelier's only when marked mode 'primary'; any other entry belongs to the user and is untouched.
+  const existingPlan = existingAgents?.plan;
+  const userOwnsPlan = existingPlan !== undefined && (typeof existingPlan !== 'object' || existingPlan === null || Array.isArray(existingPlan) || existingPlan.mode !== 'primary');
+  if (config.plan_thinking === undefined) {
+    // No plan setting: drop a stale Atelier entry (its model may differ from the session model), keep user keys.
+    if (existingAgents && typeof existingAgents === 'object' && !Array.isArray(existingAgents)) stripModeEntry(existingAgents, 'plan');
+  } else if (!userOwnsPlan && existingAgents?.plan) {
+    for (const key of OPENCODE_THINKING_KEYS) delete existingAgents.plan[key];
   }
 
-  // Top-level model is what every agent without its own model (e.g. plan) falls back to, so the
+  // Top-level model is what every agent without its own model falls back to, so the
   // session model must be set there too or "one model" doesn't hold.
   const atelierFields: Record<string, unknown> = {
     model: config.default_model,
@@ -228,6 +234,13 @@ function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
         model: config.default_model,
         ...openCodeThinkingOptions(config.default_model, config.build_thinking),
       },
+      ...(config.plan_thinking === undefined || userOwnsPlan ? {} : {
+        plan: {
+          mode: 'primary',
+          model: config.default_model,
+          ...openCodeThinkingOptions(config.default_model, config.plan_thinking),
+        },
+      }),
     },
   };
 
@@ -437,7 +450,7 @@ function readExistingOpenCodeJson(opencodeJsonPath: string): Record<string, unkn
   }
 }
 
-// agent.build is always Atelier's. agent.plan is Atelier's only as a legacy entry marked mode 'primary';
+// agent.build is always Atelier's. agent.plan is Atelier's only when marked mode 'primary';
 // any other agent.plan belongs to the user and is left intact.
 function stripModeEntry(agent: Record<string, unknown>, mode: 'build' | 'plan'): void {
   const entry = agent[mode];

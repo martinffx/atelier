@@ -25,6 +25,7 @@ export const OpenCodeConfigSchema = z.object({
   provider: z.enum(OPENCODE_PROVIDERS),
   default_model: z.string().min(1),
   build_thinking: ThinkingSchema.optional(),
+  plan_thinking: ThinkingSchema.optional(),
   agents: z.array(ThinkingAgentSchema).min(1),
 }).superRefine((config, ctx) => checkThinking('opencode', config, ctx));
 
@@ -33,14 +34,17 @@ export const CLAUDE_OPTIONAL_BUILTINS = ['cron', 'chrome', 'remote-trigger'] as 
 export const ClaudeConfigSchema = SimpleConfigSchema.extend({
   disabled_builtins: z.array(z.enum(CLAUDE_OPTIONAL_BUILTINS)).optional(),
 }).superRefine((config, ctx) => checkThinking('claude', config, ctx));
-export const CodexConfigSchema = SimpleConfigSchema.superRefine((config, ctx) => checkThinking('codex', config, ctx));
+export const CodexConfigSchema = SimpleConfigSchema.extend({
+  plan_thinking: ThinkingSchema.optional(),
+}).superRefine((config, ctx) => checkThinking('codex', config, ctx));
 
-function checkThinking(harness: ThinkingHarness, config: { default_model: string; build_thinking?: z.infer<typeof ThinkingSchema>; agents: z.infer<typeof ThinkingAgentSchema>[] }, ctx: z.RefinementCtx): void {
+function checkThinking(harness: ThinkingHarness, config: { default_model: string; build_thinking?: z.infer<typeof ThinkingSchema>; plan_thinking?: z.infer<typeof ThinkingSchema>; agents: z.infer<typeof ThinkingAgentSchema>[] }, ctx: z.RefinementCtx): void {
   const check = (model: string, thinking: z.infer<typeof ThinkingSchema> | undefined, path: (string | number)[], session = false) => {
     if (thinking !== undefined && !thinkingChoices(harness, model, session).includes(thinking)) {
       ctx.addIssue({ code: 'custom', path, message: `${model} does not support ${thinking} thinking` });
     }
   };
   check(config.default_model, config.build_thinking, ['build_thinking'], true);
+  check(config.default_model, config.plan_thinking, ['plan_thinking']);
   config.agents.forEach((agent, i) => check(agent.model, agent.thinking, ['agents', i, 'thinking']));
 }

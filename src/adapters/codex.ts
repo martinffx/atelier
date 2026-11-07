@@ -62,6 +62,7 @@ function defaultSection(): CodexConfig {
     provider: 'openai',
     default_model: DEFAULT_MODELS.default_model,
     build_thinking: defaultThinking(DEFAULT_MODELS.default_model, 'session'),
+    plan_thinking: defaultThinking(DEFAULT_MODELS.default_model, 'plan'),
     agents: AGENT_NAMES.map(name => ({
       template: name,
       name,
@@ -123,12 +124,13 @@ function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
   }
 
   if (config.build_thinking === 'default') delete existing.model_reasoning_effort;
-  // Codex has no separate plan mode setting; drop any plan_mode_reasoning_effort Atelier previously wrote.
-  delete existing.plan_mode_reasoning_effort;
+  if (config.plan_thinking === 'default') delete existing.plan_mode_reasoning_effort;
   const merged = {
     ...existing,
     model: config.default_model,
     ...effortField('model_reasoning_effort', codexThinking(config.build_thinking, 'medium')),
+    // An unset plan_thinking leaves any existing plan_mode_reasoning_effort alone.
+    ...(config.plan_thinking === undefined ? {} : effortField('plan_mode_reasoning_effort', codexThinking(config.plan_thinking, 'high'))),
     sandbox_mode: 'danger-full-access',
     approval_policy: 'on-request',
     features: {
