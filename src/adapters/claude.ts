@@ -124,7 +124,7 @@ function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
   const existing = readExistingSettings(settingsPath);
   const isNew = Object.keys(existing).length === 0;
 
-  if (existing.model === 'opusplan') removeLegacySonnetEffort(existing);
+  removeLegacySonnetEffort(existing);
   const settings: ExistingSettings = {
     ...existing,
     $schema: 'https://json.schemastore.org/claude-code-settings.json',
@@ -196,7 +196,7 @@ function removeAtelierSettings(claudeDir: string, config: ClaudeConfig): void {
   }
 
   const content = parseSettingsJson(settingsPath);
-  if (content.model === 'opusplan') removeLegacySonnetEffort(content);
+  removeLegacySonnetEffort(content);
   delete content.$schema;
   delete content.model;
   for (const [key, value] of Object.entries(CLAUDE_AI_OPT_OUTS)) {
@@ -209,31 +209,36 @@ function removeAtelierSettings(claudeDir: string, config: ClaudeConfig): void {
   writeOrDeleteSettings(settingsPath, content);
 }
 
-// Claude Code has one session model and one session effort level, keyed by the model id.
-function applySessionThinking(settings: Record<string, unknown>, config: ClaudeConfig, remove = false): void {
-  const thinking = config.build_thinking;
-  if (thinking === undefined) return;
-  const model = claudeModel(config.default_model);
+// Copies settings.modelSettings, lets `edit` change each listed model's entry, and drops entries and the
+// whole object once they are empty.
+function editModelSettings(settings: Record<string, unknown>, models: readonly string[], edit: (entry: Record<string, unknown>) => void): void {
   const modelSettings = { ...(settings.modelSettings as Record<string, Record<string, unknown>> | undefined) };
-  const entry = { ...modelSettings[model] };
-  if (remove || thinking === 'default') delete entry.effortLevel;
-  else entry.effortLevel = thinking;
-  if (Object.keys(entry).length) modelSettings[model] = entry;
-  else delete modelSettings[model];
+  for (const model of models) {
+    const entry = { ...modelSettings[model] };
+    edit(entry);
+    if (Object.keys(entry).length) modelSettings[model] = entry;
+    else delete modelSettings[model];
+  }
   if (Object.keys(modelSettings).length) settings.modelSettings = modelSettings;
   else delete settings.modelSettings;
 }
 
+// Claude Code has one session model and one session effort level, keyed by the model id.
+function applySessionThinking(settings: Record<string, unknown>, config: ClaudeConfig, remove = false): void {
+  const thinking = config.build_thinking;
+  if (thinking === undefined) return;
+  editModelSettings(settings, [claudeModel(config.default_model)], entry => {
+    if (remove || thinking === 'default') delete entry.effortLevel;
+    else entry.effortLevel = thinking;
+  });
+}
+
 // Earlier Atelier versions under opusplan wrote Sonnet's effort for build thinking. Only the single session
-// model's effort is written now, so drop the Sonnet effort. Callers run this only while model is 'opusplan'.
+// model's effort is written now, so drop the Sonnet effort. Runs only while model is 'opusplan', so callers
+// must call it before model is replaced or deleted. The id is literal: it must match what old versions wrote.
 function removeLegacySonnetEffort(settings: Record<string, unknown>): void {
-  const modelSettings = { ...(settings.modelSettings as Record<string, Record<string, unknown>> | undefined) };
-  const entry = { ...modelSettings['claude-sonnet-5-5'] };
-  delete entry.effortLevel;
-  if (Object.keys(entry).length) modelSettings['claude-sonnet-5-5'] = entry;
-  else delete modelSettings['claude-sonnet-5-5'];
-  if (Object.keys(modelSettings).length) settings.modelSettings = modelSettings;
-  else delete settings.modelSettings;
+  if (settings.model !== 'opusplan') return;
+  editModelSettings(settings, ['claude-sonnet-5-5'], entry => { delete entry.effortLevel; });
 }
 
 // Earlier Atelier versions wrote a 190k auto-compact window for the plan-swapping model pair. Claude Code no
@@ -242,15 +247,9 @@ const LEGACY_AUTO_COMPACT_WINDOW = 190_000;
 const LEGACY_AUTO_COMPACT_MODELS = ['claude-sonnet-5-5', 'claude-opus-5-5'] as const;
 
 function removeLegacyAutoCompactWindow(settings: Record<string, unknown>): void {
-  const modelSettings = { ...(settings.modelSettings as Record<string, Record<string, unknown>> | undefined) };
-  for (const model of LEGACY_AUTO_COMPACT_MODELS) {
-    const entry = { ...modelSettings[model] };
+  editModelSettings(settings, LEGACY_AUTO_COMPACT_MODELS, entry => {
     if (entry.autoCompactWindow === LEGACY_AUTO_COMPACT_WINDOW) delete entry.autoCompactWindow;
-    if (Object.keys(entry).length) modelSettings[model] = entry;
-    else delete modelSettings[model];
-  }
-  if (Object.keys(modelSettings).length) settings.modelSettings = modelSettings;
-  else delete settings.modelSettings;
+  });
 }
 
 function applyBuiltins(settings: Record<string, unknown>, patch: BuiltinPatch): void {

@@ -3,7 +3,7 @@ import '../adapters/index.js';
 import { getAdapter, listAdapters, listHarnessNames } from '../registry.js';
 
 describe('adapters/index', () => {
-  it('registers all four harness adapters', () => {
+  it('registers all harness adapters', () => {
     expect(listHarnessNames()).toEqual(['claude', 'opencode', 'codex']);
   });
 

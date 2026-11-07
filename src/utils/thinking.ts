@@ -1,12 +1,13 @@
+import type { Harness } from '../types.js';
+import { AGENT_NAMES } from '../constants.js';
 import { InvalidConfigError } from './errors.js';
 
 export const THINKING_LEVELS = ['default', 'off', 'on', 'low', 'medium', 'high', 'xhigh', 'max'] as const;
 export type Thinking = typeof THINKING_LEVELS[number];
-export type ThinkingHarness = 'claude' | 'codex' | 'opencode';
 
 // Unknown/custom models remain usable without guessing their capabilities.
-export function thinkingChoices(harness: ThinkingHarness, model: string, session = false): Thinking[] {
-  const id = model.split('/').at(-1)!.toLowerCase();
+export function thinkingChoices(harness: Harness, model: string, session = false): Thinking[] {
+  const id = modelId(model);
   if (/gpt-6(\.1)?-(astra|sol|luna|terra)$/.test(id)) {
     // Astra and GPT 6.1 Sol reason on every request, so they cannot be switched off.
     return ['default', ...(/astra$|6\.1-sol$/.test(id) ? [] : ['off'] as const), 'low', 'medium', 'high', 'xhigh', 'max'];
@@ -35,13 +36,18 @@ export function thinkingChoices(harness: ThinkingHarness, model: string, session
   return ['default'];
 }
 
-type Role = 'session' | 'sentinel' | 'oracle' | 'architect' | 'keymaker';
-const ROLES: readonly Role[] = ['session', 'sentinel', 'oracle', 'architect', 'keymaker'];
+type Role = 'session' | typeof AGENT_NAMES[number];
+export type Slot = Role | 'plan';
+const ROLES: readonly Role[] = ['session', ...AGENT_NAMES];
+
+// Families whose provider default is max; shared by their rows below and avoidsProviderDefault.
+const KIMI = /^kimi-k3(\.1-pro)?$/;
+const BEAM = /^beam-(free|1\.0-501b-a23b)$/;
 
 // Recommended levels per family, in role order: session, sentinel, oracle, architect, keymaker.
 // Where a cell has two levels, the first is the preselected default and the second the alternate.
 const RECOMMENDED: Array<[RegExp, Thinking[][]]> = [
-  [/^kimi-k3(\.1-pro)?$/, [['low'], ['low'], ['high'], ['high'], ['low', 'high']]],
+  [KIMI, [['low'], ['low'], ['high'], ['high'], ['low', 'high']]],
   [/^gemini-(4-argon(-contributor)?|\d(\.\d)?-flash(-lite)?)$/, [['medium'], ['low'], ['high'], ['high'], ['high', 'medium']]],
   [/^deepseek-v4(\.1-flash(-1017)?|-pro)$/, [['high'], ['low'], ['high'], ['high'], ['high']]],
   [/^gpt-6(\.1)?-sol$/, [['medium'], ['low'], ['xhigh', 'high'], ['high'], ['medium']]],
@@ -61,36 +67,37 @@ const RECOMMENDED: Array<[RegExp, Thinking[][]]> = [
   [/^hy4$/, [['high'], ['off'], ['high'], ['high'], ['high']]],
   [/^step-5-preview$/, [['medium'], ['low'], ['high'], ['high'], ['high', 'medium']]],
   [/^ling-3\.1-flash$/, [['on'], ['off'], ['on'], ['on'], ['on']]],
-  [/^beam-(free|1\.0-501b-a23b)$/, [['low'], ['low'], ['high'], ['high'], ['low', 'high']]],
+  [BEAM, [['low'], ['low'], ['high'], ['high'], ['low', 'high']]],
 ];
 
 const modelId = (model: string): string => model.split('/').at(-1)!.toLowerCase();
 
 // Levels recommended for a model in a slot; the first is the default. Empty when the model has no recommendation.
 // Plan is design work, so it follows the architect column.
-export function recommendedThinking(model: string, slot: string): Thinking[] {
-  const index = ROLES.indexOf((slot === 'plan' ? 'architect' : slot) as Role);
+export function recommendedThinking(model: string, slot: Slot): Thinking[] {
+  const index = ROLES.indexOf(slot === 'plan' ? 'architect' : slot);
   const id = modelId(model);
-  return index < 0 ? [] : RECOMMENDED.find(([pattern]) => pattern.test(id))?.[1][index] ?? [];
+  return RECOMMENDED.find(([pattern]) => pattern.test(id))?.[1][index] ?? [];
 }
 
-// Thinking preselected when a user switches a slot to a new model.
-export function defaultThinking(model: string, slot: string): Thinking {
+// Thinking preselected for a fixed default section (not filtered by harness support). The model-switch path is prompt.ts, which filters by harness.
+export function defaultThinking(model: string, slot: Slot): Thinking {
   return recommendedThinking(model, slot)[0] ?? 'default';
 }
 
 // Kimi's and Beam's provider default is max, so a saved `default` there is replaced rather than kept.
 export function avoidsProviderDefault(model: string): boolean {
-  return /^(kimi-k3(\.1-pro)?|beam-(free|1\.0-501b-a23b))$/.test(modelId(model));
+  const id = modelId(model);
+  return KIMI.test(id) || BEAM.test(id);
 }
 
-export function assertThinking(harness: ThinkingHarness, model: string, thinking?: Thinking, session = false): void {
+export function assertThinking(harness: Harness, model: string, thinking?: Thinking, session = false): void {
   if (thinking !== undefined && !thinkingChoices(harness, model, session).includes(thinking)) {
     throw new InvalidConfigError(`${model} does not support ${thinking} thinking in ${harness}${session ? ' sessions' : ''}`);
   }
 }
 
-export function codexThinking(thinking: Thinking | undefined, legacy: string): string | undefined {
+export function codexThinking(thinking: Thinking | undefined, legacy?: string): string | undefined {
   if (thinking === undefined) return legacy;
   if (thinking === 'default') return undefined;
   return thinking === 'off' ? 'none' : thinking;

@@ -73,6 +73,13 @@ export function readConfig(path: string = CONFIG_PATH): Result<AtelierConfig, Co
     });
   }
 
+  if (hasOnlyCursorHarness(parsed)) {
+    return err({
+      type: 'invalid',
+      message: 'This config only configures Cursor, which is no longer supported. Run `atelier remove --harness cursor` on version 3.7.0 (for example `npx @martinffx/atelier@3.7.0 remove --harness cursor`), or delete ~/.atelier/config.json.',
+    });
+  }
+
   try {
     return ok(validateConfig(migrateLegacyPlanMode(migrateLegacyAgentName(parsed))));
   } catch (validationErr) {
@@ -112,7 +119,8 @@ function migrateLegacyAgentName(config: unknown): unknown {
   return migrated;
 }
 
-// Plan mode no longer swaps models or thinking: each harness has one session model and thinking.
+// Plan mode no longer swaps models: each harness has one session model. Claude has one effort;
+// Codex and OpenCode keep a separate plan effort on that model.
 function migrateLegacyPlanMode(config: unknown): unknown {
   if (typeof config !== 'object' || config === null) {
     return config;
@@ -140,29 +148,36 @@ function migrateLegacyPlanMode(config: unknown): unknown {
     migrated.claude = section;
   }
 
-  const codex = migrated.codex;
-  if (typeof codex === 'object' && codex !== null) {
-    // Codex's plan_thinking always applied to the session model, and now sets plan_mode_reasoning_effort.
-    migrated.codex = { ...(codex as Record<string, unknown>) };
-  }
-
   const opencode = migrated.opencode;
   if (typeof opencode === 'object' && opencode !== null) {
     const section = { ...(opencode as Record<string, unknown>) };
+    const legacy = section.build_model !== undefined || section.plan_model !== undefined;
     if (section.default_model === undefined && section.build_model !== undefined) {
       section.default_model = section.build_model;
     }
     delete section.build_model;
     delete section.plan_model;
     // The old plan_thinking belonged to plan_model, so keep it only if default_model also supports it.
-    const supported = typeof section.default_model === 'string'
-      ? thinkingChoices('opencode', section.default_model) as readonly unknown[]
-      : [];
-    if (!supported.includes(section.plan_thinking)) delete section.plan_thinking;
+    // Current-format configs are left alone so a bad value still fails validation.
+    if (legacy) {
+      const supported = typeof section.default_model === 'string'
+        ? thinkingChoices('opencode', section.default_model) as readonly unknown[]
+        : [];
+      if (!supported.includes(section.plan_thinking)) delete section.plan_thinking;
+    }
     migrated.opencode = section;
   }
 
   return migrated;
+}
+
+// Zod strips unknown keys, so a cursor-only config would otherwise surface as a generic validation error.
+function hasOnlyCursorHarness(config: unknown): boolean {
+  if (typeof config !== 'object' || config === null) {
+    return false;
+  }
+  const record = config as Record<string, unknown>;
+  return 'cursor' in record && Harnesses.every(harness => record[harness] == null);
 }
 
 function isOldFlatConfig(config: unknown): boolean {

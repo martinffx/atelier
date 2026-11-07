@@ -216,7 +216,10 @@ function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
 
   // agent.plan is Atelier's only when marked mode 'primary'; any other entry belongs to the user and is untouched.
   const existingPlan = existingAgents?.plan;
-  const userOwnsPlan = existingPlan !== undefined && (typeof existingPlan !== 'object' || existingPlan === null || Array.isArray(existingPlan) || existingPlan.mode !== 'primary');
+  const userOwnsPlan = existingPlan !== undefined && !isAtelierPlan(existingPlan);
+  if (config.plan_thinking !== undefined && userOwnsPlan) {
+    console.log(`Skipped agent.plan in ${shortPath(opencodeJsonPath)} because it is not managed by Atelier.`);
+  }
   if (config.plan_thinking === undefined) {
     // No plan setting: drop a stale Atelier entry (its model may differ from the session model), keep user keys.
     if (existingAgents && typeof existingAgents === 'object' && !Array.isArray(existingAgents)) stripModeEntry(existingAgents, 'plan');
@@ -255,7 +258,9 @@ function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
   }
 
   if (config.provider === 'openrouter' && config.warming === true) {
-    atelierFields.providers = { openrouter: { settings: { cache: { warming: true } } } };
+    const warming = ['providers', 'openrouter', 'settings', 'cache', 'warming'].reduce<unknown>((node, key) => (node && typeof node === 'object' ? (node as Record<string, unknown>)[key] : undefined), existing);
+    // A custom object value (for example an interval) is the user's own; do not overwrite it.
+    if (typeof warming !== 'object' || warming === null) atelierFields.providers = { openrouter: { settings: { cache: { warming: true } } } };
   } else if (config.provider !== 'openrouter' || config.warming === false) {
     removeWarming(existing);
   }
@@ -456,13 +461,18 @@ function readExistingOpenCodeJson(opencodeJsonPath: string): Record<string, unkn
   }
 }
 
+// agent.plan is Atelier's only when marked mode 'primary'; any other entry belongs to the user.
+function isAtelierPlan(entry: unknown): boolean {
+  return typeof entry === 'object' && entry !== null && !Array.isArray(entry) && (entry as Record<string, unknown>).mode === 'primary';
+}
+
 // agent.build is always Atelier's. agent.plan is Atelier's only when marked mode 'primary';
 // any other agent.plan belongs to the user and is left intact.
 function stripModeEntry(agent: Record<string, unknown>, mode: 'build' | 'plan'): void {
   const entry = agent[mode];
   if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return;
   const record = entry as Record<string, unknown>;
-  if (mode === 'plan' && record.mode !== 'primary') return;
+  if (mode === 'plan' && !isAtelierPlan(record)) return;
   for (const key of ['mode', 'model', ...OPENCODE_THINKING_KEYS]) delete record[key];
   if (!Object.keys(record).length) delete agent[mode];
 }

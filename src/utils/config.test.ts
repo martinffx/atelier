@@ -434,6 +434,52 @@ describe('config', () => {
     expect('cursor' in config).toBe(false);
   });
 
+  test('readConfig returns invalid with next steps for a cursor-only config', async () => {
+    const { writeFileSync, mkdirSync } = await import('fs');
+    const { readConfig } = await import('./config.js');
+    const configPath = join(tempDir, '.atelier/config.json');
+    mkdirSync(join(tempDir, '.atelier'), { recursive: true });
+    writeFileSync(configPath, JSON.stringify({
+      version: '0.1.0',
+      skills_source: 'martinffx/atelier',
+      skills_path: '~/.agents/skills',
+      cursor: { agents: [{ template: 'sentinel', name: 'sentinel', model: 'composer-2.5' }] },
+    }));
+
+    const result = readConfig(configPath);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.type).toBe('invalid');
+      const message = (result.error as { message: string }).message;
+      expect(message).toContain('Cursor');
+      expect(message).toContain('atelier remove --harness cursor');
+      expect(message).toContain('3.7.0');
+      expect(message).toContain('config.json');
+    }
+  });
+
+  test('readConfig rejects unsupported plan_thinking in a current-format OpenCode config', async () => {
+    const { writeFileSync, mkdirSync } = await import('fs');
+    const { readConfig } = await import('./config.js');
+    const configPath = join(tempDir, '.atelier/config.json');
+    mkdirSync(join(tempDir, '.atelier'), { recursive: true });
+    writeFileSync(configPath, JSON.stringify({
+      version: '0.1.0',
+      skills_source: 'martinffx/atelier',
+      skills_path: '~/.agents/skills',
+      opencode: {
+        provider: 'opencode-zen',
+        default_model: 'opencode/glm-5.3',
+        plan_thinking: 'hgih',
+        agents: [{ template: 'sentinel', name: 'sentinel', model: 'opencode/glm-5.3-flash' }],
+      },
+    }));
+
+    const result = readConfig(configPath);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.type).toBe('invalid');
+  });
+
   test('writeConfig then readConfig returns matching multi-harness config', async () => {
     const { writeConfig, readConfig } = await import('./config.js');
 

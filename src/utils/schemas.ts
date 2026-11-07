@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { AGENT_NAMES } from '../constants.js';
-import { THINKING_LEVELS, thinkingChoices, type ThinkingHarness } from './thinking.js';
+import { THINKING_LEVELS, thinkingChoices, } from './thinking.js';
+import type { Harness } from '../types.js';
 
 export const ThinkingSchema = z.enum(THINKING_LEVELS);
 
@@ -8,15 +9,14 @@ const AgentSchema = z.object({
   template: z.enum(AGENT_NAMES),
   name: z.enum(AGENT_NAMES),
   model: z.string().min(1),
+  thinking: ThinkingSchema.optional(),
 });
-
-const ThinkingAgentSchema = AgentSchema.extend({ thinking: ThinkingSchema.optional() });
 
 export const SimpleConfigSchema = z.object({
   provider: z.string().optional(),
   default_model: z.string().min(1),
   build_thinking: ThinkingSchema.optional(),
-  agents: z.array(ThinkingAgentSchema).min(1),
+  agents: z.array(AgentSchema).min(1),
 });
 
 export const OPENCODE_PROVIDERS = ['opencode-zen', 'opencode-go', 'amazon-bedrock', 'openai', 'openrouter', 'google'] as const;
@@ -26,7 +26,7 @@ export const OpenCodeConfigSchema = z.object({
   default_model: z.string().min(1),
   build_thinking: ThinkingSchema.optional(),
   plan_thinking: ThinkingSchema.optional(),
-  agents: z.array(ThinkingAgentSchema).min(1),
+  agents: z.array(AgentSchema).min(1),
   warming: z.boolean().optional(),
 }).superRefine((config, ctx) => checkThinking('opencode', config, ctx));
 
@@ -39,7 +39,7 @@ export const CodexConfigSchema = SimpleConfigSchema.extend({
   plan_thinking: ThinkingSchema.optional(),
 }).superRefine((config, ctx) => checkThinking('codex', config, ctx));
 
-function checkThinking(harness: ThinkingHarness, config: { default_model: string; build_thinking?: z.infer<typeof ThinkingSchema>; plan_thinking?: z.infer<typeof ThinkingSchema>; agents: z.infer<typeof ThinkingAgentSchema>[] }, ctx: z.RefinementCtx): void {
+function checkThinking(harness: Harness, config: { default_model: string; build_thinking?: z.infer<typeof ThinkingSchema>; plan_thinking?: z.infer<typeof ThinkingSchema>; agents: z.infer<typeof AgentSchema>[] }, ctx: z.RefinementCtx): void {
   const check = (model: string, thinking: z.infer<typeof ThinkingSchema> | undefined, path: (string | number)[], session = false) => {
     if (thinking !== undefined && !thinkingChoices(harness, model, session).includes(thinking)) {
       ctx.addIssue({ code: 'custom', path, message: `${model} does not support ${thinking} thinking` });

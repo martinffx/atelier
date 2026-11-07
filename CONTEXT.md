@@ -28,6 +28,24 @@ Examples: `opus`, `gpt-5.6-sol`, `opencode/kimi-k2.6`
 
 _Avoid_: engine, instance
 
+**Session Model**
+
+The one model a harness runs its main session on, stored as `default_model` in the harness section of `AtelierConfig`. Plan mode does not swap it. OpenCode's older `build_model` and `plan_model` are migrated into it.
+
+_Avoid_: build model, plan model, default agent model
+
+**Session Thinking**
+
+The thinking level for the Session Model, stored as `build_thinking`. Claude has this one level only; Codex and OpenCode also have Plan Thinking. Per-agent levels are separate, in `agents[].thinking`.
+
+_Avoid_: build mode thinking, main effort
+
+**Plan Thinking**
+
+A separate thinking level for plan mode on the same Session Model, stored as `plan_thinking` (Codex and OpenCode only). It is not a plan model: it never selects a different model.
+
+_Avoid_: plan model, plan effort setting, plan mode model
+
 **Adapter**
 
 A harness-specific module that installs and removes Atelier-managed artifacts for one harness. It translates agnostic agent templates into harness-native agent files and merges Atelier-managed settings into the harness's native configuration file. Adapters perform their own file I/O.

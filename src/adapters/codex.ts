@@ -130,7 +130,7 @@ function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
     model: config.default_model,
     ...effortField('model_reasoning_effort', codexThinking(config.build_thinking, 'medium')),
     // An unset plan_thinking leaves any existing plan_mode_reasoning_effort alone.
-    ...(config.plan_thinking === undefined ? {} : effortField('plan_mode_reasoning_effort', codexThinking(config.plan_thinking, 'high'))),
+    ...effortField('plan_mode_reasoning_effort', codexThinking(config.plan_thinking)),
     sandbox_mode: 'danger-full-access',
     approval_policy: 'on-request',
     features: {

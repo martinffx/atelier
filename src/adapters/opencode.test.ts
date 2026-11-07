@@ -86,6 +86,13 @@ describe('opencode adapter', () => {
       expect(read().providers).toEqual(custom.providers);
     });
 
+    it('keeps a custom object value when warming is enabled', () => {
+      const custom = { providers: { openrouter: { settings: { cache: { warming: { interval: 60 } } } } } };
+      seed(custom);
+      opencodeAdapter.mergeHarnessConfig(orSection(true), basePath);
+      expect(read().providers).toEqual(custom.providers);
+    });
+
     it('clears it when switching away from OpenRouter', () => {
       seed(warm);
       opencodeAdapter.mergeHarnessConfig({ ...section('opencode-go'), warming: true }, basePath);
@@ -192,6 +199,20 @@ describe('opencode adapter', () => {
     content = JSON.parse(readFileSync(join(basePath, 'opencode.json'), 'utf-8'));
     expect(content.agent.plan).toEqual(userPlan);
     expect(content.agent.build).toBeUndefined();
+  });
+
+  it('prints a skip line when plan_thinking is set but agent.plan is user-owned', () => {
+    mkdirSync(basePath, { recursive: true });
+    writeFileSync(join(basePath, 'opencode.json'), JSON.stringify({ agent: { plan: { model: 'openai/gpt-6-sol' } } }, null, 2));
+    const logs: string[] = [];
+    const original = console.log;
+    console.log = (...args: unknown[]) => { logs.push(args.join(' ')); };
+    try {
+      opencodeAdapter.mergeHarnessConfig(section(), basePath);
+    } finally {
+      console.log = original;
+    }
+    expect(logs.some(line => line.startsWith('Skipped') && line.includes('agent.plan') && line.includes('not managed by Atelier'))).toBe(true);
   });
 
   it('remove clears the agent.plan that merge wrote', () => {

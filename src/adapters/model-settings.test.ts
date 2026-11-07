@@ -9,8 +9,7 @@ import { codexAdapter } from './codex.js';
 import { opencodeAdapter } from './opencode.js';
 import { ClaudeConfigSchema, CodexConfigSchema, OpenCodeConfigSchema } from '../utils/schemas.js';
 import { thinkingChoices, openCodeThinkingOptions, recommendedThinking, defaultThinking, avoidsProviderDefault } from '../utils/thinking.js';
-import type { ThinkingHarness } from '../utils/thinking.js';
-import type { HarnessAdapter, SimpleConfig, CodexConfig, OpenCodeConfig, Provider } from '../types.js';
+import type { Harness, HarnessAdapter, SimpleConfig, CodexConfig, OpenCodeConfig, Provider } from '../types.js';
 
 // Each row: the four agent models then the single session model; the four agent levels then the build thinking;
 // then the plan thinking (Claude has no plan setting).
@@ -124,7 +123,7 @@ describe('model and thinking settings', () => {
   });
 
   it('only recommends levels the harness supports, and matches aliases and Bedrock ids', () => {
-    const models: Array<[ThinkingHarness, string]> = [
+    const models: Array<[Harness, string]> = [
       ['claude', 'opus'], ['claude', 'fable'], ['claude', 'best'], ['claude', 'sonnet'], ['claude', 'haiku'], ['claude', 'claude-opus-5-5'],
       ['codex', 'gpt-6-sol'], ['codex', 'gpt-6-terra'], ['codex', 'gpt-6-luna'], ['codex', 'gpt-6-astra'],
       ['opencode', 'amazon-bedrock/us.anthropic.claude-opus-5-5'], ['opencode', 'openai/gpt-6.1-sol'],
@@ -143,7 +142,7 @@ describe('model and thinking settings', () => {
       }
     }
     // Newer families list levels one catalog may lack (Qwen's high is not on Go), so at least one must be offered.
-    const added: Array<[ThinkingHarness, string]> = [
+    const added: Array<[Harness, string]> = [
       ['opencode', 'opencode/qwen3.8-max'], ['opencode', 'opencode-go/qwen3.8-max'], ['opencode', 'openrouter/qwen/qwen3.8-max-0902'], ['opencode', 'openrouter/qwen/qwen3.8-max-prime'],
       ['opencode', 'opencode-go/hy4'], ['opencode', 'openrouter/tencent/hy4'],
       ['opencode', 'opencode-go/step-5-preview'], ['opencode', 'openrouter/stepfun/step-5-preview'],
