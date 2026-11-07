@@ -6,8 +6,8 @@ import { SimpleConfigSchema, ClaudeConfigSchema, OpenCodeConfigSchema, CursorCon
 export type Harness = typeof Harness[number];
 export type AgentName = typeof AGENT_NAMES[number];
 
-export type Provider = 'anthropic' | 'opencode-zen' | 'opencode-go' | 'amazon-bedrock' | 'openai';
-export type OpenCodeProvider = 'opencode-zen' | 'opencode-go' | 'amazon-bedrock' | 'openai';
+export type Provider = 'anthropic' | 'opencode-zen' | 'opencode-go' | 'amazon-bedrock' | 'openai' | 'openrouter' | 'google';
+export type OpenCodeProvider = 'opencode-zen' | 'opencode-go' | 'amazon-bedrock' | 'openai' | 'openrouter' | 'google';
 
 export interface ProviderChoice {
   name: string;
