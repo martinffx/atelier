@@ -3,6 +3,9 @@ import { promptForSection, formatFileList, promptForSimpleModels, promptForOpenC
 import type { HarnessAdapter, SimpleConfig, OpenCodeConfig } from '../types.js';
 import { codexAdapter } from '../adapters/codex.js';
 import { opencodeAdapter } from '../adapters/opencode.js';
+import { claudeAdapter } from '../adapters/claude.js';
+
+const values = (choices: Array<string | { value: string }>): string[] => choices.map(c => typeof c === 'string' ? c : c.value);
 
 const mockAnswers: Record<string, unknown>[] = [];
 let answerIndex = 0;
@@ -162,9 +165,9 @@ describe('prompt', () => {
     const original = opencodeAdapter.defaultSection('opencode-go') as OpenCodeConfig;
     const result = await promptForOpenCodeModels(prompt, original, opencodeAdapter.modelsForProvider('opencode-go'), 'opencode-go');
     expect(result.agents[1].model).toBe('opencode-go/glm-5.3');
-    expect(result.agents[1].thinking).toBe('default');
+    expect(result.agents[1].thinking).toBe('high');
     expect(original.agents[1].thinking).toBe('on');
-    expect(batches[1].find(q => q.name === 'oracle_thinking').choices).toEqual(['default', 'low', 'high', 'max']);
+    expect(values(batches[1].find(q => q.name === 'oracle_thinking').choices)).toEqual(['default', 'low', 'high', 'max']);
   });
 
   it('carries session thinking when the session model is unchanged', async () => {
@@ -178,11 +181,11 @@ describe('prompt', () => {
     expect(result.build_thinking).toBe('high');
     const session = batches[1].find(q => q.name === 'build_thinking');
     expect(session.message).toBe('Select thinking for session (opencode-go/glm-5.3)');
-    expect(session.choices).toEqual(['default', 'low', 'high', 'max']);
+    expect(values(session.choices)).toEqual(['default', 'low', 'high', 'max']);
     expect(original.build_thinking).toBe('high');
   });
 
-  it('resets session thinking to default when the session model changes', async () => {
+  it('resets session thinking to the family default when the session model changes', async () => {
     const batches: any[][] = [];
     const prompt = { prompt: async (batch: any[]) => {
       batches.push(batch);
@@ -193,7 +196,7 @@ describe('prompt', () => {
     const original = { ...opencodeAdapter.defaultSection('opencode-go'), default_model: 'opencode-go/glm-5.3', build_thinking: 'high' } as OpenCodeConfig;
     const result = await promptForOpenCodeModels(prompt, original, ['opencode-go/glm-5.3', 'opencode-go/deepseek-v4-pro'], 'opencode-go');
     expect(result.default_model).toBe('opencode-go/deepseek-v4-pro');
-    expect(result.build_thinking).toBe('default');
+    expect(result.build_thinking).toBe('high');
     expect(batches[1].find(q => q.name === 'build_thinking').message).toBe('Select thinking for session (opencode-go/deepseek-v4-pro)');
     expect(original.build_thinking).toBe('high');
   });
@@ -217,17 +220,74 @@ describe('prompt', () => {
     });
   }
 
-  it('keeps default thinking for other changed models', async () => {
+  it('keeps default thinking for changed models outside the table', async () => {
     const batches: any[][] = [];
     const prompt = { prompt: async (batch: any[]) => {
       batches.push(batch);
       const answers = Object.fromEntries(batch.map(q => [q.name, q.default]));
-      if (batches.length === 1) answers.default_model = 'opencode-go/kimi-k3';
+      if (batches.length === 1) answers.default_model = 'opencode-go/minimax-m3';
       return answers;
     } } as unknown as typeof import('inquirer').default;
     const original = { ...opencodeAdapter.defaultSection('opencode-go'), default_model: 'opencode-go/glm-5.3' } as OpenCodeConfig;
-    await promptForOpenCodeModels(prompt, original, ['opencode-go/glm-5.3', 'opencode-go/kimi-k3'], 'opencode-go');
-    expect(batches[1].find(q => q.name === 'build_thinking').default).toBe('default');
+    await promptForOpenCodeModels(prompt, original, ['opencode-go/glm-5.3', 'opencode-go/minimax-m3'], 'opencode-go');
+    const session = batches[1].find(q => q.name === 'build_thinking');
+    expect(session.default).toBe('default');
+    expect(session.choices.every((c: any) => typeof c === 'string' || !c.name.includes('recommended'))).toBe(true);
+  });
+
+  it('preselects slot values rather than default when changing to Kimi K3', async () => {
+    const batches: any[][] = [];
+    const prompt = { prompt: async (batch: any[]) => {
+      batches.push(batch);
+      const answers = Object.fromEntries(batch.map(q => [q.name, q.default]));
+      if (batches.length === 1) for (const name of ['default_model', 'sentinel', 'oracle', 'architect', 'keymaker']) answers[name] = 'opencode/kimi-k3';
+      return answers;
+    } } as unknown as typeof import('inquirer').default;
+    const original = { ...opencodeAdapter.defaultSection('opencode-go'), default_model: 'opencode-go/glm-5.3' } as OpenCodeConfig;
+    await promptForOpenCodeModels(prompt, original, ['opencode-go/glm-5.3', 'opencode/kimi-k3'], 'opencode-go');
+    expect(Object.fromEntries(batches[1].map(q => [q.name, q.default]))).toEqual({ build_thinking: 'low', sentinel_thinking: 'low', oracle_thinking: 'high', architect_thinking: 'high', keymaker_thinking: 'low' });
+  });
+
+  it('marks both split-cell levels as recommended for a Kimi Keymaker', async () => {
+    const batches: any[][] = [];
+    const prompt = { prompt: async (batch: any[]) => {
+      batches.push(batch);
+      return Object.fromEntries(batch.map(q => [q.name, q.default]));
+    } } as unknown as typeof import('inquirer').default;
+    const kimi = 'opencode-go/kimi-k3.1-pro';
+    const base = opencodeAdapter.defaultSection('opencode-go') as OpenCodeConfig;
+    const original = { ...base, agents: base.agents.map(a => a.name === 'keymaker' ? { ...a, model: kimi, thinking: 'low' as const } : a) } as OpenCodeConfig;
+    await promptForOpenCodeModels(prompt, original, [...opencodeAdapter.modelsForProvider('opencode-go'), kimi], 'opencode-go');
+    const q = batches[1].find(x => x.name === 'keymaker_thinking');
+    expect(q.default).toBe('low');
+    expect(q.choices).toEqual([
+      { name: 'default', value: 'default' },
+      { name: 'low (recommended)', value: 'low' },
+      { name: 'high (recommended)', value: 'high' },
+      { name: 'max', value: 'max' },
+    ]);
+  });
+
+  it('keeps a saved default on an unchanged non-Kimi model', async () => {
+    const prompt = { prompt: async (batch: any[]) => Object.fromEntries(batch.map(q => [q.name, q.default])) } as unknown as typeof import('inquirer').default;
+    const base = opencodeAdapter.defaultSection('opencode-go') as OpenCodeConfig;
+    const original = { ...base, default_model: 'opencode-go/glm-5.3', build_thinking: 'default', agents: base.agents.map(a => a.name === 'architect' ? { ...a, thinking: 'default' as const } : a) } as OpenCodeConfig;
+    const result = await promptForOpenCodeModels(prompt, original, opencodeAdapter.modelsForProvider('opencode-go'), 'opencode-go');
+    expect(result.build_thinking).toBe('default');
+    expect(result.agents.find(a => a.name === 'architect')!.thinking).toBe('default');
+  });
+
+  it('excludes max from Claude session recommendations and choices', async () => {
+    const batches: any[][] = [];
+    const prompt = { prompt: async (batch: any[]) => {
+      batches.push(batch);
+      return Object.fromEntries(batch.map(q => [q.name, q.default]));
+    } } as unknown as typeof import('inquirer').default;
+    const original = claudeAdapter.defaultSection() as SimpleConfig;
+    await promptForSimpleModels(prompt, original, claudeAdapter.modelsForProvider(), 'claude');
+    const session = batches[1].find(q => q.name === 'build_thinking');
+    expect(values(session.choices)).not.toContain('max');
+    expect(session.default).toBe('high');
   });
 
   for (const [saved, expected] of [['default', 'low'], ['max', 'max'], ['low', 'low']] as const) {

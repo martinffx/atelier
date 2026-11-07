@@ -124,22 +124,22 @@ Run `npx @martinffx/atelier@latest --help` for CLI commands and options. Each sk
 
 New configurations use the following defaults (November 2026). Each entry is **model / thinking**.
 
-| Configuration | Sentinel | Oracle | Architect | Plan | Build |
+| Configuration | Sentinel | Oracle | Architect | Keymaker | Session |
 |---|---|---|---|---|---|
-| Claude Code | Haiku 5.5 / default | Opus 5.5 / xhigh | Opus 5.5 / high | Opus 5.5 / high | Sonnet 5 / high |
-| Codex | Luna 6 / low | Astra 6 / high | Astra 6 / xhigh | Sol 6 / xhigh | Sol 6 / high |
-| OpenCode / OpenAI | Luna 6 / low | Astra 6 / high | Astra 6 / xhigh | Astra 6 / xhigh | Sol 6 / high |
-| OpenCode / Bedrock | Haiku 5.5 / low | Fable 5.1 / high | Opus 5.5 / high | Opus 5.5 / high | Sonnet 5 / high |
-| OpenCode / Zen | GLM 5.3 Flash / low | Kimi K3 / high | GLM 5.3 / high | GLM 5.3 / high | DeepSeek V4.1 Flash / high |
-| OpenCode / Go | GLM 5.3 Flash / low | MiMo V2.6 Pro / on | GLM 5.3 / high | GLM 5.3 / high | DeepSeek V4.1 Flash / high |
-| OpenCode / OpenRouter | GLM 5.3 Flash / low | Kimi K3.1 Pro / high | GLM 5.3 / high | GLM 5.3 / high | DeepSeek V4.1 Flash (1017) / high |
-| OpenCode / Google | Gemini 3.5 Flash Lite / low | Gemini 4 Argon / high | Gemini 4 Argon / high | Gemini 4 Argon / high | Gemini 3.8 Flash / high |
+| Claude Code | Haiku 5.5 / low | Opus 5.5 / xhigh | Opus 5.5 / high | Sonnet 5 / default | Opus 5.5 / high |
+| Codex | Luna 6 / low | Astra 6 / xhigh | Astra 6 / high | Sol 6 / medium | Astra 6 / high |
+| OpenCode / OpenAI | Luna 6 / low | Astra 6 / xhigh | Astra 6 / high | Sol 6 / medium | Astra 6 / high |
+| OpenCode / Bedrock | Haiku 5.5 / low | Fable 5.1 / xhigh | Opus 5.5 / high | Sonnet 5 / default | Opus 5.5 / high |
+| OpenCode / Zen | GLM 5.3 Flash / low | Kimi K3 / high | GLM 5.3 / high | DeepSeek V4.1 Flash / high | Kimi K3 / low |
+| OpenCode / Go | GLM 5.3 Flash / low | MiMo V2.6 Pro / on | GLM 5.3 / high | DeepSeek V4.1 Flash / high | Kimi K3.1 Pro / low |
+| OpenCode / OpenRouter | GLM 5.3 Flash / low | Kimi K3.1 Pro / high | GLM 5.3 / high | DeepSeek V4.1 Flash (1017) / high | Kimi K3.1 Pro / low |
+| OpenCode / Google | Gemini 3.5 Flash Lite / low | Gemini 4 Argon / high | Gemini 4 Argon / high | Gemini 3.8 Flash / high | Gemini 4 Argon / medium |
 
-Sentinel favors inexpensive reconnaissance. Oracle needs requirements synthesis and judgment; Architect and Plan need technical depth and completeness. Build balances capability and execution cost. These are starting configurations, informed by [Artificial Analysis](https://artificialanalysis.ai/models), rather than measured winners for Atelier's specific roles. Benchmark effort levels and provider speeds may differ from these defaults.
+Sentinel favors inexpensive reconnaissance. Oracle needs requirements synthesis and judgment; Architect needs technical depth and completeness. Keymaker balances capability and execution cost. The session model drives the main conversation. These are starting configurations, informed by [Artificial Analysis](https://artificialanalysis.ai/models), rather than measured winners for Atelier's specific roles. Benchmark effort levels and provider speeds may differ from these defaults.
 
 Kimi's long-context results motivate its Oracle assignment on Zen. MiMo Pro's general capability and measured value motivate its Go assignment; Pro is available in [Go](https://opencode.ai/docs/go/) but absent from the researched [Zen catalog](https://opencode.ai/docs/zen/). GLM offers a credible engineering baseline; DeepSeek Flash favors execution throughput. Qwen, MiniMax, and other available candidates remain selectable. Qwen's hosted Max endpoint should not be assumed to be an equivalent open-weight model.
 
-Run `atelier update --harness <claude|codex|opencode>` to choose models and thinking settings. Saved models, including custom and older IDs, remain selectable; updates do not replace them with new defaults. Switching OpenCode providers starts from that provider's defaults. Cursor's configuration is unchanged.
+Run `atelier update --harness <claude|codex|opencode>` to choose models and thinking settings. Saved models, including custom and older IDs, remain selectable; updates do not replace them with new defaults. Switching OpenCode providers starts from that provider's defaults. When you change a slot's model, the picker preselects that model family's recommended level and marks recommended levels `(recommended)`; every supported level stays selectable. Cursor's configuration is unchanged.
 
 Session thinking is stored as `build_thinking` and each agent's as `agents[].thinking`, both in `~/.atelier/config.json`. Values are model-specific: `default`, `off`, `on`, `low`, `medium`, `high`, `xhigh`, or `max`. The picker offers only verified capabilities. Custom models and catalog models whose controls have not been verified offer `default` only. Missing fields preserve legacy behavior; **Keep existing behavior** preserves that omission when editing. In particular, old Codex configurations retain medium agent/Build effort. An explicit `default` omits Atelier's native effort override; other harness settings can still apply. Old plan settings from earlier versions are migrated or cleaned up automatically.
 

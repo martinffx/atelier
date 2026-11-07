@@ -110,19 +110,15 @@ export const opencodeAdapter: HarnessAdapter = {
 function defaultSection(provider?: Provider): OpenCodeConfig {
   const selectedProvider = (provider as OpenCodeProvider) || 'opencode-zen';
   const defaults = DEFAULT_MODELS[selectedProvider];
-  const sessionThinking = defaultThinking(defaults.default, 'session');
   return {
     provider: selectedProvider,
     default_model: defaults.default,
-    build_thinking: sessionThinking === 'default' ? 'high' : sessionThinking,
+    build_thinking: defaultThinking(defaults.default, 'session'),
     agents: AGENT_NAMES.map(name => ({
       template: name,
       name,
       model: defaults[name],
-      thinking: name === 'keymaker' ? (selectedProvider === 'amazon-bedrock' ? 'default' : 'high')
-        : name === 'sentinel' ? 'low'
-        : name === 'oracle' && selectedProvider === 'opencode-go' ? 'on'
-        : name === 'architect' && selectedProvider === 'openai' ? 'xhigh' : 'high',
+      thinking: defaultThinking(defaults[name], name),
     })),
   };
 }

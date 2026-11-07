@@ -43,9 +43,9 @@ describe('opencode adapter', () => {
     expect(openAiSection.default_model).toBe('openai/gpt-6-astra');
     expect(openAiSection.agents).toEqual([
       { template: 'sentinel', name: 'sentinel', model: 'openai/gpt-6-luna', thinking: 'low' },
-      { template: 'oracle', name: 'oracle', model: 'openai/gpt-6-astra', thinking: 'high' },
-      { template: 'architect', name: 'architect', model: 'openai/gpt-6-astra', thinking: 'xhigh' },
-      { template: 'keymaker', name: 'keymaker', model: 'openai/gpt-6-sol', thinking: 'high' },
+      { template: 'oracle', name: 'oracle', model: 'openai/gpt-6-astra', thinking: 'xhigh' },
+      { template: 'architect', name: 'architect', model: 'openai/gpt-6-astra', thinking: 'high' },
+      { template: 'keymaker', name: 'keymaker', model: 'openai/gpt-6-sol', thinking: 'medium' },
     ]);
     expect(models.every(model => model.startsWith('openai/'))).toBe(true);
   });

@@ -8,19 +8,20 @@ import { claudeAdapter } from './claude.js';
 import { codexAdapter } from './codex.js';
 import { opencodeAdapter } from './opencode.js';
 import { ClaudeConfigSchema, CodexConfigSchema, OpenCodeConfigSchema } from '../utils/schemas.js';
-import { thinkingChoices, openCodeThinkingOptions } from '../utils/thinking.js';
+import { thinkingChoices, openCodeThinkingOptions, recommendedThinking, defaultThinking } from '../utils/thinking.js';
+import type { ThinkingHarness } from '../utils/thinking.js';
 import type { HarnessAdapter, SimpleConfig, OpenCodeConfig, Provider } from '../types.js';
 
 // Each row: the four agent models then the single session model; the four agent levels then the session thinking.
 const cases: Array<[HarnessAdapter, Provider, string[], string[]]> = [
-  [claudeAdapter, 'anthropic', ['haiku', 'opus', 'opus', 'sonnet', 'claude-opus-5-5'], ['default', 'xhigh', 'high', 'default', 'high']],
-  [codexAdapter, 'openai', ['gpt-6-luna', 'gpt-6-astra', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-astra'], ['low', 'high', 'xhigh', 'medium', 'high']],
-  [opencodeAdapter, 'openai', ['openai/gpt-6-luna', 'openai/gpt-6-astra', 'openai/gpt-6-astra', 'openai/gpt-6-sol', 'openai/gpt-6-astra'], ['low', 'high', 'xhigh', 'high', 'high']],
-  [opencodeAdapter, 'amazon-bedrock', ['amazon-bedrock/us.anthropic.claude-haiku-5-5', 'amazon-bedrock/us.anthropic.claude-fable-5-1', 'amazon-bedrock/us.anthropic.claude-opus-5-5', 'amazon-bedrock/us.anthropic.claude-sonnet-5-5', 'amazon-bedrock/us.anthropic.claude-opus-5-5'], ['low', 'high', 'high', 'default', 'high']],
-  [opencodeAdapter, 'opencode-zen', ['opencode/glm-5.3-flash', 'opencode/kimi-k3', 'opencode/glm-5.3', 'opencode/deepseek-v4.1-flash', 'opencode/kimi-k3'], ['low', 'high', 'high', 'high', 'high']],
+  [claudeAdapter, 'anthropic', ['haiku', 'opus', 'opus', 'sonnet', 'claude-opus-5-5'], ['low', 'xhigh', 'high', 'default', 'high']],
+  [codexAdapter, 'openai', ['gpt-6-luna', 'gpt-6-astra', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-astra'], ['low', 'xhigh', 'high', 'medium', 'high']],
+  [opencodeAdapter, 'openai', ['openai/gpt-6-luna', 'openai/gpt-6-astra', 'openai/gpt-6-astra', 'openai/gpt-6-sol', 'openai/gpt-6-astra'], ['low', 'xhigh', 'high', 'medium', 'high']],
+  [opencodeAdapter, 'amazon-bedrock', ['amazon-bedrock/us.anthropic.claude-haiku-5-5', 'amazon-bedrock/us.anthropic.claude-fable-5-1', 'amazon-bedrock/us.anthropic.claude-opus-5-5', 'amazon-bedrock/us.anthropic.claude-sonnet-5-5', 'amazon-bedrock/us.anthropic.claude-opus-5-5'], ['low', 'xhigh', 'high', 'default', 'high']],
+  [opencodeAdapter, 'opencode-zen', ['opencode/glm-5.3-flash', 'opencode/kimi-k3', 'opencode/glm-5.3', 'opencode/deepseek-v4.1-flash', 'opencode/kimi-k3'], ['low', 'high', 'high', 'high', 'low']],
   [opencodeAdapter, 'opencode-go', ['opencode-go/glm-5.3-flash', 'opencode-go/mimo-v2.6-pro', 'opencode-go/glm-5.3', 'opencode-go/deepseek-v4.1-flash', 'opencode-go/kimi-k3.1-pro'], ['low', 'on', 'high', 'high', 'low']],
   [opencodeAdapter, 'openrouter', ['openrouter/z-ai/glm-5.3-flash', 'openrouter/moonshotai/kimi-k3.1-pro', 'openrouter/z-ai/glm-5.3', 'openrouter/deepseek/deepseek-v4.1-flash-1017', 'openrouter/moonshotai/kimi-k3.1-pro'], ['low', 'high', 'high', 'high', 'low']],
-  [opencodeAdapter, 'google', ['google/gemini-3.5-flash-lite', 'google/gemini-4-argon', 'google/gemini-4-argon', 'google/gemini-3.8-flash', 'google/gemini-4-argon'], ['low', 'high', 'high', 'high', 'high']],
+  [opencodeAdapter, 'google', ['google/gemini-3.5-flash-lite', 'google/gemini-4-argon', 'google/gemini-4-argon', 'google/gemini-3.8-flash', 'google/gemini-4-argon'], ['low', 'high', 'high', 'high', 'medium']],
 ];
 
 // Where each OpenCode provider carries the selected effort in its native options.
@@ -107,6 +108,37 @@ describe('model and thinking settings', () => {
     expect(openCodeThinkingOptions('openai/gpt-6-luna', 'off')).toEqual({ reasoningEffort: 'none' });
     expect(openCodeThinkingOptions('opencode-go/mimo-v2.6-pro', 'off')).toEqual({ thinking: { type: 'disabled' } });
     expect(openCodeThinkingOptions('opencode/claude-opus-5-5', 'high')).toEqual({ effort: 'high' });
+  });
+
+  it('only recommends levels the harness supports, and matches aliases and Bedrock ids', () => {
+    const models: Array<[ThinkingHarness, string]> = [
+      ['claude', 'opus'], ['claude', 'fable'], ['claude', 'best'], ['claude', 'sonnet'], ['claude', 'haiku'], ['claude', 'claude-opus-5-5'],
+      ['codex', 'gpt-6-sol'], ['codex', 'gpt-6-terra'], ['codex', 'gpt-6-luna'], ['codex', 'gpt-6-astra'],
+      ['opencode', 'amazon-bedrock/us.anthropic.claude-opus-5-5'], ['opencode', 'openai/gpt-6.1-sol'],
+      ['opencode', 'opencode/kimi-k3'], ['opencode', 'opencode-go/kimi-k3.1-pro'], ['opencode', 'google/gemini-4-argon'], ['opencode', 'google/gemini-3.8-flash'],
+      ['opencode', 'opencode/deepseek-v4.1-flash'], ['opencode', 'opencode-go/deepseek-v4-pro'], ['opencode', 'opencode/glm-5.3'], ['opencode', 'opencode/glm-5.3-flash'],
+      ['opencode', 'opencode/muse-wonder-1.0'], ['opencode', 'opencode-go/muse-spark-1.3-contributor'], ['opencode', 'opencode/grok-4.7'],
+      ['opencode', 'opencode/inkling-2-small-free'], ['opencode', 'opencode-go/mimo-v2.6-pro'], ['opencode', 'opencode-go/mimo-v2.6-flash-free'],
+      ['opencode', 'opencode-go/minimax-m3.1-flash'], ['opencode', 'opencode/mistral-large-4-0'], ['opencode', 'opencode/nemotron-3.5-super-vl-free'],
+    ];
+    for (const [harness, model] of models) {
+      for (const slot of ['session', 'sentinel', 'oracle', 'architect', 'keymaker']) {
+        const recs = recommendedThinking(model, slot);
+        expect(recs.length).toBeGreaterThan(0);
+        for (const level of recs) expect(thinkingChoices(harness, model, slot === 'session')).toContain(level);
+        expect(defaultThinking(model, slot)).toBe(recs[0]);
+      }
+    }
+    expect(recommendedThinking('opus', 'oracle')).toEqual(['xhigh']);
+    expect(recommendedThinking('amazon-bedrock/us.anthropic.claude-fable-5-1', 'oracle')).toEqual(['xhigh']);
+    expect(recommendedThinking('sonnet', 'sentinel')).toEqual(['low', 'default']);
+    expect(recommendedThinking('openai/gpt-6-sol', 'oracle')).toEqual(['xhigh', 'high']);
+    expect(recommendedThinking('opencode/kimi-k3', 'keymaker')).toEqual(['low', 'high']);
+    expect(recommendedThinking('custom/unknown', 'oracle')).toEqual([]);
+    expect(recommendedThinking('opencode/muse-wonder', 'keymaker')).toEqual(['high', 'medium']);
+    expect(recommendedThinking('opencode/mimo-v2.6-pro', 'sentinel')).toEqual(['off']);
+    for (const id of ['opencode/muse-spark-open', 'opencode/inkling', 'opencode/minimax-m3', 'opencode/nemotron-3.5-lightning']) expect(recommendedThinking(id, 'oracle')).toEqual([]);
+    expect(defaultThinking('custom/unknown', 'oracle')).toBe('default');
   });
 
   it('supports the November 2026 catalog additions', () => {

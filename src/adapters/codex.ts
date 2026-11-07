@@ -8,7 +8,7 @@ import { AGENT_NAMES, LEGACY_AGENT_NAME } from '../constants.js';
 import { FileWriteError, HarnessConfigError } from '../utils/errors.js';
 import { shortPath } from '../services/paths.js';
 import { CodexConfigSchema } from '../utils/schemas.js';
-import { codexThinking } from '../utils/thinking.js';
+import { codexThinking, defaultThinking } from '../utils/thinking.js';
 import { promptForSimpleModels } from '../services/prompt.js';
 
 const OPENAI_MODELS = [
@@ -67,12 +67,12 @@ function defaultSection(): CodexConfig {
   return {
     provider: 'openai',
     default_model: DEFAULT_MODELS.default_model,
-    build_thinking: 'high',
+    build_thinking: defaultThinking(DEFAULT_MODELS.default_model, 'session'),
     agents: AGENT_NAMES.map(name => ({
       template: name,
       name,
       model: DEFAULT_MODELS[name],
-      thinking: ({ sentinel: 'low', oracle: 'high', architect: 'xhigh', keymaker: 'medium' } as const)[name],
+      thinking: defaultThinking(DEFAULT_MODELS[name], name),
     })),
   };
 }

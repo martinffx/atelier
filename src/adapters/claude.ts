@@ -6,7 +6,7 @@ import type { ClaudeConfig, HarnessAdapter, FileEntry, Provider, HarnessSection 
 import { FileWriteError, HarnessConfigError } from '../utils/errors.js';
 import { shortPath } from '../services/paths.js';
 import { ClaudeConfigSchema, CLAUDE_OPTIONAL_BUILTINS } from '../utils/schemas.js';
-import { claudeModel } from '../utils/thinking.js';
+import { claudeModel, defaultThinking } from '../utils/thinking.js';
 import { promptForSimpleModels } from '../services/prompt.js';
 import { AGENT_NAMES, LEGACY_AGENT_NAME } from '../constants.js';
 
@@ -68,12 +68,12 @@ function defaultSection(): ClaudeConfig {
   return {
     provider: 'anthropic',
     default_model: DEFAULT_MODELS.default_model,
-    build_thinking: 'high',
+    build_thinking: defaultThinking(DEFAULT_MODELS.default_model, 'session'),
     agents: AGENT_NAMES.map(name => ({
       template: name,
       name,
       model: DEFAULT_MODELS[name],
-      thinking: name === 'sentinel' || name === 'keymaker' ? 'default' : name === 'oracle' ? 'xhigh' : 'high',
+      thinking: defaultThinking(DEFAULT_MODELS[name], name),
     })),
   };
 }

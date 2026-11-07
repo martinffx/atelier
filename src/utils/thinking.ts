@@ -29,11 +29,47 @@ export function thinkingChoices(harness: ThinkingHarness, model: string, session
   return ['default'];
 }
 
+type Role = 'session' | 'sentinel' | 'oracle' | 'architect' | 'keymaker';
+const ROLES: readonly Role[] = ['session', 'sentinel', 'oracle', 'architect', 'keymaker'];
+
+// Recommended levels per family, in role order: session, sentinel, oracle, architect, keymaker.
+// Where a cell has two levels, the first is the preselected default and the second the alternate.
+const RECOMMENDED: Array<[RegExp, Thinking[][]]> = [
+  [/^kimi-k3(\.1-pro)?$/, [['low'], ['low'], ['high'], ['high'], ['low', 'high']]],
+  [/^gemini-(4-argon(-contributor)?|\d(\.\d)?-flash(-lite)?)$/, [['medium'], ['low'], ['high'], ['high'], ['high', 'medium']]],
+  [/^deepseek-v4(\.1-flash(-1017)?|-pro)$/, [['high'], ['low'], ['high'], ['high'], ['high']]],
+  [/^gpt-6(\.1)?-sol$/, [['medium'], ['low'], ['xhigh', 'high'], ['high'], ['medium']]],
+  [/^gpt-6(\.1)?-(terra|luna)$/, [['medium'], ['low'], ['high'], ['high'], ['medium']]],
+  [/^gpt-6(\.1)?-astra$/, [['high'], ['low'], ['xhigh'], ['high'], ['medium']]],
+  [/^(opus|fable|best)$|(^|\.)claude-(opus|fable)-/, [['high'], ['low'], ['xhigh'], ['high'], ['medium']]],
+  [/^(sonnet|haiku)$|(^|\.)claude-(sonnet|haiku)-/, [['medium'], ['low', 'default'], ['high'], ['high'], ['default']]],
+  [/^glm-5\.3(-flash)?$/, [['high'], ['low'], ['high'], ['high'], ['high']]],
+  [/^muse-(wonder(-1\.0)?|spark-1\.3(-contributor)?)$/, [['medium'], ['low'], ['xhigh', 'high'], ['high'], ['high', 'medium']]],
+  [/^grok-4\.7$/, [['medium'], ['low'], ['high'], ['high'], ['medium']]],
+  [/^inkling(-2)?-small(-free)?$/, [['medium'], ['low'], ['high'], ['high'], ['high']]],
+  [/^mimo-v2\.6-(pro|flash)(-free)?$/, [['on'], ['off'], ['on'], ['on'], ['on']]],
+  [/^minimax-m3\.1-flash$/, [['medium'], ['low'], ['high'], ['high'], ['high']]],
+  [/^mistral-large-4(-0)?$/, [['high'], ['off'], ['high'], ['high'], ['high']]],
+  [/^nemotron-3\.5-super-vl(-free)?$/, [['medium'], ['low'], ['high'], ['high'], ['high']]],
+];
+
+const modelId = (model: string): string => model.split('/').at(-1)!.toLowerCase();
+
+// Levels recommended for a model in a slot; the first is the default. Empty when the model has no recommendation.
+export function recommendedThinking(model: string, slot: string): Thinking[] {
+  const index = ROLES.indexOf(slot as Role);
+  const id = modelId(model);
+  return index < 0 ? [] : RECOMMENDED.find(([pattern]) => pattern.test(id))?.[1][index] ?? [];
+}
+
 // Thinking preselected when a user switches a slot to a new model.
-// Kimi K3.1 Pro must never default: its provider default is max.
 export function defaultThinking(model: string, slot: string): Thinking {
-  if (model.split('/').at(-1)!.toLowerCase() !== 'kimi-k3.1-pro') return 'default';
-  return slot === 'oracle' || slot === 'architect' ? 'high' : 'low';
+  return recommendedThinking(model, slot)[0] ?? 'default';
+}
+
+// Kimi's provider default is max, so a saved `default` there is replaced rather than kept.
+export function avoidsProviderDefault(model: string): boolean {
+  return /^kimi-k3(\.1-pro)?$/.test(modelId(model));
 }
 
 export function assertThinking(harness: ThinkingHarness, model: string, thinking?: Thinking, session = false): void {
