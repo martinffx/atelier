@@ -198,6 +198,56 @@ describe('prompt', () => {
     expect(original.build_thinking).toBe('high');
   });
 
+  for (const kimi of ['opencode-go/kimi-k3.1-pro', 'openrouter/moonshotai/kimi-k3.1-pro']) {
+    it(`preselects slot-specific thinking when changing to ${kimi}`, async () => {
+      const batches: any[][] = [];
+      const prompt = { prompt: async (batch: any[]) => {
+        batches.push(batch);
+        const answers = Object.fromEntries(batch.map(q => [q.name, q.default]));
+        if (batches.length === 1) for (const name of ['default_model', 'sentinel', 'oracle', 'architect', 'keymaker']) answers[name] = kimi;
+        return answers;
+      } } as unknown as typeof import('inquirer').default;
+      const base = opencodeAdapter.defaultSection('opencode-go') as OpenCodeConfig;
+      const original = { ...base, default_model: 'opencode-go/glm-5.3', build_thinking: 'max', agents: base.agents.map(a => ({ ...a, model: 'opencode-go/glm-5.3', thinking: 'max' as const })) } as OpenCodeConfig;
+      const result = await promptForOpenCodeModels(prompt, original, ['opencode-go/glm-5.3', kimi], 'opencode-go');
+      const defaults = Object.fromEntries(batches[1].map(q => [q.name, q.default]));
+      expect(defaults).toEqual({ build_thinking: 'low', sentinel_thinking: 'low', oracle_thinking: 'high', architect_thinking: 'high', keymaker_thinking: 'low' });
+      expect(result.build_thinking).toBe('low');
+      expect(result.agents.map(a => a.thinking)).toEqual(['low', 'high', 'high', 'low']);
+    });
+  }
+
+  it('keeps default thinking for other changed models', async () => {
+    const batches: any[][] = [];
+    const prompt = { prompt: async (batch: any[]) => {
+      batches.push(batch);
+      const answers = Object.fromEntries(batch.map(q => [q.name, q.default]));
+      if (batches.length === 1) answers.default_model = 'opencode-go/kimi-k3';
+      return answers;
+    } } as unknown as typeof import('inquirer').default;
+    const original = { ...opencodeAdapter.defaultSection('opencode-go'), default_model: 'opencode-go/glm-5.3' } as OpenCodeConfig;
+    await promptForOpenCodeModels(prompt, original, ['opencode-go/glm-5.3', 'opencode-go/kimi-k3'], 'opencode-go');
+    expect(batches[1].find(q => q.name === 'build_thinking').default).toBe('default');
+  });
+
+  for (const [saved, expected] of [['default', 'low'], ['max', 'max'], ['low', 'low']] as const) {
+    it(`unchanged Kimi K3.1 Pro session with saved ${saved} gives ${expected}`, async () => {
+      const prompt = { prompt: async (batch: any[]) => Object.fromEntries(batch.map(q => [q.name, q.default])) } as unknown as typeof import('inquirer').default;
+      const original = { ...opencodeAdapter.defaultSection('opencode-go'), default_model: 'opencode-go/kimi-k3.1-pro', build_thinking: saved } as OpenCodeConfig;
+      const result = await promptForOpenCodeModels(prompt, original, ['opencode-go/kimi-k3.1-pro'], 'opencode-go');
+      expect(result.build_thinking).toBe(expected);
+    });
+  }
+
+  it('preselects the slot default for a saved default on an unchanged Kimi Oracle', async () => {
+    const prompt = { prompt: async (batch: any[]) => Object.fromEntries(batch.map(q => [q.name, q.default])) } as unknown as typeof import('inquirer').default;
+    const base = opencodeAdapter.defaultSection('opencode-go') as OpenCodeConfig;
+    const kimi = 'opencode-go/kimi-k3.1-pro';
+    const original = { ...base, agents: base.agents.map(a => a.name === 'oracle' ? { ...a, model: kimi, thinking: 'default' as const } : a) } as OpenCodeConfig;
+    const result = await promptForOpenCodeModels(prompt, original, [...opencodeAdapter.modelsForProvider('opencode-go'), kimi], 'opencode-go');
+    expect(result.agents.find(a => a.name === 'oracle')!.thinking).toBe('high');
+  });
+
   it('uses the new provider defaults rather than carrying models across providers', async () => {
     let call = 0;
     const prompt = { prompt: async (batch: any[]) => {

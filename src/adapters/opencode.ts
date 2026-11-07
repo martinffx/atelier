@@ -7,7 +7,7 @@ import { AGENT_NAMES, LEGACY_AGENT_NAME } from '../constants.js';
 import { FileWriteError, HarnessConfigError } from '../utils/errors.js';
 import { shortPath, getGlobalOpencodeDir, resolveSkillsPath } from '../services/paths.js';
 import { OpenCodeConfigSchema } from '../utils/schemas.js';
-import { openCodeThinkingOptions, OPENCODE_THINKING_KEYS } from '../utils/thinking.js';
+import { defaultThinking, openCodeThinkingOptions, OPENCODE_THINKING_KEYS } from '../utils/thinking.js';
 import { promptForOpenCodeProvider, promptForOpenCodeModels, guardProvider } from '../services/prompt.js';
 
 const OPENCODE_PROVIDERS: { name: string; value: OpenCodeProvider }[] = [
@@ -110,10 +110,11 @@ export const opencodeAdapter: HarnessAdapter = {
 function defaultSection(provider?: Provider): OpenCodeConfig {
   const selectedProvider = (provider as OpenCodeProvider) || 'opencode-zen';
   const defaults = DEFAULT_MODELS[selectedProvider];
+  const sessionThinking = defaultThinking(defaults.default, 'session');
   return {
     provider: selectedProvider,
     default_model: defaults.default,
-    build_thinking: 'high',
+    build_thinking: sessionThinking === 'default' ? 'high' : sessionThinking,
     agents: AGENT_NAMES.map(name => ({
       template: name,
       name,

@@ -29,6 +29,13 @@ export function thinkingChoices(harness: ThinkingHarness, model: string, session
   return ['default'];
 }
 
+// Thinking preselected when a user switches a slot to a new model.
+// Kimi K3.1 Pro must never default: its provider default is max.
+export function defaultThinking(model: string, slot: string): Thinking {
+  if (model.split('/').at(-1)!.toLowerCase() !== 'kimi-k3.1-pro') return 'default';
+  return slot === 'oracle' || slot === 'architect' ? 'high' : 'low';
+}
+
 export function assertThinking(harness: ThinkingHarness, model: string, thinking?: Thinking, session = false): void {
   if (thinking !== undefined && !thinkingChoices(harness, model, session).includes(thinking)) {
     throw new InvalidConfigError(`${model} does not support ${thinking} thinking in ${harness}${session ? ' sessions' : ''}`);

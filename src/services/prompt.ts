@@ -2,7 +2,7 @@ import inquirer from 'inquirer';
 import type { HarnessAdapter, HarnessSection, SimpleConfig, OpenCodeConfig, Provider, ProviderChoice } from '../types.js';
 import { AGENT_NAMES } from '../constants.js';
 import { InvalidConfigError } from '../utils/errors.js';
-import { thinkingChoices, type Thinking, type ThinkingHarness } from '../utils/thinking.js';
+import { defaultThinking, thinkingChoices, type Thinking, type ThinkingHarness } from '../utils/thinking.js';
 
 export async function promptForSection(adapter: HarnessAdapter, section: HarnessSection): Promise<HarnessSection> {
   return adapter.promptSection(inquirer, section);
@@ -125,7 +125,10 @@ async function promptThinking(prompt: typeof inquirer, harness: ThinkingHarness,
   }
   const questions = slots.map(slot => {
     const choices = thinkingChoices(harness, slot.model, slot.session);
-    const saved = slot.model === slot.oldModel && (slot.saved === undefined || choices.includes(slot.saved)) ? slot.saved : 'default';
+    const slotDefault = defaultThinking(slot.model, slot.label);
+    const fallback = choices.includes(slotDefault) ? slotDefault : 'default';
+    const keep = slot.model === slot.oldModel && (slot.saved === undefined || choices.includes(slot.saved));
+    const saved = keep ? (slot.saved === 'default' ? fallback : slot.saved) : fallback;
     slot.set(saved);
     return {
       type: 'list' as const, name: slot.name, message: `Select thinking for ${slot.label} (${slot.model})`,
