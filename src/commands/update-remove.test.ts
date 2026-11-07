@@ -234,6 +234,7 @@ describe('remove', () => {
     const opencodeJsonPath = join(tempDir, '.config', 'opencode', 'opencode.json');
     const existing = JSON.parse(readFileSync(opencodeJsonPath, 'utf-8'));
     existing.custom_field = 'preserved';
+    existing.agent.plan = { mode: 'primary', model: 'opencode/glm-5.3', reasoningEffort: 'high' };
     writeFileSync(opencodeJsonPath, JSON.stringify(existing, null, 2));
 
     await remove({ harness: 'opencode' });

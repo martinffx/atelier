@@ -11,15 +11,16 @@ import { ClaudeConfigSchema, CodexConfigSchema, OpenCodeConfigSchema } from '../
 import { thinkingChoices, openCodeThinkingOptions } from '../utils/thinking.js';
 import type { HarnessAdapter, SimpleConfig, OpenCodeConfig, Provider } from '../types.js';
 
+// Each row: the four agent models then the single session model; the four agent levels then the session thinking.
 const cases: Array<[HarnessAdapter, Provider, string[], string[]]> = [
-  [claudeAdapter, 'anthropic', ['haiku', 'opus', 'opus', 'sonnet', 'claude-opus-5-5', 'claude-sonnet-5-5'], ['default', 'xhigh', 'high', 'default', 'high', 'high']],
-  [codexAdapter, 'openai', ['gpt-6-luna', 'gpt-6-astra', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-sol', 'gpt-6-sol'], ['low', 'high', 'xhigh', 'medium', 'xhigh', 'high']],
-  [opencodeAdapter, 'openai', ['openai/gpt-6-luna', 'openai/gpt-6-astra', 'openai/gpt-6-astra', 'openai/gpt-6-sol', 'openai/gpt-6-astra', 'openai/gpt-6-sol'], ['low', 'high', 'xhigh', 'high', 'xhigh', 'high']],
-  [opencodeAdapter, 'amazon-bedrock', ['amazon-bedrock/us.anthropic.claude-haiku-5-5', 'amazon-bedrock/us.anthropic.claude-fable-5-1', 'amazon-bedrock/us.anthropic.claude-opus-5-5', 'amazon-bedrock/us.anthropic.claude-sonnet-5-5', 'amazon-bedrock/us.anthropic.claude-opus-5-5', 'amazon-bedrock/us.anthropic.claude-sonnet-5-5'], ['low', 'high', 'high', 'default', 'high', 'high']],
-  [opencodeAdapter, 'opencode-zen', ['opencode/glm-5.3-flash', 'opencode/kimi-k3', 'opencode/glm-5.3', 'opencode/deepseek-v4.1-flash', 'opencode/glm-5.3', 'opencode/deepseek-v4.1-flash'], ['low', 'high', 'high', 'high', 'high', 'high']],
-  [opencodeAdapter, 'opencode-go', ['opencode-go/glm-5.3-flash', 'opencode-go/mimo-v2.6-pro', 'opencode-go/glm-5.3', 'opencode-go/deepseek-v4.1-flash', 'opencode-go/glm-5.3', 'opencode-go/deepseek-v4.1-flash'], ['low', 'on', 'high', 'high', 'high', 'high']],
-  [opencodeAdapter, 'openrouter', ['openrouter/z-ai/glm-5.3-flash', 'openrouter/moonshotai/kimi-k3.1-pro', 'openrouter/z-ai/glm-5.3', 'openrouter/deepseek/deepseek-v4.1-flash-1017', 'openrouter/z-ai/glm-5.3', 'openrouter/deepseek/deepseek-v4.1-flash-1017'], ['low', 'high', 'high', 'high', 'high', 'high']],
-  [opencodeAdapter, 'google', ['google/gemini-3.5-flash-lite', 'google/gemini-4-argon', 'google/gemini-4-argon', 'google/gemini-3.8-flash', 'google/gemini-4-argon', 'google/gemini-3.8-flash'], ['low', 'high', 'high', 'high', 'high', 'high']],
+  [claudeAdapter, 'anthropic', ['haiku', 'opus', 'opus', 'sonnet', 'claude-opus-5-5'], ['default', 'xhigh', 'high', 'default', 'high']],
+  [codexAdapter, 'openai', ['gpt-6-luna', 'gpt-6-astra', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-astra'], ['low', 'high', 'xhigh', 'medium', 'high']],
+  [opencodeAdapter, 'openai', ['openai/gpt-6-luna', 'openai/gpt-6-astra', 'openai/gpt-6-astra', 'openai/gpt-6-sol', 'openai/gpt-6-astra'], ['low', 'high', 'xhigh', 'high', 'high']],
+  [opencodeAdapter, 'amazon-bedrock', ['amazon-bedrock/us.anthropic.claude-haiku-5-5', 'amazon-bedrock/us.anthropic.claude-fable-5-1', 'amazon-bedrock/us.anthropic.claude-opus-5-5', 'amazon-bedrock/us.anthropic.claude-sonnet-5-5', 'amazon-bedrock/us.anthropic.claude-opus-5-5'], ['low', 'high', 'high', 'default', 'high']],
+  [opencodeAdapter, 'opencode-zen', ['opencode/glm-5.3-flash', 'opencode/kimi-k3', 'opencode/glm-5.3', 'opencode/deepseek-v4.1-flash', 'opencode/kimi-k3'], ['low', 'high', 'high', 'high', 'high']],
+  [opencodeAdapter, 'opencode-go', ['opencode-go/glm-5.3-flash', 'opencode-go/mimo-v2.6-pro', 'opencode-go/glm-5.3', 'opencode-go/deepseek-v4.1-flash', 'opencode-go/kimi-k3.1-pro'], ['low', 'on', 'high', 'high', 'high']],
+  [opencodeAdapter, 'openrouter', ['openrouter/z-ai/glm-5.3-flash', 'openrouter/moonshotai/kimi-k3.1-pro', 'openrouter/z-ai/glm-5.3', 'openrouter/deepseek/deepseek-v4.1-flash-1017', 'openrouter/moonshotai/kimi-k3.1-pro'], ['low', 'high', 'high', 'high', 'high']],
+  [opencodeAdapter, 'google', ['google/gemini-3.5-flash-lite', 'google/gemini-4-argon', 'google/gemini-4-argon', 'google/gemini-3.8-flash', 'google/gemini-4-argon'], ['low', 'high', 'high', 'high', 'high']],
 ];
 
 // Where each OpenCode provider carries the selected effort in its native options.
@@ -31,14 +32,15 @@ const effortOf = (provider: Provider, o: any): unknown =>
 
 describe('model and thinking settings', () => {
   for (const [adapter, provider, models, levels] of cases) {
-    it(`${adapter.name}/${provider}: generates all six assignments and removes them`, () => {
+    it(`${adapter.name}/${provider}: generates four agent assignments and one session model/thinking pair, then removes them`, () => {
       const root = mkdtempSync(join(tmpdir(), 'atelier-models-'));
       try {
         const config = adapter.defaultSection(provider) as SimpleConfig | OpenCodeConfig;
         expect(adapter.configSchema.safeParse(config).success).toBe(true);
         expect(config.agents.map(a => a.model)).toEqual(models.slice(0, 4));
-        expect([...config.agents.map(a => a.thinking), config.plan_thinking, config.build_thinking]).toEqual(levels);
+        expect([...config.agents.map(a => a.thinking), config.build_thinking]).toEqual(levels);
         for (const agent of config.agents) expect(adapter.modelsForProvider(provider)).toContain(agent.model);
+        expect(adapter.modelsForProvider(provider)).toContain(config.default_model);
         adapter.installAgents(config, root);
         adapter.mergeHarnessConfig(config, root);
         const nativePath = join(root, adapter.name === 'opencode' ? 'opencode.json' : adapter.name === 'codex' ? '.codex/config.toml' : '.claude/settings.json');
@@ -60,19 +62,18 @@ describe('model and thinking settings', () => {
           }
         });
         if (adapter.name === 'claude') {
-          expect(native.model).toBe('opusplan');
+          // Claude keys session effort by model id, and the session model is the bare alias.
+          expect(native.model).toBe('opus');
           expect(native.modelSettings[models[4]].effortLevel).toBe(levels[4]);
-          expect(native.modelSettings[models[5]].effortLevel).toBe(levels[5]);
+          expect(native.modelSettings[models[4]].autoCompactWindow).toBeUndefined();
         } else if (adapter.name === 'codex') {
-          expect(native.model).toBe(models[5]);
-          expect(native.plan_mode_reasoning_effort).toBe(levels[4]);
-          expect(native.model_reasoning_effort).toBe(levels[5]);
+          expect(native.model).toBe(models[4]);
+          expect(native.model_reasoning_effort).toBe(levels[4]);
+          expect(native.plan_mode_reasoning_effort).toBeUndefined();
         } else {
-          for (const [mode, index] of [['plan', 4], ['build', 5]] as const) {
-            expect(native.agent[mode].model).toBe(models[index]);
-            expect(adapter.modelsForProvider(provider)).toContain(models[index]);
-            expect(effortOf(provider, native.agent[mode])).toBe(levels[index]);
-          }
+          expect(native.agent.plan).toBeUndefined();
+          expect(native.agent.build.model).toBe(models[4]);
+          expect(effortOf(provider, native.agent.build)).toBe(levels[4]);
         }
         adapter.remove(config, root);
         expect(existsSync(nativePath)).toBe(false);
@@ -81,11 +82,15 @@ describe('model and thinking settings', () => {
   }
 
   it('rejects unsupported effort without inventing levels for custom models', () => {
-    const glm = opencodeAdapter.defaultSection('opencode-zen') as OpenCodeConfig;
-    expect(OpenCodeConfigSchema.safeParse({ ...glm, plan_thinking: 'medium' }).success).toBe(false);
+    const zen = opencodeAdapter.defaultSection('opencode-zen') as OpenCodeConfig;
+    expect(OpenCodeConfigSchema.safeParse({ ...zen, default_model: 'custom/unknown', build_thinking: 'high' }).success).toBe(false);
+    expect(OpenCodeConfigSchema.safeParse({ ...zen, default_model: 'custom/unknown', build_thinking: 'default' }).success).toBe(true);
     const mimo = opencodeAdapter.defaultSection('opencode-go') as OpenCodeConfig;
     mimo.agents[1].thinking = 'high';
     expect(OpenCodeConfigSchema.safeParse(mimo).success).toBe(false);
+    // GLM 5.3 session thinking allows only default, low, high and max.
+    expect(OpenCodeConfigSchema.safeParse({ ...zen, default_model: 'opencode/glm-5.3', build_thinking: 'high' }).success).toBe(true);
+    expect(OpenCodeConfigSchema.safeParse({ ...zen, default_model: 'opencode/glm-5.3', build_thinking: 'medium' }).success).toBe(false);
     const claude = claudeAdapter.defaultSection() as SimpleConfig;
     expect(ClaudeConfigSchema.safeParse({ ...claude, build_thinking: 'max' }).success).toBe(false);
     claude.agents[0].thinking = 'low';
@@ -138,14 +143,17 @@ describe('model and thinking settings', () => {
       const native = TOML.parse(readFileSync(join(root, '.codex/config.toml'), 'utf8'));
       expect(native.model).toBe('gpt-5.6-terra');
       expect(native.model_reasoning_effort).toBe('medium');
-      expect(native.plan_mode_reasoning_effort).toBe('high');
+      expect(native.plan_mode_reasoning_effort).toBeUndefined();
       const agent = TOML.parse(readFileSync(join(root, '.codex/agents/oracle.toml'), 'utf8'));
       expect(agent.model).toBe('gpt-5.6-sol');
       expect(agent.model_reasoning_effort).toBe('medium');
+      // A plan_mode_reasoning_effort left by an older Atelier version is dropped on the next merge.
+      const configPath = join(root, '.codex/config.toml');
+      writeFileSync(configPath, TOML.stringify({ ...TOML.parse(readFileSync(configPath, 'utf8')), plan_mode_reasoning_effort: 'high' }));
       const fresh = codexAdapter.defaultSection() as SimpleConfig;
-      fresh.build_thinking = 'default'; fresh.plan_thinking = 'default';
+      fresh.build_thinking = 'default';
       codexAdapter.mergeHarnessConfig(fresh, root);
-      const updated = TOML.parse(readFileSync(join(root, '.codex/config.toml'), 'utf8'));
+      const updated = TOML.parse(readFileSync(configPath, 'utf8'));
       expect(updated.model_reasoning_effort).toBeUndefined();
       expect(updated.plan_mode_reasoning_effort).toBeUndefined();
     } finally { rmSync(root, { recursive: true, force: true }); }
@@ -159,51 +167,98 @@ describe('model and thinking settings', () => {
       writeFileSync(file, JSON.stringify({ modelSettings: { custom: { effortLevel: 'low' }, 'claude-opus-5-5': { maxEffortLevel: 'xhigh' } } }));
       const config = claudeAdapter.defaultSection();
       claudeAdapter.mergeHarnessConfig(config, root);
-      expect(JSON.parse(readFileSync(file, 'utf8')).modelSettings['claude-opus-5-5']).toEqual({ maxEffortLevel: 'xhigh', effortLevel: 'high', autoCompactWindow: 190000 });
+      expect(JSON.parse(readFileSync(file, 'utf8')).modelSettings['claude-opus-5-5']).toEqual({ maxEffortLevel: 'xhigh', effortLevel: 'high' });
       claudeAdapter.remove(config, root);
       expect(JSON.parse(readFileSync(file, 'utf8')).modelSettings).toEqual({ custom: { effortLevel: 'low' }, 'claude-opus-5-5': { maxEffortLevel: 'xhigh' } });
     } finally { rmSync(root, { recursive: true, force: true }); }
   });
 
-  describe('opusplan auto-compact window', () => {
-    const settingsFor = (root: string) => JSON.parse(readFileSync(join(root, '.claude/settings.json'), 'utf8'));
+  describe('legacy opusplan auto-compact window', () => {
+    // Earlier Atelier versions wrote autoCompactWindow: 190000 for opusplan. Claude Code no longer swaps
+    // models, so merge and remove only clean up that exact value on the two legacy model entries.
     const withRoot = (run: (root: string) => void) => {
       const root = mkdtempSync(join(tmpdir(), 'atelier-compact-'));
       try { run(root); } finally { rmSync(root, { recursive: true, force: true }); }
     };
+    const seed = (root: string, modelSettings: Record<string, unknown>) => {
+      mkdirSync(join(root, '.claude'), { recursive: true });
+      writeFileSync(join(root, '.claude/settings.json'), JSON.stringify({ modelSettings }));
+    };
+    const modelSettingsOf = (root: string): Record<string, Record<string, unknown>> => {
+      const file = join(root, '.claude/settings.json');
+      return existsSync(file) ? (JSON.parse(readFileSync(file, 'utf8')).modelSettings ?? {}) : {};
+    };
 
-    it('writes 190k for both opusplan models and removes it again', () => withRoot(root => {
-      const config = claudeAdapter.defaultSection();
-      claudeAdapter.mergeHarnessConfig(config, root);
-      const { modelSettings } = settingsFor(root);
-      expect(modelSettings['claude-opus-5-5'].autoCompactWindow).toBe(190000);
-      expect(modelSettings['claude-sonnet-5-5'].autoCompactWindow).toBe(190000);
-      claudeAdapter.remove(config, root);
-      expect(existsSync(join(root, '.claude/settings.json')) ? settingsFor(root).modelSettings : undefined).toBeUndefined();
-    }));
-
-    it('does not write it for a single-model setup', () => withRoot(root => {
-      const config = { ...claudeAdapter.defaultSection(), default_model: 'opus' } as ReturnType<typeof claudeAdapter.defaultSection>;
-      claudeAdapter.mergeHarnessConfig(config, root);
-      expect(JSON.stringify(settingsFor(root).modelSettings ?? {})).not.toContain('autoCompactWindow');
-    }));
-
-    it('keeps a window the user already set, and removal leaves it', () => withRoot(root => {
-      mkdirSync(join(root, '.claude'));
-      writeFileSync(join(root, '.claude/settings.json'), JSON.stringify({ modelSettings: { 'claude-opus-5-5': { autoCompactWindow: 250000 } } }));
-      const config = claudeAdapter.defaultSection();
-      claudeAdapter.mergeHarnessConfig(config, root);
-      expect(settingsFor(root).modelSettings['claude-opus-5-5'].autoCompactWindow).toBe(250000);
-      expect(settingsFor(root).modelSettings['claude-sonnet-5-5'].autoCompactWindow).toBe(190000);
-      claudeAdapter.remove(config, root);
-      expect(settingsFor(root).modelSettings).toEqual({ 'claude-opus-5-5': { autoCompactWindow: 250000 } });
-    }));
-
-    it('clears its own value when the model moves off opusplan', () => withRoot(root => {
+    it('never writes the window for the current default model', () => withRoot(root => {
       claudeAdapter.mergeHarnessConfig(claudeAdapter.defaultSection(), root);
-      const config = { ...claudeAdapter.defaultSection(), default_model: 'sonnet' } as ReturnType<typeof claudeAdapter.defaultSection>;
+      expect(JSON.stringify(modelSettingsOf(root))).not.toContain('autoCompactWindow');
+    }));
+
+    it('merge removes a 190k window left on the legacy model entries only', () => withRoot(root => {
+      seed(root, {
+        'claude-opus-5-5': { autoCompactWindow: 190000 },
+        'claude-sonnet-5-5': { autoCompactWindow: 190000, effortLevel: 'low' },
+        'claude-haiku-5-5': { autoCompactWindow: 190000 },
+      });
+      claudeAdapter.mergeHarnessConfig(claudeAdapter.defaultSection(), root);
+      const settings = modelSettingsOf(root);
+      expect(settings['claude-opus-5-5']).toEqual({ effortLevel: 'high' });
+      expect(settings['claude-sonnet-5-5']).toEqual({ effortLevel: 'low' });
+      expect(settings['claude-haiku-5-5']).toEqual({ autoCompactWindow: 190000 });
+    }));
+
+    it('keeps a window the user set to another value, through merge and remove', () => withRoot(root => {
+      seed(root, { 'claude-opus-5-5': { autoCompactWindow: 250000 }, 'claude-sonnet-5-5': { autoCompactWindow: 190000 } });
+      const config = claudeAdapter.defaultSection();
       claudeAdapter.mergeHarnessConfig(config, root);
-      expect(JSON.stringify(settingsFor(root).modelSettings ?? {})).not.toContain('autoCompactWindow');
+      expect(modelSettingsOf(root)['claude-opus-5-5']).toEqual({ autoCompactWindow: 250000, effortLevel: 'high' });
+      expect(modelSettingsOf(root)['claude-sonnet-5-5']).toBeUndefined();
+      claudeAdapter.remove(config, root);
+      expect(modelSettingsOf(root)).toEqual({ 'claude-opus-5-5': { autoCompactWindow: 250000 } });
+    }));
+
+    it('keeps a user Sonnet effort when the model is not opusplan, through merge and remove', () => withRoot(root => {
+      mkdirSync(join(root, '.claude'), { recursive: true });
+      writeFileSync(join(root, '.claude/settings.json'), JSON.stringify({ model: 'sonnet', modelSettings: { 'claude-sonnet-5-5': { effortLevel: 'low' } } }));
+      const config = claudeAdapter.defaultSection();
+      claudeAdapter.mergeHarnessConfig(config, root);
+      expect(modelSettingsOf(root)['claude-sonnet-5-5']).toEqual({ effortLevel: 'low' });
+      claudeAdapter.remove(config, root);
+      expect(modelSettingsOf(root)).toEqual({ 'claude-sonnet-5-5': { effortLevel: 'low' } });
+    }));
+
+    it('upgrades a 3.7.0 opusplan settings.json and then removes the same legacy file', () => withRoot(root => {
+      const file = join(root, '.claude/settings.json');
+      const legacy = JSON.stringify({
+        $schema: 'https://json.schemastore.org/claude-code-settings.json',
+        model: 'opusplan',
+        modelSettings: {
+          'claude-sonnet-5-5': { effortLevel: 'high', autoCompactWindow: 190000 },
+          'claude-opus-5-5': { effortLevel: 'max', autoCompactWindow: 190000 },
+        },
+      });
+      mkdirSync(join(root, '.claude'), { recursive: true });
+      writeFileSync(file, legacy);
+
+      const config = claudeAdapter.defaultSection();
+      config.build_thinking = 'medium';
+      claudeAdapter.mergeHarnessConfig(config, root);
+      const merged = JSON.parse(readFileSync(file, 'utf8'));
+      expect(merged.model).toBe('opus');
+      expect(merged.modelSettings).toEqual({ 'claude-opus-5-5': { effortLevel: 'medium' } });
+
+      writeFileSync(file, legacy);
+      claudeAdapter.remove(config, root);
+      expect(existsSync(file)).toBe(false);
+    }));
+
+    it('remove clears a 190k window on a legacy entry and leaves other values alone', () => withRoot(root => {
+      seed(root, {
+        'claude-sonnet-5-5': { autoCompactWindow: 190000, effortLevel: 'low' },
+        'claude-opus-5-5': { autoCompactWindow: 200000 },
+      });
+      claudeAdapter.remove(claudeAdapter.defaultSection(), root);
+      expect(modelSettingsOf(root)).toEqual({ 'claude-sonnet-5-5': { effortLevel: 'low' }, 'claude-opus-5-5': { autoCompactWindow: 200000 } });
     }));
   });
 

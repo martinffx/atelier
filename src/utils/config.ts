@@ -73,7 +73,7 @@ export function readConfig(path: string = CONFIG_PATH): Result<AtelierConfig, Co
   }
 
   try {
-    return ok(validateConfig(migrateLegacyAgentName(parsed)));
+    return ok(validateConfig(migrateLegacyPlanMode(migrateLegacyAgentName(parsed))));
   } catch (validationErr) {
     const message = validationErr instanceof Error ? validationErr.message : String(validationErr);
     return err({ type: 'invalid', message });
@@ -108,6 +108,56 @@ function migrateLegacyAgentName(config: unknown): unknown {
       }),
     };
   }
+  return migrated;
+}
+
+// Plan mode no longer swaps models or thinking: each harness has one session model and thinking.
+function migrateLegacyPlanMode(config: unknown): unknown {
+  if (typeof config !== 'object' || config === null) {
+    return config;
+  }
+
+  const migrated = { ...(config as Record<string, unknown>) };
+
+  const claude = migrated.claude;
+  if (typeof claude === 'object' && claude !== null) {
+    const section = { ...(claude as Record<string, unknown>) };
+    if (section.default_model === 'opusplan') {
+      // Opus effort came from plan_thinking, so the single session thinking carries that value.
+      section.default_model = 'opus';
+      section.build_thinking = section.plan_thinking;
+    }
+    if (Array.isArray(section.agents)) {
+      section.agents = section.agents.map(agent => {
+        if (typeof agent !== 'object' || agent === null || (agent as Record<string, unknown>).model !== 'opusplan') {
+          return agent;
+        }
+        return { ...(agent as Record<string, unknown>), model: 'opus' };
+      });
+    }
+    delete section.plan_thinking;
+    migrated.claude = section;
+  }
+
+  const codex = migrated.codex;
+  if (typeof codex === 'object' && codex !== null) {
+    const section = { ...(codex as Record<string, unknown>) };
+    delete section.plan_thinking;
+    migrated.codex = section;
+  }
+
+  const opencode = migrated.opencode;
+  if (typeof opencode === 'object' && opencode !== null) {
+    const section = { ...(opencode as Record<string, unknown>) };
+    if (section.default_model === undefined && section.build_model !== undefined) {
+      section.default_model = section.build_model;
+    }
+    delete section.build_model;
+    delete section.plan_model;
+    delete section.plan_thinking;
+    migrated.opencode = section;
+  }
+
   return migrated;
 }
 

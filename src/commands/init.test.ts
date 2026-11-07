@@ -93,7 +93,7 @@ describe('init', () => {
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
     expect(config.codex).toBeDefined();
     expect(config.codex.provider).toBe('openai');
-    expect(config.codex.default_model).toBe('gpt-6-sol');
+    expect(config.codex.default_model).toBe('gpt-6-astra');
     expect(config.codex.agents).toHaveLength(4);
   });
 
@@ -123,8 +123,7 @@ describe('init', () => {
   test('prompts for provider and creates config', async () => {
     inquirerAnswers = {
       provider: 'opencode-go',
-      build_model: 'opencode-go/deepseek-v4-flash',
-      plan_model: 'opencode-go/deepseek-v4-pro',
+      default_model: 'opencode-go/kimi-k3.1-pro',
       sentinel: 'opencode-go/deepseek-v4-flash',
       oracle: 'opencode-go/kimi-k2.6',
       architect: 'opencode-go/deepseek-v4-pro',
@@ -144,8 +143,7 @@ describe('init', () => {
   test('prints the OpenAI authentication command after initialization', async () => {
     inquirerAnswers = {
       provider: 'openai',
-      build_model: 'openai/gpt-5.6-terra',
-      plan_model: 'openai/gpt-5.6-sol',
+      default_model: 'openai/gpt-6-astra',
       sentinel: 'openai/gpt-5.6-luna',
       oracle: 'openai/gpt-5.6-sol',
       architect: 'openai/gpt-5.6-sol',
@@ -215,7 +213,7 @@ describe('init', () => {
   test('cancels when confirm prompt is false', async () => {
     inquirerAnswers = {
       harness: 'claude',
-      default_model: 'opusplan',
+      default_model: 'opus',
       sentinel: 'haiku',
       oracle: 'opus',
       architect: 'opus',
@@ -246,7 +244,7 @@ describe('update', () => {
     expect(existsSync(join(tempDir, '.claude/settings.json'))).toBe(false);
 
     inquirerAnswers = {
-      default_model: 'opusplan',
+      default_model: 'opus',
       sentinel: 'haiku',
       oracle: 'opus',
       architect: 'sonnet',
@@ -267,8 +265,7 @@ describe('update', () => {
 
     inquirerAnswers = {
       provider: 'opencode-zen',
-      build_model: 'opencode/deepseek-v4-flash',
-      plan_model: 'opencode/deepseek-v4-pro',
+      default_model: 'opencode/kimi-k3',
       sentinel: 'opencode/minimax-m2.7',
       oracle: 'opencode/kimi-k2.6',
       architect: 'opencode/deepseek-v4-pro',

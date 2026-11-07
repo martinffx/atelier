@@ -11,7 +11,7 @@ export function thinkingChoices(harness: ThinkingHarness, model: string, session
     // Astra and GPT 6.1 Sol reason on every request, so they cannot be switched off.
     return ['default', ...(/astra$|6\.1-sol$/.test(id) ? [] : ['off'] as const), 'low', 'medium', 'high', 'xhigh', 'max'];
   }
-  if (/^(opus|opusplan|sonnet|haiku|fable|best)$/.test(id) || /claude-(opus-5[-.]5|fable-5[-.]1|sonnet-5[-.]5|haiku-5[-.]5)$/.test(id)) {
+  if (/^(opus|sonnet|haiku|fable|best)$/.test(id) || /claude-(opus-5[-.]5|fable-5[-.]1|sonnet-5[-.]5|haiku-5[-.]5)$/.test(id)) {
     return ['default', 'low', 'medium', 'high', 'xhigh', ...(harness === 'claude' && session ? [] : ['max'] as const)];
   }
   if (harness === 'opencode') {
@@ -43,12 +43,6 @@ export function codexThinking(thinking: Thinking | undefined, legacy: string): s
 
 export function claudeModel(model: string): string {
   return ({ opus: 'claude-opus-5-5', fable: 'claude-fable-5-1', best: 'claude-fable-5-1', sonnet: 'claude-sonnet-5-5', haiku: 'claude-haiku-5-5' } as Record<string, string>)[model] ?? model;
-}
-
-export function claudeModeModels(model: string): { build: string; plan: string } {
-  return model === 'opusplan'
-    ? { build: claudeModel('sonnet'), plan: claudeModel('opus') }
-    : { build: claudeModel(model), plan: claudeModel(model) };
 }
 
 export const OPENCODE_THINKING_KEYS = ['reasoningEffort', 'thinking', 'effort', 'reasoningConfig', 'reasoning', 'thinkingConfig'] as const;

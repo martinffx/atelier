@@ -161,6 +161,145 @@ describe('config', () => {
     }
   });
 
+  test('readConfig migrates legacy Claude opusplan to opus and carries plan thinking into build thinking', async () => {
+    const { writeFileSync, mkdirSync } = await import('fs');
+    const { readConfig } = await import('./config.js');
+    const configPath = join(tempDir, '.atelier/config.json');
+    mkdirSync(join(tempDir, '.atelier'), { recursive: true });
+    writeFileSync(configPath, JSON.stringify({
+      version: '1.0.0',
+      skills_source: 'martinffx/atelier',
+      skills_path: '~/.agents/skills',
+      claude: {
+        default_model: 'opusplan',
+        build_thinking: 'low',
+        plan_thinking: 'high',
+        agents: [{ template: 'sentinel', name: 'sentinel', model: 'haiku' }],
+      },
+    }));
+
+    const result = readConfig(configPath);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.claude?.default_model).toBe('opus');
+      expect(result.value.claude?.build_thinking).toBe('high');
+      expect('plan_thinking' in (result.value.claude ?? {})).toBe(false);
+    }
+  });
+
+  test('readConfig migrates legacy Claude opusplan without plan thinking and drops build thinking', async () => {
+    const { writeFileSync, mkdirSync } = await import('fs');
+    const { readConfig } = await import('./config.js');
+    const configPath = join(tempDir, '.atelier/config.json');
+    mkdirSync(join(tempDir, '.atelier'), { recursive: true });
+    writeFileSync(configPath, JSON.stringify({
+      version: '1.0.0',
+      skills_source: 'martinffx/atelier',
+      skills_path: '~/.agents/skills',
+      claude: {
+        default_model: 'opusplan',
+        build_thinking: 'low',
+        agents: [{ template: 'sentinel', name: 'sentinel', model: 'haiku' }],
+      },
+    }));
+
+    const result = readConfig(configPath);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.claude?.default_model).toBe('opus');
+      // Opus effort came from plan_thinking, which was unset, so no session thinking carries over.
+      expect(result.value.claude?.build_thinking).toBeUndefined();
+    }
+  });
+
+  test('readConfig maps Claude agents saved as opusplan to opus and keeps their thinking', async () => {
+    const { writeFileSync, mkdirSync } = await import('fs');
+    const { readConfig } = await import('./config.js');
+    const configPath = join(tempDir, '.atelier/config.json');
+    mkdirSync(join(tempDir, '.atelier'), { recursive: true });
+    writeFileSync(configPath, JSON.stringify({
+      version: '1.0.0',
+      skills_source: 'martinffx/atelier',
+      skills_path: '~/.agents/skills',
+      claude: {
+        default_model: 'opus',
+        build_thinking: 'high',
+        agents: [
+          { template: 'oracle', name: 'oracle', model: 'opusplan', thinking: 'high' },
+          { template: 'architect', name: 'architect', model: 'opusplan', thinking: 'max' },
+          { template: 'sentinel', name: 'sentinel', model: 'haiku' },
+        ],
+      },
+    }));
+
+    const result = readConfig(configPath);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.claude?.agents).toEqual([
+        { template: 'oracle', name: 'oracle', model: 'opus', thinking: 'high' },
+        { template: 'architect', name: 'architect', model: 'opus', thinking: 'max' },
+        { template: 'sentinel', name: 'sentinel', model: 'haiku' },
+      ]);
+    }
+  });
+
+  test('readConfig drops legacy Codex plan_thinking', async () => {
+    const { writeFileSync, mkdirSync } = await import('fs');
+    const { readConfig } = await import('./config.js');
+    const configPath = join(tempDir, '.atelier/config.json');
+    mkdirSync(join(tempDir, '.atelier'), { recursive: true });
+    writeFileSync(configPath, JSON.stringify({
+      version: '1.0.0',
+      skills_source: 'martinffx/atelier',
+      skills_path: '~/.agents/skills',
+      codex: {
+        default_model: 'gpt-6-sol',
+        build_thinking: 'medium',
+        plan_thinking: 'high',
+        agents: [{ template: 'sentinel', name: 'sentinel', model: 'gpt-6-luna' }],
+      },
+    }));
+
+    const result = readConfig(configPath);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.codex?.default_model).toBe('gpt-6-sol');
+      expect(result.value.codex?.build_thinking).toBe('medium');
+      expect('plan_thinking' in (result.value.codex ?? {})).toBe(false);
+    }
+  });
+
+  test('readConfig migrates legacy OpenCode build_model to default_model and drops plan fields', async () => {
+    const { writeFileSync, mkdirSync } = await import('fs');
+    const { readConfig } = await import('./config.js');
+    const configPath = join(tempDir, '.atelier/config.json');
+    mkdirSync(join(tempDir, '.atelier'), { recursive: true });
+    writeFileSync(configPath, JSON.stringify({
+      version: '1.0.0',
+      skills_source: 'martinffx/atelier',
+      skills_path: '~/.agents/skills',
+      opencode: {
+        provider: 'opencode-zen',
+        build_model: 'opencode/kimi-k3',
+        plan_model: 'opencode/glm-5.3',
+        build_thinking: 'low',
+        plan_thinking: 'high',
+        agents: [{ template: 'sentinel', name: 'sentinel', model: 'opencode/glm-5.3-flash' }],
+      },
+    }));
+
+    const result = readConfig(configPath);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const section = result.value.opencode ?? {};
+      expect(section.default_model).toBe('opencode/kimi-k3');
+      expect(section.build_thinking).toBe('low');
+      expect('build_model' in section).toBe(false);
+      expect('plan_model' in section).toBe(false);
+      expect('plan_thinking' in section).toBe(false);
+    }
+  });
+
   test('getDefaultConfig returns valid config with default models for claude', async () => {
     const { getDefaultConfig } = await import('./config.js');
 
@@ -169,7 +308,7 @@ describe('config', () => {
     expect(config.version).toBe('0.1.0');
     expect(config.skills_source).toBe('martinffx/atelier');
     expect(config.claude).toBeDefined();
-    expect(config.claude?.default_model).toBe('opusplan');
+    expect(config.claude?.default_model).toBe('opus');
     expect(config.claude?.agents).toHaveLength(4);
 
     const sentinel = config.claude?.agents.find(a => a.name === 'sentinel');
@@ -188,7 +327,7 @@ describe('config', () => {
     const config = getDefaultConfig('codex');
 
     expect(config.codex).toBeDefined();
-    expect(config.codex?.default_model).toBe('gpt-6-sol');
+    expect(config.codex?.default_model).toBe('gpt-6-astra');
     expect(config.codex?.agents).toHaveLength(4);
 
     const sentinel = config.codex?.agents.find(a => a.name === 'sentinel');

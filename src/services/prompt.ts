@@ -75,17 +75,10 @@ export async function promptForOpenCodeModels(
   const answers = await prompt.prompt([
     {
       type: 'list',
-      name: 'build_model',
-      message: 'Select model for build',
-      choices: modelChoices(models, section.build_model),
-      default: section.build_model,
-    },
-    {
-      type: 'list',
-      name: 'plan_model',
-      message: 'Select model for plan',
-      choices: modelChoices(models, section.plan_model),
-      default: section.plan_model,
+      name: 'default_model',
+      message: 'Select model',
+      choices: modelChoices(models, section.default_model),
+      default: section.default_model,
     },
     ...AGENT_NAMES.map(name => ({
       type: 'list' as const,
@@ -99,8 +92,7 @@ export async function promptForOpenCodeModels(
   const result: OpenCodeConfig = {
     ...section,
     provider,
-    build_model: answers.build_model || section.build_model,
-    plan_model: answers.plan_model || section.plan_model,
+    default_model: answers.default_model || section.default_model,
     agents: AGENT_NAMES.map(name => {
       const agent = section.agents.find(a => a.name === name);
       return {
@@ -120,14 +112,13 @@ function modelChoices(models: readonly string[], saved?: string): string[] {
 }
 
 async function promptThinking(prompt: typeof inquirer, harness: ThinkingHarness, config: SimpleConfig | OpenCodeConfig, previous: SimpleConfig | OpenCodeConfig): Promise<void> {
-  const modelFor = (section: SimpleConfig | OpenCodeConfig, mode: 'build' | 'plan') => 'default_model' in section ? section.default_model : section[`${mode}_model`];
-  const slots: Array<{ name: string; label: string; model: string; oldModel: string; saved?: Thinking; session: boolean; set: (value: Thinking | undefined) => void }> = (['build', 'plan'] as const).filter(mode => !(mode === 'plan' && harness === 'claude' && modelFor(config, mode) !== 'opusplan')).map(mode => ({
-    name: `${mode}_thinking`, label: mode,
-    model: modelFor(config, mode),
-    oldModel: modelFor(previous, mode),
-    saved: previous[`${mode}_thinking`], session: true,
-    set: (value: Thinking | undefined) => { config[`${mode}_thinking`] = value; },
-  }));
+  const slots: Array<{ name: string; label: string; model: string; oldModel: string; saved?: Thinking; session: boolean; set: (value: Thinking | undefined) => void }> = [{
+    name: 'build_thinking', label: 'session',
+    model: config.default_model,
+    oldModel: previous.default_model,
+    saved: previous.build_thinking, session: true,
+    set: (value: Thinking | undefined) => { config.build_thinking = value; },
+  }];
   for (const agent of config.agents) {
     const old = previous.agents.find(a => a.name === agent.name);
     slots.push({ name: `${agent.name}_thinking`, label: agent.name, model: agent.model, oldModel: old?.model ?? '', saved: old?.thinking, session: false, set: value => { agent.thinking = value; } });
@@ -146,7 +137,6 @@ async function promptThinking(prompt: typeof inquirer, harness: ThinkingHarness,
   for (const slot of slots) {
     if (answers[slot.name] !== undefined) slot.set(answers[slot.name] === 'keep' ? undefined : answers[slot.name] as Thinking);
   }
-  if (harness === 'claude' && 'default_model' in config && config.default_model !== 'opusplan') config.plan_thinking = config.build_thinking;
 }
 
 export function formatFileList(files: { path: string; exists: boolean; action?: 'delete' }[]): string {

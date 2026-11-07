@@ -40,7 +40,7 @@ const openCodeAdapter: HarnessAdapter = {
     { name: 'Go', value: 'opencode-go' },
   ],
   configSchema: {} as unknown as HarnessAdapter['configSchema'],
-  defaultSection: () => ({ provider: 'opencode-zen', build_model: 'a', plan_model: 'b', agents: [] } as unknown as OpenCodeConfig),
+  defaultSection: () => ({ provider: 'opencode-zen', default_model: 'a', agents: [] } as unknown as OpenCodeConfig),
   modelsForProvider: () => ['a', 'b', 'c'],
   promptSection: async (inquirer, section) => {
     const current = (section as OpenCodeConfig).provider;
@@ -87,17 +87,16 @@ describe('prompt', () => {
     ]);
   });
 
-  it('prompts for provider, build, plan, and agent models for opencode config', async () => {
+  it('prompts for provider, session model, and agent models for opencode config', async () => {
     mockAnswers.push(
       { provider: 'opencode-go' },
-      { build_model: 'b', plan_model: 'c' },
+      { default_model: 'b' },
       { sentinel: 'a', oracle: 'b', architect: 'c', keymaker: 'a' }
     );
 
     const section = await promptForSection(openCodeAdapter, {
       provider: 'opencode-zen',
-      build_model: 'a',
-      plan_model: 'b',
+      default_model: 'a',
       agents: [
         { template: 'sentinel', name: 'sentinel', model: 'a' },
         { template: 'oracle', name: 'oracle', model: 'b' },
@@ -107,8 +106,7 @@ describe('prompt', () => {
     } as OpenCodeConfig);
 
     expect(section.provider).toBe('opencode-go');
-    expect(section.build_model).toBe('b');
-    expect(section.plan_model).toBe('c');
+    expect(section.default_model).toBe('b');
     expect(section.agents).toEqual([
       { template: 'sentinel', name: 'sentinel', model: 'a' },
       { template: 'oracle', name: 'oracle', model: 'b' },
@@ -148,7 +146,6 @@ describe('prompt', () => {
     expect(result.default_model).toBe('custom-model');
     expect(result.agents.map(a => a.model)).toEqual(['custom-agent', 'custom-agent', 'custom-agent', 'custom-agent']);
     expect(result.build_thinking).toBeUndefined();
-    expect(result.plan_thinking).toBeUndefined();
     expect(result.agents.every(a => a.thinking === undefined)).toBe(true);
     expect(questions.find(q => q.name === 'default_model').choices).toContain('custom-model');
     expect(original.agents.every(a => a.thinking === undefined)).toBe(true);
@@ -168,6 +165,37 @@ describe('prompt', () => {
     expect(result.agents[1].thinking).toBe('default');
     expect(original.agents[1].thinking).toBe('on');
     expect(batches[1].find(q => q.name === 'oracle_thinking').choices).toEqual(['default', 'low', 'high', 'max']);
+  });
+
+  it('carries session thinking when the session model is unchanged', async () => {
+    const batches: any[][] = [];
+    const prompt = { prompt: async (batch: any[]) => {
+      batches.push(batch);
+      return Object.fromEntries(batch.map(q => [q.name, q.default]));
+    } } as unknown as typeof import('inquirer').default;
+    const original = { ...opencodeAdapter.defaultSection('opencode-go'), default_model: 'opencode-go/glm-5.3', build_thinking: 'high' } as OpenCodeConfig;
+    const result = await promptForOpenCodeModels(prompt, original, ['opencode-go/glm-5.3'], 'opencode-go');
+    expect(result.build_thinking).toBe('high');
+    const session = batches[1].find(q => q.name === 'build_thinking');
+    expect(session.message).toBe('Select thinking for session (opencode-go/glm-5.3)');
+    expect(session.choices).toEqual(['default', 'low', 'high', 'max']);
+    expect(original.build_thinking).toBe('high');
+  });
+
+  it('resets session thinking to default when the session model changes', async () => {
+    const batches: any[][] = [];
+    const prompt = { prompt: async (batch: any[]) => {
+      batches.push(batch);
+      const answers = Object.fromEntries(batch.map(q => [q.name, q.default]));
+      if (batches.length === 1) answers.default_model = 'opencode-go/deepseek-v4-pro';
+      return answers;
+    } } as unknown as typeof import('inquirer').default;
+    const original = { ...opencodeAdapter.defaultSection('opencode-go'), default_model: 'opencode-go/glm-5.3', build_thinking: 'high' } as OpenCodeConfig;
+    const result = await promptForOpenCodeModels(prompt, original, ['opencode-go/glm-5.3', 'opencode-go/deepseek-v4-pro'], 'opencode-go');
+    expect(result.default_model).toBe('opencode-go/deepseek-v4-pro');
+    expect(result.build_thinking).toBe('default');
+    expect(batches[1].find(q => q.name === 'build_thinking').message).toBe('Select thinking for session (opencode-go/deepseek-v4-pro)');
+    expect(original.build_thinking).toBe('high');
   });
 
   it('uses the new provider defaults rather than carrying models across providers', async () => {

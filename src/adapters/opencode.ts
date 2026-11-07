@@ -57,38 +57,38 @@ const PROVIDER_MODELS: Record<OpenCodeProvider, readonly string[]> = {
   google: ['gemini-4-argon', 'gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.5-flash-lite'].map(id => `google/${id}`),
 };
 
-const DEFAULT_MODELS: Record<OpenCodeProvider, Record<'build' | 'plan' | typeof AGENT_NAMES[number], string>> = {
+const DEFAULT_MODELS: Record<OpenCodeProvider, Record<'default' | typeof AGENT_NAMES[number], string>> = {
   'opencode-zen': {
     sentinel: 'opencode/glm-5.3-flash', oracle: 'opencode/kimi-k3', architect: 'opencode/glm-5.3',
     keymaker: 'opencode/deepseek-v4.1-flash',
-    build: 'opencode/deepseek-v4.1-flash', plan: 'opencode/glm-5.3',
+    default: 'opencode/kimi-k3',
   },
   'opencode-go': {
     sentinel: 'opencode-go/glm-5.3-flash', oracle: 'opencode-go/mimo-v2.6-pro', architect: 'opencode-go/glm-5.3',
     keymaker: 'opencode-go/deepseek-v4.1-flash',
-    build: 'opencode-go/deepseek-v4.1-flash', plan: 'opencode-go/glm-5.3',
+    default: 'opencode-go/kimi-k3.1-pro',
   },
   'amazon-bedrock': {
     sentinel: 'amazon-bedrock/us.anthropic.claude-haiku-5-5',
     oracle: 'amazon-bedrock/us.anthropic.claude-fable-5-1',
     architect: 'amazon-bedrock/us.anthropic.claude-opus-5-5',
     keymaker: 'amazon-bedrock/us.anthropic.claude-sonnet-5-5',
-    build: 'amazon-bedrock/us.anthropic.claude-sonnet-5-5', plan: 'amazon-bedrock/us.anthropic.claude-opus-5-5',
+    default: 'amazon-bedrock/us.anthropic.claude-opus-5-5',
   },
   openai: {
     sentinel: 'openai/gpt-6-luna', oracle: 'openai/gpt-6-astra', architect: 'openai/gpt-6-astra',
     keymaker: 'openai/gpt-6-sol',
-    build: 'openai/gpt-6-sol', plan: 'openai/gpt-6-astra',
+    default: 'openai/gpt-6-astra',
   },
   openrouter: {
     sentinel: 'openrouter/z-ai/glm-5.3-flash', oracle: 'openrouter/moonshotai/kimi-k3.1-pro', architect: 'openrouter/z-ai/glm-5.3',
     keymaker: 'openrouter/deepseek/deepseek-v4.1-flash-1017',
-    build: 'openrouter/deepseek/deepseek-v4.1-flash-1017', plan: 'openrouter/z-ai/glm-5.3',
+    default: 'openrouter/moonshotai/kimi-k3.1-pro',
   },
   google: {
     sentinel: 'google/gemini-3.5-flash-lite', oracle: 'google/gemini-4-argon', architect: 'google/gemini-4-argon',
     keymaker: 'google/gemini-3.8-flash',
-    build: 'google/gemini-3.8-flash', plan: 'google/gemini-4-argon',
+    default: 'google/gemini-4-argon',
   },
 };
 
@@ -112,10 +112,8 @@ function defaultSection(provider?: Provider): OpenCodeConfig {
   const defaults = DEFAULT_MODELS[selectedProvider];
   return {
     provider: selectedProvider,
-    build_model: defaults.build,
-    plan_model: defaults.plan,
+    default_model: defaults.default,
     build_thinking: 'high',
-    plan_thinking: selectedProvider === 'openai' ? 'xhigh' : 'high',
     agents: AGENT_NAMES.map(name => ({
       template: name,
       name,
@@ -210,27 +208,26 @@ function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
     throw new FileWriteError(basePath, err instanceof Error ? err.message : String(err));
   }
 
-  const sentinel = config.agents.find(a => a.name === 'sentinel');
-  const architect = config.agents.find(a => a.name === 'architect');
-
   // Explicit thinking selections replace stale settings from the previous model.
   const existingAgents = existing.agent as Record<string, Record<string, unknown>> | undefined;
-  for (const mode of ['build', 'plan'] as const) {
-    if (config[`${mode}_thinking`] === undefined || !existingAgents?.[mode]) continue;
-    for (const key of OPENCODE_THINKING_KEYS) delete existingAgents[mode][key];
+  if (config.build_thinking !== undefined && existingAgents?.build) {
+    for (const key of OPENCODE_THINKING_KEYS) delete existingAgents.build[key];
   }
 
+  // agent.plan is no longer Atelier-managed: drop a stale Atelier entry (mode 'primary'), keep user keys.
+  if (existingAgents && typeof existingAgents === 'object' && !Array.isArray(existingAgents)) {
+    stripModeEntry(existingAgents, 'plan');
+  }
+
+  // Top-level model is what every agent without its own model (e.g. plan) falls back to, so the
+  // session model must be set there too or "one model" doesn't hold.
   const atelierFields: Record<string, unknown> = {
+    model: config.default_model,
     agent: {
       build: {
         mode: 'primary',
-        model: config.build_model || sentinel?.model || DEFAULT_MODELS[config.provider].build,
-        ...openCodeThinkingOptions(config.build_model, config.build_thinking),
-      },
-      plan: {
-        mode: 'primary',
-        model: config.plan_model || architect?.model || DEFAULT_MODELS[config.provider].plan,
-        ...openCodeThinkingOptions(config.plan_model, config.plan_thinking),
+        model: config.default_model,
+        ...openCodeThinkingOptions(config.default_model, config.build_thinking),
       },
     },
   };
@@ -415,6 +412,7 @@ function writeOrDeleteOpenCodeJson(basePath: string, config: OpenCodeConfig): vo
   const content = stripOpenCodeConfig(
     readExistingOpenCodeJson(opencodeJsonPath),
     config.provider,
+    config.default_model,
   );
 
   try {
@@ -440,14 +438,25 @@ function readExistingOpenCodeJson(opencodeJsonPath: string): Record<string, unkn
   }
 }
 
-function stripOpenCodeConfig(content: Record<string, unknown>, provider: OpenCodeProvider): Record<string, unknown> {
+// agent.build is always Atelier's. agent.plan is Atelier's only as a legacy entry marked mode 'primary';
+// any other agent.plan belongs to the user and is left intact.
+function stripModeEntry(agent: Record<string, unknown>, mode: 'build' | 'plan'): void {
+  const entry = agent[mode];
+  if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return;
+  const record = entry as Record<string, unknown>;
+  if (mode === 'plan' && record.mode !== 'primary') return;
+  for (const key of ['mode', 'model', ...OPENCODE_THINKING_KEYS]) delete record[key];
+  if (!Object.keys(record).length) delete agent[mode];
+}
+
+function stripOpenCodeConfig(content: Record<string, unknown>, provider: OpenCodeProvider, sessionModel: string): Record<string, unknown> {
+  // Only clear the top-level model while it still holds the value Atelier wrote.
+  if (content.model === sessionModel) delete content.model;
+
   if (content.agent && typeof content.agent === 'object' && !Array.isArray(content.agent)) {
     const agent = content.agent as Record<string, unknown>;
-    for (const mode of ['build', 'plan']) {
-      const entry = agent[mode];
-      if (!entry || typeof entry !== 'object' || Array.isArray(entry)) continue;
-      for (const key of ['mode', 'model', ...OPENCODE_THINKING_KEYS]) delete (entry as Record<string, unknown>)[key];
-      if (!Object.keys(entry).length) delete agent[mode];
+    for (const mode of ['build', 'plan'] as const) {
+      stripModeEntry(agent, mode);
     }
     if (Object.keys(agent).length === 0) {
       delete content.agent;

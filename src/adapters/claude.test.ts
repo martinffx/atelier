@@ -20,12 +20,14 @@ describe('claude adapter', () => {
   it('defaultSection returns anthropic defaults', () => {
     const section = claudeAdapter.defaultSection();
     expect(section.provider).toBe('anthropic');
-    expect(section.default_model).toBe('opusplan');
+    expect(section.default_model).toBe('opus');
+    expect(section.build_thinking).toBe('high');
+    expect('plan_thinking' in section).toBe(false);
     expect(section.agents.map(a => a.model)).toEqual(['haiku', 'opus', 'opus', 'sonnet']);
   });
 
   it('modelsForProvider returns anthropic models', () => {
-    expect(claudeAdapter.modelsForProvider()).toEqual(['haiku', 'sonnet', 'opus', 'fable', 'best', 'opusplan']);
+    expect(claudeAdapter.modelsForProvider()).toEqual(['haiku', 'sonnet', 'opus', 'fable', 'best']);
   });
 
   it('mergeHarnessConfig writes settings.json', () => {
@@ -34,7 +36,8 @@ describe('claude adapter', () => {
     expect(existsSync(settingsPath)).toBe(true);
     const content = JSON.parse(readFileSync(settingsPath, 'utf-8'));
     expect(content.$schema).toBeDefined();
-    expect(content.model).toBe('opusplan');
+    expect(content.model).toBe('opus');
+    expect(content.modelSettings).toEqual({ 'claude-opus-5-5': { effortLevel: 'high' } });
     expect(content.disableClaudeAiConnectors).toBe(true);
     expect(content.syncClaudeAiSkills).toBe(false);
     expect(content.syncClaudeAiPlugins).toBe(false);
@@ -49,7 +52,7 @@ describe('claude adapter', () => {
     claudeAdapter.mergeHarnessConfig(section(), basePath);
     const content = JSON.parse(readFileSync(settingsPath, 'utf-8'));
     expect(content.customKey).toBe('value');
-    expect(content.model).toBe('opusplan');
+    expect(content.model).toBe('opus');
   });
 
   it('mergeHarnessConfig throws on malformed settings.json', () => {
@@ -218,5 +221,31 @@ describe('claude adapter', () => {
     expect(existsSync(userAgent)).toBe(true);
     expect(existsSync(agentsDir)).toBe(true);
     expect(existsSync(join(agentsDir, 'sentinel.md'))).toBe(false);
+  });
+
+  it('mergeHarnessConfig removes the legacy 190k auto-compact window and keeps other values', () => {
+    mkdirSync(join(basePath, '.claude'), { recursive: true });
+    writeFileSync(settingsFile(), JSON.stringify({ modelSettings: {
+      'claude-sonnet-5-5': { autoCompactWindow: 190000 },
+      'claude-opus-5-5': { autoCompactWindow: 150000 },
+    } }));
+
+    claudeAdapter.mergeHarnessConfig(section(), basePath);
+
+    const content = readSettings();
+    expect(content.modelSettings['claude-sonnet-5-5']).toBeUndefined();
+    expect(content.modelSettings['claude-opus-5-5']).toEqual({ autoCompactWindow: 150000, effortLevel: 'high' });
+  });
+
+  it('remove clears the session effort level and keeps user settings', () => {
+    const s = section();
+    claudeAdapter.mergeHarnessConfig(s, basePath);
+    const content = readSettings();
+    content.customKey = 'value';
+    writeFileSync(settingsFile(), JSON.stringify(content));
+
+    claudeAdapter.remove(s, basePath);
+
+    expect(readSettings()).toEqual({ customKey: 'value' });
   });
 });

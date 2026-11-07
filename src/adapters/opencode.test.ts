@@ -27,8 +27,7 @@ describe('opencode adapter', () => {
   it('defaultSection returns provider defaults', () => {
     const section = opencodeAdapter.defaultSection('amazon-bedrock');
     expect(section.provider).toBe('amazon-bedrock');
-    expect(section.build_model).toContain('amazon-bedrock');
-    expect(section.plan_model).toContain('amazon-bedrock');
+    expect(section.default_model).toBe('amazon-bedrock/us.anthropic.claude-opus-5-5');
   });
 
   it('modelsForProvider returns provider-scoped models', () => {
@@ -41,8 +40,7 @@ describe('opencode adapter', () => {
     const models = opencodeAdapter.modelsForProvider('openai');
 
     expect(openAiSection.provider).toBe('openai');
-    expect(openAiSection.build_model).toBe('openai/gpt-6-sol');
-    expect(openAiSection.plan_model).toBe('openai/gpt-6-astra');
+    expect(openAiSection.default_model).toBe('openai/gpt-6-astra');
     expect(openAiSection.agents).toEqual([
       { template: 'sentinel', name: 'sentinel', model: 'openai/gpt-6-luna', thinking: 'low' },
       { template: 'oracle', name: 'oracle', model: 'openai/gpt-6-astra', thinking: 'high' },
@@ -58,7 +56,64 @@ describe('opencode adapter', () => {
     expect(existsSync(path)).toBe(true);
     const content = JSON.parse(readFileSync(path, 'utf-8'));
     expect(content.agent.build.mode).toBe('primary');
-    expect(content.agent.plan.mode).toBe('primary');
+    expect(content.agent.build.model).toBe(section().default_model);
+    expect(content.agent.plan).toBeUndefined();
+    expect(content.model).toBe(section().default_model);
+  });
+
+  it('mergeHarnessConfig replaces a user top-level model so every agent shares the session model', () => {
+    mkdirSync(basePath, { recursive: true });
+    writeFileSync(join(basePath, 'opencode.json'), JSON.stringify({
+      model: 'opencode-go/deepseek-v4.1-flash',
+      permission: { bash: { '*': 'ask' } },
+    }, null, 2));
+    opencodeAdapter.mergeHarnessConfig(section(), basePath);
+    const content = JSON.parse(readFileSync(join(basePath, 'opencode.json'), 'utf-8'));
+    expect(content.model).toBe(section().default_model);
+    expect(content.agent.build.model).toBe(section().default_model);
+    expect(content.permission).toEqual({ bash: { '*': 'ask' } });
+  });
+
+  it('remove clears the top-level model only while it still matches the session model', () => {
+    mkdirSync(basePath, { recursive: true });
+    const s = section();
+    opencodeAdapter.mergeHarnessConfig(s, basePath);
+    opencodeAdapter.remove(s, basePath);
+    expect(existsSync(join(basePath, 'opencode.json'))).toBe(false);
+
+    writeFileSync(join(basePath, 'opencode.json'), JSON.stringify({ model: 'openai/gpt-6-sol' }, null, 2));
+    opencodeAdapter.remove(s, basePath);
+    const content = JSON.parse(readFileSync(join(basePath, 'opencode.json'), 'utf-8'));
+    expect(content.model).toBe('openai/gpt-6-sol');
+  });
+
+  it('mergeHarnessConfig removes stale Atelier keys from agent.plan and keeps user keys', () => {
+    mkdirSync(basePath, { recursive: true });
+    writeFileSync(join(basePath, 'opencode.json'), JSON.stringify({
+      agent: {
+        plan: { mode: 'primary', model: 'opencode/glm-5.3', temperature: 0.2, thinking: { type: 'enabled' } },
+      },
+    }, null, 2));
+    opencodeAdapter.mergeHarnessConfig(section(), basePath);
+    const content = JSON.parse(readFileSync(join(basePath, 'opencode.json'), 'utf-8'));
+    expect(content.agent.plan).toEqual({ temperature: 0.2 });
+    expect(content.agent.build.model).toBe(section().default_model);
+  });
+
+  it('leaves a user-owned agent.plan without mode primary intact through merge and remove', () => {
+    mkdirSync(basePath, { recursive: true });
+    const userPlan = { model: 'openai/gpt-6-sol', temperature: 0.2 };
+    writeFileSync(join(basePath, 'opencode.json'), JSON.stringify({ agent: { plan: userPlan } }, null, 2));
+    const s = section();
+
+    opencodeAdapter.mergeHarnessConfig(s, basePath);
+    let content = JSON.parse(readFileSync(join(basePath, 'opencode.json'), 'utf-8'));
+    expect(content.agent.plan).toEqual(userPlan);
+
+    opencodeAdapter.remove(s, basePath);
+    content = JSON.parse(readFileSync(join(basePath, 'opencode.json'), 'utf-8'));
+    expect(content.agent.plan).toEqual(userPlan);
+    expect(content.agent.build).toBeUndefined();
   });
 
   it('mergeHarnessConfig preserves user settings', () => {
@@ -178,6 +233,7 @@ describe('opencode adapter', () => {
     const path = join(basePath, 'opencode.json');
     const content = JSON.parse(readFileSync(path, 'utf-8'));
     content.custom = 'value';
+    content.agent.plan = { mode: 'primary', model: 'opencode/glm-5.3', reasoningEffort: 'high' };
     writeFileSync(path, JSON.stringify(content, null, 2));
 
     opencodeAdapter.remove(s, basePath);

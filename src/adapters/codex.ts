@@ -26,7 +26,7 @@ const OPENAI_MODELS = [
 ] as const;
 
 const DEFAULT_MODELS = {
-  default_model: 'gpt-6-sol',
+  default_model: 'gpt-6-astra',
   sentinel: 'gpt-6-luna',
   oracle: 'gpt-6-astra',
   architect: 'gpt-6-astra',
@@ -68,7 +68,6 @@ function defaultSection(): CodexConfig {
     provider: 'openai',
     default_model: DEFAULT_MODELS.default_model,
     build_thinking: 'high',
-    plan_thinking: 'xhigh',
     agents: AGENT_NAMES.map(name => ({
       template: name,
       name,
@@ -130,12 +129,12 @@ function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
   }
 
   if (config.build_thinking === 'default') delete existing.model_reasoning_effort;
-  if (config.plan_thinking === 'default') delete existing.plan_mode_reasoning_effort;
+  // Codex has no separate plan mode setting; drop any plan_mode_reasoning_effort Atelier previously wrote.
+  delete existing.plan_mode_reasoning_effort;
   const merged = {
     ...existing,
     model: config.default_model,
     ...effortField('model_reasoning_effort', codexThinking(config.build_thinking, 'medium')),
-    ...effortField('plan_mode_reasoning_effort', codexThinking(config.plan_thinking, 'high')),
     sandbox_mode: 'danger-full-access',
     approval_policy: 'on-request',
     features: {
