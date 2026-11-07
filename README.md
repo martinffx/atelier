@@ -114,9 +114,9 @@ The CLI also configures four specialist agents for Claude Code, OpenCode, Codex,
 | **Sentinel** | Read-only codebase reconnaissance and review triage |
 | **Oracle** | Requirements, trade-offs, and critical analysis of changes |
 | **Architect** | Domain modelling, system design, and architecture review |
-| **Keymaker** | Fast scaffolding of files and boilerplate from templates and existing patterns |
+| **Keymaker** | Implements settled designs: code, business logic and tests, so the main conversation stays small |
 
-Each subagent launch explicitly selects one of these four by matching the task to its description; the harness default is never used. Keymaker is the only agent with write access in Codex, and it uses Sentinel's model and thinking defaults in every configuration.
+Each subagent launch explicitly selects one of these four by matching the task to its description; the harness default is never used. Keymaker is the only agent with write access in Codex. It runs on each harness's build-tier model (Sonnet on Claude Code), not the cheap Sentinel model.
 
 Run `npx @martinffx/atelier@latest --help` for CLI commands and options. Each skill contains its own operating instructions and loads when its context applies.
 

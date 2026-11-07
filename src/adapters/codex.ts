@@ -30,7 +30,7 @@ const DEFAULT_MODELS = {
   sentinel: 'gpt-6-luna',
   oracle: 'gpt-6-astra',
   architect: 'gpt-6-astra',
-  keymaker: 'gpt-6-luna',
+  keymaker: 'gpt-6-sol',
 } as const;
 
 const WRITABLE_AGENTS: readonly string[] = ['keymaker'];
@@ -73,7 +73,7 @@ function defaultSection(): CodexConfig {
       template: name,
       name,
       model: DEFAULT_MODELS[name],
-      thinking: ({ sentinel: 'low', oracle: 'high', architect: 'xhigh', keymaker: 'low' } as const)[name],
+      thinking: ({ sentinel: 'low', oracle: 'high', architect: 'xhigh', keymaker: 'medium' } as const)[name],
     })),
   };
 }

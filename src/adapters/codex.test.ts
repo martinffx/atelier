@@ -18,7 +18,7 @@ describe('codex adapter', () => {
     const section = codexAdapter.defaultSection();
     expect(section.provider).toBe('openai');
     expect(section.default_model).toBe('gpt-6-sol');
-    expect(section.agents.map(a => a.model)).toEqual(['gpt-6-luna', 'gpt-6-astra', 'gpt-6-astra', 'gpt-6-luna']);
+    expect(section.agents.map(a => a.model)).toEqual(['gpt-6-luna', 'gpt-6-astra', 'gpt-6-astra', 'gpt-6-sol']);
   });
 
   it('modelsForProvider returns openai models', () => {

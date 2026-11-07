@@ -126,14 +126,32 @@ choice to review. If any choice exists, use an Inline Plan.
 Delegate bounded, read-only work to a subagent when it would otherwise flood the main context:
 wide codebase research, finding comparable code, or independent review. Ask for a concise,
 file:line-cited summary, and read the key cited files yourself before deciding. Do not delegate
-interviews or design dialogue with the human, lookups of a few files, or stateful debug and
-implementation loops.
+interviews or design dialogue with the human, lookups of a few files, or stateful debug loops.
+
+Delegate implementation too. Once the design is settled, implementation batches go to
+**Keymaker** subagents through **code-subagents**; the main conversation edits code directly
+only for trivial or mechanical changes and debugging loops.
 
 Every subagent launch must explicitly select an agent. Match the work to the descriptions of
 Atelier's agents (Sentinel, Oracle, Architect, Keymaker) and choose one. Never launch without a
 selection or rely on the harness default. Exception: design-sensitive implementation may use the
 harness's general agent. If Atelier's agents are not installed, explicitly choose the closest
 available agent by description and state the choice in the output.
+
+### Parent context
+
+The main conversation holds the human's decisions and is the scarcest context. Quality degrades
+as it grows, compaction loses detail, and under `opusplan` planning silently drops to Sonnet once
+a turn passes 200k tokens. Keep it lean:
+
+- Send work that produces bulky output to subagents and keep only their summaries. That covers
+  broad search, test and build runs, log reading, and implementation batches through
+  code-subagents.
+- Read only the ranges you need, don't re-read files, and don't paste large outputs back.
+- Persist decisions and progress to the plan or spec artifacts, so compaction or a fresh session
+  loses nothing.
+- Compact deliberately at phase boundaries (plan approved, batch done, before re-planning) with
+  `/compact <focus>`, or start a fresh session. Don't wait for the automatic trigger mid-task.
 
 ## Hard Transitions
 

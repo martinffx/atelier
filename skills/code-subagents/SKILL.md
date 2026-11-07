@@ -70,10 +70,10 @@ For shared-tree parallel work:
 ## Agent Selection
 
 Select the agent explicitly for every dispatch (see Delegation in `atelier-orchestrator`). Give
-implementers the design excerpt so they make no design decisions: mechanical file creation should
-match a scaffolder; design-sensitive implementation may use the harness's general agent, the one
-permitted exception to selecting from Atelier's agents. The batch reviewer is a read-only
-critical review.
+implementers the design excerpt so they make no design decisions. Implementers of settled
+designs, mechanical or not, are Keymaker; design-sensitive implementation may use the harness's
+general agent, the one permitted exception to selecting from Atelier's agents. The batch reviewer
+is a read-only critical review.
 
 ---
 
