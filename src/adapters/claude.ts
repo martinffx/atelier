@@ -132,6 +132,7 @@ function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
     model: config.default_model || DEFAULT_MODELS.default_model,
   };
   applyModeThinking(settings, config);
+  applyAutoCompactWindow(settings, config);
   applyBuiltins(settings, CONFLICTING_BUILTINS);
   for (const name of CLAUDE_OPTIONAL_BUILTINS) {
     if (config.disabled_builtins?.includes(name)) applyBuiltins(settings, OPTIONAL_BUILTINS[name]);
@@ -201,6 +202,7 @@ function removeAtelierSettings(claudeDir: string, config: ClaudeConfig): void {
     if (content[key] === value) delete content[key];
   }
   applyModeThinking(content, config, true);
+  applyAutoCompactWindow(content, config, true);
   removeBuiltins(content, CONFLICTING_BUILTINS);
   for (const patch of Object.values(OPTIONAL_BUILTINS)) removeBuiltins(content, patch);
   writeOrDeleteSettings(settingsPath, content);
@@ -217,6 +219,25 @@ function applyModeThinking(settings: Record<string, unknown>, config: ClaudeConf
     else entry.effortLevel = thinking;
     if (Object.keys(entry).length) modelSettings[models[mode]] = entry;
     else delete modelSettings[models[mode]];
+  }
+  if (Object.keys(modelSettings).length) settings.modelSettings = modelSettings;
+  else delete settings.modelSettings;
+}
+
+// opusplan plans on Sonnet once a turn passes 200k tokens, but auto-compaction only fires near 967k
+// (anthropics/claude-code#95206). Compact earlier so plan mode keeps using Opus.
+export const OPUSPLAN_AUTO_COMPACT_WINDOW = 190_000;
+
+function applyAutoCompactWindow(settings: Record<string, unknown>, config: ClaudeConfig, remove = false): void {
+  const models = claudeModeModels('opusplan');
+  const enabled = !remove && config.default_model === 'opusplan';
+  const modelSettings = { ...(settings.modelSettings as Record<string, Record<string, unknown>> | undefined) };
+  for (const model of new Set([models.build, models.plan])) {
+    const entry = { ...modelSettings[model] };
+    if (enabled) entry.autoCompactWindow ??= OPUSPLAN_AUTO_COMPACT_WINDOW;
+    else if (entry.autoCompactWindow === OPUSPLAN_AUTO_COMPACT_WINDOW) delete entry.autoCompactWindow;
+    if (Object.keys(entry).length) modelSettings[model] = entry;
+    else delete modelSettings[model];
   }
   if (Object.keys(modelSettings).length) settings.modelSettings = modelSettings;
   else delete settings.modelSettings;

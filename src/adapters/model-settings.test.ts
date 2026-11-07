@@ -127,10 +127,52 @@ describe('model and thinking settings', () => {
       writeFileSync(file, JSON.stringify({ modelSettings: { custom: { effortLevel: 'low' }, 'claude-opus-5-5': { maxEffortLevel: 'xhigh' } } }));
       const config = claudeAdapter.defaultSection();
       claudeAdapter.mergeHarnessConfig(config, root);
-      expect(JSON.parse(readFileSync(file, 'utf8')).modelSettings['claude-opus-5-5']).toEqual({ maxEffortLevel: 'xhigh', effortLevel: 'high' });
+      expect(JSON.parse(readFileSync(file, 'utf8')).modelSettings['claude-opus-5-5']).toEqual({ maxEffortLevel: 'xhigh', effortLevel: 'high', autoCompactWindow: 190000 });
       claudeAdapter.remove(config, root);
       expect(JSON.parse(readFileSync(file, 'utf8')).modelSettings).toEqual({ custom: { effortLevel: 'low' }, 'claude-opus-5-5': { maxEffortLevel: 'xhigh' } });
     } finally { rmSync(root, { recursive: true, force: true }); }
+  });
+
+  describe('opusplan auto-compact window', () => {
+    const settingsFor = (root: string) => JSON.parse(readFileSync(join(root, '.claude/settings.json'), 'utf8'));
+    const withRoot = (run: (root: string) => void) => {
+      const root = mkdtempSync(join(tmpdir(), 'atelier-compact-'));
+      try { run(root); } finally { rmSync(root, { recursive: true, force: true }); }
+    };
+
+    it('writes 190k for both opusplan models and removes it again', () => withRoot(root => {
+      const config = claudeAdapter.defaultSection();
+      claudeAdapter.mergeHarnessConfig(config, root);
+      const { modelSettings } = settingsFor(root);
+      expect(modelSettings['claude-opus-5-5'].autoCompactWindow).toBe(190000);
+      expect(modelSettings['claude-sonnet-5-5'].autoCompactWindow).toBe(190000);
+      claudeAdapter.remove(config, root);
+      expect(existsSync(join(root, '.claude/settings.json')) ? settingsFor(root).modelSettings : undefined).toBeUndefined();
+    }));
+
+    it('does not write it for a single-model setup', () => withRoot(root => {
+      const config = { ...claudeAdapter.defaultSection(), default_model: 'opus' } as ReturnType<typeof claudeAdapter.defaultSection>;
+      claudeAdapter.mergeHarnessConfig(config, root);
+      expect(JSON.stringify(settingsFor(root).modelSettings ?? {})).not.toContain('autoCompactWindow');
+    }));
+
+    it('keeps a window the user already set, and removal leaves it', () => withRoot(root => {
+      mkdirSync(join(root, '.claude'));
+      writeFileSync(join(root, '.claude/settings.json'), JSON.stringify({ modelSettings: { 'claude-opus-5-5': { autoCompactWindow: 250000 } } }));
+      const config = claudeAdapter.defaultSection();
+      claudeAdapter.mergeHarnessConfig(config, root);
+      expect(settingsFor(root).modelSettings['claude-opus-5-5'].autoCompactWindow).toBe(250000);
+      expect(settingsFor(root).modelSettings['claude-sonnet-5-5'].autoCompactWindow).toBe(190000);
+      claudeAdapter.remove(config, root);
+      expect(settingsFor(root).modelSettings).toEqual({ 'claude-opus-5-5': { autoCompactWindow: 250000 } });
+    }));
+
+    it('clears its own value when the model moves off opusplan', () => withRoot(root => {
+      claudeAdapter.mergeHarnessConfig(claudeAdapter.defaultSection(), root);
+      const config = { ...claudeAdapter.defaultSection(), default_model: 'sonnet' } as ReturnType<typeof claudeAdapter.defaultSection>;
+      claudeAdapter.mergeHarnessConfig(config, root);
+      expect(JSON.stringify(settingsFor(root).modelSettings ?? {})).not.toContain('autoCompactWindow');
+    }));
   });
 
   it('clears stale OpenCode thinking while preserving permissions and provider options', () => {
