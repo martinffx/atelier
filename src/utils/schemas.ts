@@ -27,6 +27,7 @@ export const OpenCodeConfigSchema = z.object({
   build_thinking: ThinkingSchema.optional(),
   plan_thinking: ThinkingSchema.optional(),
   agents: z.array(ThinkingAgentSchema).min(1),
+  warming: z.boolean().optional(),
 }).superRefine((config, ctx) => checkThinking('opencode', config, ctx));
 
 export const CLAUDE_OPTIONAL_BUILTINS = ['cron', 'chrome', 'remote-trigger'] as const;

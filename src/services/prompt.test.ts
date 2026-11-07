@@ -237,6 +237,48 @@ describe('prompt', () => {
     expect(values(batches[1].find(q => q.name === 'oracle_thinking').choices)).toEqual(['default', 'low', 'high', 'max']);
   });
 
+  describe('openrouter warming question', () => {
+    const run = async (provider: 'openrouter' | 'openai', saved?: boolean, answer?: boolean) => {
+      const batches: any[][] = [];
+      const prompt = { prompt: async (batch: any[]) => {
+        batches.push(batch);
+        const answers = Object.fromEntries(batch.map(q => [q.name, q.default]));
+        if (answer !== undefined && 'warming' in answers) answers.warming = answer;
+        return answers;
+      } } as unknown as typeof import('inquirer').default;
+      const original = { ...opencodeAdapter.defaultSection(provider), ...(saved === undefined ? {} : { warming: saved }) } as OpenCodeConfig;
+      const result = await promptForOpenCodeModels(prompt, original, opencodeAdapter.modelsForProvider(provider), provider);
+      return { result, question: batches.flat().find(q => q.name === 'warming') };
+    };
+
+    it('is asked for OpenRouter only', async () => {
+      const or = await run('openrouter');
+      expect(or.question.type).toBe('confirm');
+      expect(or.question.message).toContain('keep-alive');
+      expect(or.question.message).toContain('money');
+      expect((await run('openai')).question).toBeUndefined();
+    });
+
+    it('defaults to no', async () => {
+      const { question, result } = await run('openrouter');
+      expect(question.default).toBe(false);
+      expect(result.warming).toBe(false);
+    });
+
+    it('keeps a saved answer', async () => {
+      const { question, result } = await run('openrouter', true);
+      expect(question.default).toBe(true);
+      expect(result.warming).toBe(true);
+    });
+
+    it('keeps the saved value when the answer is missing', async () => {
+      const prompt = { prompt: async (batch: any[]) => Object.fromEntries(batch.filter(q => q.name !== 'warming').map(q => [q.name, q.default])) } as unknown as typeof import('inquirer').default;
+      const original = { ...opencodeAdapter.defaultSection('openrouter'), warming: true } as OpenCodeConfig;
+      const result = await promptForOpenCodeModels(prompt, original, opencodeAdapter.modelsForProvider('openrouter'), 'openrouter');
+      expect(result.warming).toBe(true);
+    });
+  });
+
   it('carries session thinking when the session model is unchanged', async () => {
     const batches: any[][] = [];
     const prompt = { prompt: async (batch: any[]) => {

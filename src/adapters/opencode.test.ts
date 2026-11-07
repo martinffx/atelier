@@ -50,6 +50,72 @@ describe('opencode adapter', () => {
     expect(models.every(model => model.startsWith('openai/'))).toBe(true);
   });
 
+  describe('openrouter warming', () => {
+    const jsonPath = () => join(basePath, 'opencode.json');
+    const read = () => JSON.parse(readFileSync(jsonPath(), 'utf-8'));
+    const seed = (value: unknown) => writeFileSync(jsonPath(), JSON.stringify(value));
+    const warm = { providers: { openrouter: { settings: { cache: { warming: true } } } } };
+    const orSection = (warming?: boolean) => ({ ...section('openrouter'), ...(warming === undefined ? {} : { warming }) });
+
+    it('writes the key when enabled', () => {
+      opencodeAdapter.mergeHarnessConfig(orSection(true), basePath);
+      expect(read().providers).toEqual(warm.providers);
+    });
+
+    it('omits the key when disabled', () => {
+      opencodeAdapter.mergeHarnessConfig(orSection(false), basePath);
+      expect(read().providers).toBeUndefined();
+    });
+
+    it('turning it off removes the key and prunes empty parents', () => {
+      seed(warm);
+      opencodeAdapter.mergeHarnessConfig(orSection(false), basePath);
+      expect(read().providers).toBeUndefined();
+    });
+
+    it('keeps unrelated providers entries when turning it off', () => {
+      seed({ providers: { openrouter: { settings: { cache: { warming: true, other: 1 } }, keep: 2 }, other: { x: 1 } } });
+      opencodeAdapter.mergeHarnessConfig(orSection(false), basePath);
+      expect(read().providers).toEqual({ openrouter: { settings: { cache: { other: 1 } }, keep: 2 }, other: { x: 1 } });
+    });
+
+    it('keeps a custom object value', () => {
+      const custom = { providers: { openrouter: { settings: { cache: { warming: { interval: 60 } } } } } };
+      seed(custom);
+      opencodeAdapter.mergeHarnessConfig(orSection(false), basePath);
+      expect(read().providers).toEqual(custom.providers);
+    });
+
+    it('clears it when switching away from OpenRouter', () => {
+      seed(warm);
+      opencodeAdapter.mergeHarnessConfig({ ...section('opencode-go'), warming: true }, basePath);
+      expect(read().providers).toBeUndefined();
+    });
+
+    it('remove clears it', () => {
+      seed({ ...warm, model: orSection(true).default_model });
+      opencodeAdapter.remove(orSection(true), basePath);
+      expect(existsSync(jsonPath())).toBe(false);
+    });
+
+    it('never writes it for non-OpenRouter providers', () => {
+      opencodeAdapter.mergeHarnessConfig({ ...section('openai'), warming: true }, basePath);
+      expect(read().providers).toBeUndefined();
+    });
+
+    it('leaves an existing value untouched when undefined on OpenRouter', () => {
+      seed(warm);
+      opencodeAdapter.mergeHarnessConfig(orSection(), basePath);
+      expect(read().providers).toEqual(warm.providers);
+    });
+
+    it('tolerates non-object values along the path', () => {
+      seed({ providers: { openrouter: 'x' } });
+      opencodeAdapter.mergeHarnessConfig(orSection(false), basePath);
+      expect(read().providers).toEqual({ openrouter: 'x' });
+    });
+  });
+
   it('mergeHarnessConfig writes opencode.json', () => {
     opencodeAdapter.mergeHarnessConfig(section(), basePath);
     const path = join(basePath, 'opencode.json');

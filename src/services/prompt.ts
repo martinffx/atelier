@@ -104,6 +104,15 @@ export async function promptForOpenCodeModels(
     }),
   };
   await promptThinking(prompt, 'opencode', result, section);
+  if (provider === 'openrouter') {
+    const { warming } = await prompt.prompt([{
+      type: 'confirm',
+      name: 'warming',
+      message: 'Keep idle sessions warm? This sends keep-alive requests every few minutes, which cost money (requires OpenCode V2)',
+      default: section.warming ?? false,
+    }]);
+    if (warming !== undefined) result.warming = warming;
+  }
   return result;
 }
 

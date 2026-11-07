@@ -254,6 +254,12 @@ function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
     };
   }
 
+  if (config.provider === 'openrouter' && config.warming === true) {
+    atelierFields.providers = { openrouter: { settings: { cache: { warming: true } } } };
+  } else if (config.provider !== 'openrouter' || config.warming === false) {
+    removeWarming(existing);
+  }
+
   const merged = deepMerge(existing, atelierFields);
 
   try {
@@ -489,7 +495,27 @@ function stripOpenCodeConfig(content: Record<string, unknown>, provider: OpenCod
     }
   }
 
+  removeWarming(content);
+
   return content;
+}
+
+// Removes providers.openrouter.settings.cache.warming only when it is exactly true (an object is a
+// user's custom interval), then prunes parents left empty. Tolerates non-object values at any level.
+function removeWarming(content: Record<string, unknown>): void {
+  const path = ['providers', 'openrouter', 'settings', 'cache'];
+  const chain: Record<string, unknown>[] = [content];
+  for (const key of path) {
+    const next = chain[chain.length - 1][key];
+    if (!next || typeof next !== 'object' || Array.isArray(next)) return;
+    chain.push(next as Record<string, unknown>);
+  }
+  const cache = chain[chain.length - 1];
+  if (cache.warming !== true) return;
+  delete cache.warming;
+  for (let i = chain.length - 1; i > 0 && !Object.keys(chain[i]).length; i--) {
+    delete chain[i - 1][path[i - 1]];
+  }
 }
 
 export function getOpencodeRoot(basePath: string): string {
