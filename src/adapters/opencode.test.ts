@@ -47,7 +47,7 @@ describe('opencode adapter', () => {
       { template: 'sentinel', name: 'sentinel', model: 'openai/gpt-6-luna', thinking: 'low' },
       { template: 'oracle', name: 'oracle', model: 'openai/gpt-6-astra', thinking: 'high' },
       { template: 'architect', name: 'architect', model: 'openai/gpt-6-astra', thinking: 'xhigh' },
-      { template: 'keymaker', name: 'keymaker', model: 'openai/gpt-6-luna', thinking: 'low' },
+      { template: 'keymaker', name: 'keymaker', model: 'openai/gpt-6-sol', thinking: 'high' },
     ]);
     expect(models.every(model => model.startsWith('openai/'))).toBe(true);
   });

@@ -141,7 +141,7 @@ _Avoid_: mode model, build model (for Cursor)
 - **AtelierConfig vs HarnessConfig** is now explicit: `AtelierConfig` is the CLI's persisted state; `HarnessConfig` is the harness's native file, written only by the adapter.
 - **fileList and remove** use the same canonical list of Atelier-managed files. `fileList` reports existence; `remove` deletes those files.
 - **Agent Selection** was previously hard-coded per workflow step (`/code-review` named `oracle` for every reviewer persona). Selection is now explicit and made by the main agent from the kind of work, per `atelier-orchestrator`; skills never name an agent, so descriptions are the routing surface.
-- **Agent Template** set is `sentinel` (read-only recon), `oracle` (critical analysis), `architect` (technical design) and `keymaker` (cheap scaffolder, the only template installed with write access in Codex).
+- **Agent Template** set is `sentinel` (read-only recon), `oracle` (critical analysis), `architect` (technical design) and `keymaker` (implementer of settled designs, the only template installed with write access in Codex).
 - **Cursor Default Model** is user-owned. Atelier configures Cursor subagent models only; it does not read, write, or model Cursor's primary model or native configuration.
 
 ## Example dialogue

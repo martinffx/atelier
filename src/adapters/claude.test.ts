@@ -21,7 +21,7 @@ describe('claude adapter', () => {
     const section = claudeAdapter.defaultSection();
     expect(section.provider).toBe('anthropic');
     expect(section.default_model).toBe('opusplan');
-    expect(section.agents.map(a => a.model)).toEqual(['haiku', 'opus', 'opus', 'haiku']);
+    expect(section.agents.map(a => a.model)).toEqual(['haiku', 'opus', 'opus', 'sonnet']);
   });
 
   it('modelsForProvider returns anthropic models', () => {

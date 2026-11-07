@@ -17,7 +17,7 @@ const DEFAULT_MODELS = {
   sentinel: 'haiku',
   oracle: 'opus',
   architect: 'opus',
-  keymaker: 'haiku',
+  keymaker: 'sonnet',
 } as const;
 
 const CLAUDE_AI_OPT_OUTS = {
