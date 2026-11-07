@@ -164,13 +164,13 @@ describe('init', () => {
 
   test('throws when --yes is used without --harness', async () => {
     await expect(init({ yes: true })).rejects.toThrow(
-       '`--yes` requires `--harness` (claude, opencode, codex, or cursor).'
+       '`--yes` requires `--harness` (claude, opencode, or codex).'
     );
   });
 
   test('throws when invalid --harness is provided', async () => {
     await expect(init({ harness: 'foobar' })).rejects.toThrow(
-       'Invalid harness "foobar". Must be claude, opencode, codex, or cursor.'
+       'Invalid harness "foobar". Must be claude, opencode, or codex.'
     );
   });
 
@@ -192,22 +192,6 @@ describe('init', () => {
     const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
     expect(config.codex).toBeDefined();
     expect(config.codex.default_model).toBe('gpt-5.6-terra');
-  });
-
-  test('creates Cursor agents without modifying native Cursor config', async () => {
-    const nativeConfig = join(tempDir, '.cursor/cli-config.json');
-    mkdirSync(join(tempDir, '.cursor'), { recursive: true });
-    writeFileSync(nativeConfig, '{"model":"user-managed"}\n');
-    await init({ yes: true, harness: 'cursor' });
-
-    expect(readFileSync(nativeConfig, 'utf-8')).toBe('{"model":"user-managed"}\n');
-    expect(existsSync(join(tempDir, '.cursor/agents/sentinel.md'))).toBe(true);
-    expect(existsSync(join(tempDir, '.cursor/agents/oracle.md'))).toBe(true);
-    expect(existsSync(join(tempDir, '.cursor/agents/architect.md'))).toBe(true);
-    expect(existsSync(join(tempDir, '.cursor/agents/keymaker.md'))).toBe(true);
-
-    const config = JSON.parse(readFileSync(join(tempDir, '.atelier/config.json'), 'utf-8'));
-    expect(config.cursor.agents).toHaveLength(4);
   });
 
   test('cancels when confirm prompt is false', async () => {

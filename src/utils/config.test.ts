@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, readFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import '../adapters/index.js';
-import { cursorAdapter } from '../adapters/cursor.js';
+import { claudeAdapter } from '../adapters/claude.js';
 import { opencodeAdapter } from '../adapters/opencode.js';
 
 let tempDir: string;
@@ -126,7 +126,6 @@ describe('config', () => {
         claude: null,
         codex: null,
         opencode: null,
-        cursor: null,
       })
     );
 
@@ -391,23 +390,20 @@ describe('config', () => {
     expect(sentinel?.model).toBe('opencode/glm-5.3-flash');
   });
 
-  test('cursor config accepts only agent selections', async () => {
+  test('drops a saved cursor section on load', async () => {
     const { validateConfig } = await import('./config.js');
-    const cursor = cursorAdapter.defaultSection();
+    const claude = claudeAdapter.defaultSection();
 
-    expect(validateConfig({
+    const config = validateConfig({
       version: '1.0.0',
       skills_source: 'martinffx/atelier',
       skills_path: '~/.agents/skills',
-      cursor,
-    }).cursor).toEqual(cursor);
+      claude,
+      cursor: { agents: [{ template: 'sentinel', name: 'sentinel', model: 'composer-2.5' }] },
+    });
 
-    expect(() => validateConfig({
-      version: '1.0.0',
-      skills_source: 'martinffx/atelier',
-      skills_path: '~/.agents/skills',
-      cursor: { default_model: 'composer-2.5', agents: [] },
-    })).toThrow();
+    expect(config.claude).toEqual(claude);
+    expect('cursor' in config).toBe(false);
   });
 
   test('writeConfig then readConfig returns matching multi-harness config', async () => {
@@ -433,13 +429,6 @@ describe('config', () => {
           { template: 'architect', name: 'architect', model: 'gpt-5.6-sol' },
         ],
       },
-      cursor: {
-        agents: [
-          { template: 'sentinel', name: 'sentinel', model: 'composer-2.5' },
-          { template: 'oracle', name: 'oracle', model: 'claude-opus-4-8-high' },
-          { template: 'architect', name: 'architect', model: 'gpt-5.6-sol-medium' },
-        ],
-      },
     };
 
     const configPath = join(tempDir, '.atelier/config.json');
@@ -452,7 +441,6 @@ describe('config', () => {
       expect(result.value.claude).toBeDefined();
       expect(result.value.codex).toBeDefined();
       expect(result.value.opencode).toBeUndefined();
-      expect(result.value.cursor).toEqual(config.cursor);
     }
   });
 

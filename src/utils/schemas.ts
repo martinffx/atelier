@@ -4,7 +4,7 @@ import { THINKING_LEVELS, thinkingChoices, type ThinkingHarness } from './thinki
 
 export const ThinkingSchema = z.enum(THINKING_LEVELS);
 
-export const AgentSchema = z.object({
+const AgentSchema = z.object({
   template: z.enum(AGENT_NAMES),
   name: z.enum(AGENT_NAMES),
   model: z.string().min(1),
@@ -18,10 +18,6 @@ export const SimpleConfigSchema = z.object({
   build_thinking: ThinkingSchema.optional(),
   agents: z.array(ThinkingAgentSchema).min(1),
 });
-
-export const CursorConfigSchema = z.object({
-  agents: z.array(AgentSchema).min(1),
-}).strict();
 
 export const OPENCODE_PROVIDERS = ['opencode-zen', 'opencode-go', 'amazon-bedrock', 'openai', 'openrouter', 'google'] as const;
 

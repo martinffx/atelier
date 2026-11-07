@@ -7,7 +7,7 @@
 Atelier gives coding agents a disciplined way to move from an idea to reviewed, verified code without taking control away from the developer.
 
 ```bash
-npx @martinffx/atelier@latest init --harness <claude|opencode|codex|cursor>
+npx @martinffx/atelier@latest init --harness <claude|opencode|codex>
 ```
 
 Install the skills separately:
@@ -107,7 +107,7 @@ Atelier installs a focused set of skills for the full development loop:
 | Thinking | Root-cause debugging, decision grilling, domain modelling, and codebase design |
 | Delivery | Multi-agent review, subagent coordination, commits, handoffs, and pull requests |
 
-The CLI also configures four specialist agents for Claude Code, OpenCode, Codex, or Cursor:
+The CLI also configures four specialist agents for Claude Code, OpenCode, or Codex:
 
 | Agent | Role |
 |-------|------|
@@ -139,7 +139,7 @@ Sentinel favors inexpensive reconnaissance. Oracle needs requirements synthesis 
 
 Kimi's long-context results motivate its Oracle assignment on Zen. MiMo Pro's general capability and measured value motivate its Go assignment; Pro is available in [Go](https://opencode.ai/docs/go/) but absent from the researched [Zen catalog](https://opencode.ai/docs/zen/). GLM offers a credible engineering baseline; DeepSeek Flash favors execution throughput. Qwen, MiniMax, and other available candidates remain selectable. Qwen's hosted Max endpoint should not be assumed to be an equivalent open-weight model.
 
-Run `atelier update --harness <claude|codex|opencode>` to choose models and thinking settings. Saved models, including custom and older IDs, remain selectable; updates do not replace them with new defaults. Switching OpenCode providers starts from that provider's defaults. When you change a slot's model, the picker preselects that model family's recommended level and marks recommended levels `(recommended)`; every supported level stays selectable. Cursor's configuration is unchanged.
+Run `atelier update --harness <claude|codex|opencode>` to choose models and thinking settings. Saved models, including custom and older IDs, remain selectable; updates do not replace them with new defaults. Switching OpenCode providers starts from that provider's defaults. When you change a slot's model, the picker preselects that model family's recommended level and marks recommended levels `(recommended)`; every supported level stays selectable.
 
 Session thinking is stored as `build_thinking` and each agent's as `agents[].thinking`, both in `~/.atelier/config.json`. Values are model-specific: `default`, `off`, `on`, `low`, `medium`, `high`, `xhigh`, or `max`. The picker offers only verified capabilities. Custom models and catalog models whose controls have not been verified offer `default` only. Missing fields preserve legacy behavior; **Keep existing behavior** preserves that omission when editing. In particular, old Codex configurations retain medium agent/Build effort. An explicit `default` omits Atelier's native effort override; other harness settings can still apply. Old plan settings from earlier versions are migrated or cleaned up automatically.
 
