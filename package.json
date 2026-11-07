@@ -46,16 +46,16 @@
   "dependencies": {
     "commander": "^13.1.0",
     "gray-matter": "^4.0.3",
-    "inquirer": "^12.5.2",
-    "smol-toml": "^1.7.0",
-    "zod": "^3.25.0"
+    "inquirer": "^12.11.1",
+    "smol-toml": "^1.9.1",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.8.0",
-    "@commitlint/config-conventional": "^19.8.0",
-    "@types/bun": "^1.3.13",
-    "@types/node": "^22.14.1",
-    "simple-git-hooks": "^2.12.1",
-    "@typescript/native-preview": "^7.0.0-dev.20260514.1"
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@types/bun": "^1.4.4",
+    "@types/node": "^22.20.5",
+    "@typescript/native-preview": "^7.0.0-dev.20260707.2",
+    "simple-git-hooks": "^2.14.0"
   }
 }
