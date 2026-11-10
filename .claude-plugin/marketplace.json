@@ -37,6 +37,7 @@
         "./skills/code-commit",
         "./skills/code-handoff",
         "./skills/code-pull-request",
+        "./skills/code-retro",
         "./skills/code-review",
         "./skills/code-subagents"
       ]

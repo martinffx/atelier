@@ -1,0 +1,5 @@
+interface:
+  display_name: "Code Retro"
+  short_description: "Find the Corrections a branch needed and propose Nudges to prevent them"
+policy:
+  allow_implicit_invocation: false

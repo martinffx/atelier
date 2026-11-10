@@ -19,3 +19,6 @@ dist/
 .codex/
 .opencode/
 hooks/
+
+# Python bytecode
+__pycache__/
