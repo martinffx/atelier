@@ -13,9 +13,11 @@ Skills are located in the `skills/` directory. Each skill is a self-contained mo
 ```
 skills/{category}-{name}/
 ├── SKILL.md           # Main skill definition
-└── references/        # Optional additional context
-    ├── topic-a.md
-    └── topic-b.md
+├── references/        # Optional additional context
+│   ├── topic-a.md
+│   └── topic-b.md
+├── scripts/           # Optional helper scripts the skill runs (stdlib-only, with tests)
+└── agents/            # Optional per-harness config, e.g. openai.yaml for Codex
 ```
 
 ### Skill File Format
