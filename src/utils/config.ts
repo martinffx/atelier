@@ -132,9 +132,8 @@ function migrateLegacyPlanMode(config: unknown): unknown {
   if (typeof claude === 'object' && claude !== null) {
     const section = { ...(claude as Record<string, unknown>) };
     if (section.default_model === 'opusplan') {
-      // Opus effort came from plan_thinking, so the single session thinking carries that value.
-      section.default_model = 'opus';
-      section.build_thinking = section.plan_thinking;
+      // Claude has one session effort, so it carries plan_thinking when set.
+      section.build_thinking = section.plan_thinking ?? section.build_thinking;
     }
     if (Array.isArray(section.agents)) {
       section.agents = section.agents.map(agent => {
