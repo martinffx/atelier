@@ -17,11 +17,11 @@ jobs:
       - run: bun run build
 
   skill-scripts:
-    # 3.9 is the floor (stock macOS python3); ubuntu-latest (26.04) has no 3.9 build.
+    # Every minor from the 3.9 floor (stock macOS python3) to the newest; ubuntu-latest (26.04) has no 3.9 build.
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        python: ["3.9", "3.x"]
+        python: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v5
