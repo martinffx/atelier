@@ -4,6 +4,16 @@
 
 - **breaking:** rename the `recon` agent to `sentinel`. Existing Atelier configuration is migrated automatically and legacy generated files are removed during the next command.
 
+## [3.8.0](https://github.com/martinffx/atelier/compare/v3.7.0...v3.8.0) (2026-11-13)
+
+
+### Features
+
+* **claude:** keep opusplan as a selectable session model ([#95](https://github.com/martinffx/atelier/issues/95)) ([052e3c0](https://github.com/martinffx/atelier/commit/052e3c0e4d5c84af71d71abc60bd9e1f48cade35))
+* **config:** use one session model with plan effort and remove cursor ([3177f6f](https://github.com/martinffx/atelier/commit/3177f6f8ff2eba63822aae478d7b8d6c40df413a))
+* **skills:** add code-retro skill for branch retrospectives ([#93](https://github.com/martinffx/atelier/issues/93)) ([193f54f](https://github.com/martinffx/atelier/commit/193f54f97547bd0b424fd6e0c54d23ab78e753c3))
+* **skills:** point setup at subagent delegation and spec-loop resume ([#94](https://github.com/martinffx/atelier/issues/94)) ([0576072](https://github.com/martinffx/atelier/commit/05760722eec57aa66a2f97bb1852e86ef14b0249))
+
 ## [3.7.0](https://github.com/martinffx/atelier/compare/v3.6.0...v3.7.0) (2026-11-07)
 
 

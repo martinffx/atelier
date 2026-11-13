@@ -1,6 +1,6 @@
 {
   "name": "atelier",
-  "version": "3.7.0",
+  "version": "3.8.0",
   "description": "Personal development toolkit - spec-driven development, code quality, deep thinking, and ecosystem patterns",
   "author": {
     "name": "Martin Richards"
@@ -22,6 +22,8 @@
     "shortDescription": "Personal development toolkit - spec-driven development, code quality, deep thinking, and ecosystem patterns",
     "developerName": "Martin Richards",
     "category": "Developer Tools",
-    "capabilities": ["Read"]
+    "capabilities": [
+      "Read"
+    ]
   }
 }
