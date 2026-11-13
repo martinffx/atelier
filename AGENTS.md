@@ -40,6 +40,10 @@ Skills describe the work a subagent does; they never name a specific agent. Runt
 selection is defined once in the Delegation section of `atelier-orchestrator`. Other skills
 point to it rather than restating it.
 
+Skill text is harness-neutral: it runs on Claude Code, Codex and OpenCode alike, so it never
+relies on one harness's tools, commands, flags or file paths. Harness-specific detail goes in a
+`references/` file or `agents/` config, chosen at runtime.
+
 ## Namespace Philosophy
 
 Skills are organized into three namespaces based on their role:
