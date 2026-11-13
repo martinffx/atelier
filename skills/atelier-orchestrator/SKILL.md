@@ -150,7 +150,7 @@ as it grows, and compaction loses detail. Keep it lean:
 - Persist decisions and progress to the plan or spec artifacts, so compaction or a fresh session
   loses nothing.
 - Compact deliberately at phase boundaries (plan approved, batch done, before re-planning) with
-  `/compact <focus>`, or start a fresh session. Don't wait for the automatic trigger mid-task.
+  the harness's compact command and a focus, or start a fresh session. Don't wait for the automatic trigger mid-task.
 
 ## Hard Transitions
 

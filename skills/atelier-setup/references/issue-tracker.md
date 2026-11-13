@@ -5,7 +5,7 @@
 - **Provider:** [GitHub, GitLab, local Markdown, another tracker, or none]
 - **Location:** [repository, project, URL, or local directory]
 - **Tool or procedure:** [CLI, web workflow, or local-file convention]
-- **Mirror Spec-backed tasks:** [yes or no]
+- **Mirror Spec-backed tasks:** [yes or no; yes lets spec-loop resume a stopped run]
 
 ## Authority
 
