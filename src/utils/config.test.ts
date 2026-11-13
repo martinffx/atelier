@@ -160,7 +160,7 @@ describe('config', () => {
     }
   });
 
-  test('readConfig migrates legacy Claude opusplan to opus and carries plan thinking into build thinking', async () => {
+  test('readConfig keeps a saved Claude opusplan and carries plan thinking into build thinking', async () => {
     const { writeFileSync, mkdirSync } = await import('fs');
     const { readConfig } = await import('./config.js');
     const configPath = join(tempDir, '.atelier/config.json');
@@ -180,13 +180,13 @@ describe('config', () => {
     const result = readConfig(configPath);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.claude?.default_model).toBe('opus');
+      expect(result.value.claude?.default_model).toBe('opusplan');
       expect(result.value.claude?.build_thinking).toBe('high');
       expect('plan_thinking' in (result.value.claude ?? {})).toBe(false);
     }
   });
 
-  test('readConfig migrates legacy Claude opusplan without plan thinking and drops build thinking', async () => {
+  test('readConfig keeps a saved Claude opusplan without plan thinking and keeps its build thinking', async () => {
     const { writeFileSync, mkdirSync } = await import('fs');
     const { readConfig } = await import('./config.js');
     const configPath = join(tempDir, '.atelier/config.json');
@@ -205,9 +205,8 @@ describe('config', () => {
     const result = readConfig(configPath);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.claude?.default_model).toBe('opus');
-      // Opus effort came from plan_thinking, which was unset, so no session thinking carries over.
-      expect(result.value.claude?.build_thinking).toBeUndefined();
+      expect(result.value.claude?.default_model).toBe('opusplan');
+      expect(result.value.claude?.build_thinking).toBe('low');
     }
   });
 

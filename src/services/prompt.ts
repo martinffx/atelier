@@ -33,9 +33,10 @@ export async function promptForSimpleModels(
   models: readonly string[],
   harness: 'claude' | 'codex' = 'claude',
   recommended?: SimpleConfig,
+  sessionOnly: readonly string[] = [],
 ): Promise<SimpleConfig> {
   const result: SimpleConfig = { ...section };
-  await promptModelsAndThinking(prompt, harness, result, section, models, recommended);
+  await promptModelsAndThinking(prompt, harness, result, section, models, recommended, sessionOnly);
   return result;
 }
 
@@ -72,13 +73,14 @@ async function promptModelsAndThinking(
   previous: AnyConfig,
   models: readonly string[],
   recommended?: AnyConfig,
+  sessionOnly: readonly string[] = [],
 ): Promise<void> {
   const hasPlan = harness !== 'claude';
   const sessionAnswer = await prompt.prompt([{
     type: 'list',
     name: 'default_model',
     message: 'Select default model',
-    choices: modelChoices(models, previous.default_model, recommended?.default_model),
+    choices: modelChoices([...models, ...sessionOnly], previous.default_model, recommended?.default_model),
     default: previous.default_model,
   }]);
   config.default_model = sessionAnswer.default_model || previous.default_model;

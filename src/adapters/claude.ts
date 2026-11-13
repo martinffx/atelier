@@ -12,6 +12,9 @@ import { AGENT_NAMES, LEGACY_AGENT_NAME } from '../constants.js';
 
 const ANTHROPIC_MODELS = ['haiku', 'sonnet', 'opus', 'fable', 'best'] as const;
 
+// Offered for the session only: a subagent cannot swap models for plan mode.
+const SESSION_ONLY_MODELS = ['opusplan'] as const;
+
 const DEFAULT_MODELS = {
   default_model: 'opus',
   sentinel: 'haiku',
@@ -84,7 +87,7 @@ function modelsForProvider(_provider?: Provider): readonly string[] {
 
 async function promptSection(prompt: typeof inquirer, section: HarnessSection): Promise<HarnessSection> {
   const claude = section as ClaudeConfig;
-  const result = await promptForSimpleModels(prompt, claude, modelsForProvider(), 'claude', defaultSection());
+  const result = await promptForSimpleModels(prompt, claude, modelsForProvider(), 'claude', defaultSection(), SESSION_ONLY_MODELS);
   const { disabled } = await prompt.prompt<{ disabled: OptionalBuiltin[] }>([{
     type: 'checkbox',
     name: 'disabled',
@@ -124,7 +127,7 @@ function mergeHarnessConfig(section: HarnessSection, basePath: string): void {
   const existing = readExistingSettings(settingsPath);
   const isNew = Object.keys(existing).length === 0;
 
-  removeLegacySonnetEffort(existing);
+  removeStaleSonnetEffort(existing, config.default_model);
   const settings: ExistingSettings = {
     ...existing,
     $schema: 'https://json.schemastore.org/claude-code-settings.json',
@@ -196,7 +199,7 @@ function removeAtelierSettings(claudeDir: string, config: ClaudeConfig): void {
   }
 
   const content = parseSettingsJson(settingsPath);
-  removeLegacySonnetEffort(content);
+  removeStaleSonnetEffort(content, config.default_model);
   delete content.$schema;
   delete content.model;
   for (const [key, value] of Object.entries(CLAUDE_AI_OPT_OUTS)) {
@@ -223,22 +226,26 @@ function editModelSettings(settings: Record<string, unknown>, models: readonly s
   else delete settings.modelSettings;
 }
 
-// Claude Code has one session model and one session effort level, keyed by the model id.
+// Claude Code has one session effort level, keyed by model id. opusplan plans on Opus and builds on Sonnet,
+// so its one effort is written for both ids.
 function applySessionThinking(settings: Record<string, unknown>, config: ClaudeConfig, remove = false): void {
   const thinking = config.build_thinking;
   if (thinking === undefined) return;
-  editModelSettings(settings, [claudeModel(config.default_model)], entry => {
+  const models = config.default_model === 'opusplan'
+    ? [claudeModel('opus'), claudeModel('sonnet')]
+    : [claudeModel(config.default_model)];
+  editModelSettings(settings, models, entry => {
     if (remove || thinking === 'default') delete entry.effortLevel;
     else entry.effortLevel = thinking;
   });
 }
 
-// Earlier Atelier versions under opusplan wrote Sonnet's effort for build thinking. Only the single session
-// model's effort is written now, so drop the Sonnet effort. Runs only while model is 'opusplan', so callers
-// must call it before model is replaced or deleted. The id is literal: it must match what old versions wrote.
-function removeLegacySonnetEffort(settings: Record<string, unknown>): void {
-  if (settings.model !== 'opusplan') return;
-  editModelSettings(settings, ['claude-sonnet-5-5'], entry => { delete entry.effortLevel; });
+// Leaving opusplan: its Sonnet effort belongs to the opusplan pair, so drop it. Does nothing when staying on
+// opusplan, where applySessionThinking owns both efforts, so it never deletes a value just written. Runs
+// while settings.model is still the old model, so callers must call it before model is replaced or deleted.
+function removeStaleSonnetEffort(settings: Record<string, unknown>, nextModel: string): void {
+  if (settings.model !== 'opusplan' || nextModel === 'opusplan') return;
+  editModelSettings(settings, [claudeModel('sonnet')], entry => { delete entry.effortLevel; });
 }
 
 // Earlier Atelier versions wrote a 190k auto-compact window for the plan-swapping model pair. Claude Code no

@@ -344,6 +344,31 @@ describe('model and thinking settings', () => {
       expect(modelSettingsOf(root)).toEqual({ 'claude-sonnet-5-5': { effortLevel: 'low' } });
     }));
 
+    const opusplanConfig = () => {
+      const config = claudeAdapter.defaultSection() as SimpleConfig;
+      config.default_model = 'opusplan';
+      config.build_thinking = 'medium';
+      return config;
+    };
+
+    it('accepts opusplan as the session model and writes one effort for the Opus and Sonnet ids', () => withRoot(root => {
+      const config = opusplanConfig();
+      expect(ClaudeConfigSchema.safeParse(config).success).toBe(true);
+      claudeAdapter.mergeHarnessConfig(config, root);
+      expect(JSON.parse(readFileSync(join(root, '.claude/settings.json'), 'utf8')).model).toBe('opusplan');
+      expect(modelSettingsOf(root)).toEqual({ 'claude-opus-5-5': { effortLevel: 'medium' }, 'claude-sonnet-5-5': { effortLevel: 'medium' } });
+      claudeAdapter.mergeHarnessConfig(config, root);
+      expect(modelSettingsOf(root)['claude-sonnet-5-5']).toEqual({ effortLevel: 'medium' });
+      claudeAdapter.remove(config, root);
+      expect(existsSync(join(root, '.claude/settings.json'))).toBe(false);
+    }));
+
+    it('clears the Sonnet effort when switching from opusplan to opus', () => withRoot(root => {
+      claudeAdapter.mergeHarnessConfig(opusplanConfig(), root);
+      claudeAdapter.mergeHarnessConfig(claudeAdapter.defaultSection(), root);
+      expect(modelSettingsOf(root)).toEqual({ 'claude-opus-5-5': { effortLevel: 'medium' } });
+    }));
+
     it('upgrades a 3.7.0 opusplan settings.json and then removes the same legacy file', () => withRoot(root => {
       const file = join(root, '.claude/settings.json');
       const legacy = JSON.stringify({

@@ -12,7 +12,7 @@ export function thinkingChoices(harness: Harness, model: string, session = false
     // Astra and GPT 6.1 Sol reason on every request, so they cannot be switched off.
     return ['default', ...(/astra$|6\.1-sol$/.test(id) ? [] : ['off'] as const), 'low', 'medium', 'high', 'xhigh', 'max'];
   }
-  if (/^(opus|sonnet|haiku|fable|best)$/.test(id) || /claude-(opus-5[-.]5|fable-5[-.]1|sonnet-5[-.]5|haiku-5[-.]5)$/.test(id)) {
+  if (/^(opus|opusplan|sonnet|haiku|fable|best)$/.test(id) || /claude-(opus-5[-.]5|fable-5[-.]1|sonnet-5[-.]5|haiku-5[-.]5)$/.test(id)) {
     return ['default', 'low', 'medium', 'high', 'xhigh', ...(harness === 'claude' && session ? [] : ['max'] as const)];
   }
   if (harness === 'opencode') {
@@ -53,7 +53,7 @@ const RECOMMENDED: Array<[RegExp, Thinking[][]]> = [
   [/^gpt-6(\.1)?-sol$/, [['medium'], ['low'], ['xhigh', 'high'], ['high'], ['medium']]],
   [/^gpt-6(\.1)?-(terra|luna)$/, [['medium'], ['low'], ['high'], ['high'], ['medium']]],
   [/^gpt-6(\.1)?-astra$/, [['high'], ['low'], ['xhigh'], ['high'], ['medium']]],
-  [/^(opus|fable|best)$|(^|\.)claude-(opus|fable)-/, [['medium'], ['low'], ['xhigh'], ['high'], ['medium']]],
+  [/^(opus|opusplan|fable|best)$|(^|\.)claude-(opus|fable)-/, [['medium'], ['low'], ['xhigh'], ['high'], ['medium']]],
   [/^(sonnet|haiku)$|(^|\.)claude-(sonnet|haiku)-/, [['medium'], ['low', 'default'], ['high'], ['high'], ['default']]],
   [/^glm-5\.3(-flash)?$/, [['high'], ['low'], ['high'], ['high'], ['high']]],
   [/^muse-(wonder(-1\.0)?|spark-1\.3(-contributor)?)$/, [['medium'], ['low'], ['xhigh', 'high'], ['high'], ['high', 'medium']]],

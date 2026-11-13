@@ -155,6 +155,16 @@ describe('prompt', () => {
       expect(keymaker.choices.find((c: any) => c.name === 'sonnet (recommended)').value).toBe('sonnet');
     });
 
+    it('offers opusplan for the Claude session but not for agents', async () => {
+      const { prompt, batches } = scriptedPrompt();
+      await claudeAdapter.promptSection(prompt, claudeAdapter.defaultSection());
+      const qs = batches.flat();
+      expect(choiceValues(qs.find(q => q.name === 'default_model'))).toContain('opusplan');
+      for (const name of ['sentinel', 'oracle', 'architect', 'keymaker']) {
+        expect(choiceValues(qs.find(q => q.name === name))).not.toContain('opusplan');
+      }
+    });
+
     it('uses the new provider recommendations when OpenCode switches provider', async () => {
       const { prompt, batches } = scriptedPrompt({ provider: 'opencode-go' });
       await opencodeAdapter.promptSection(prompt, opencodeAdapter.defaultSection('openai'));
