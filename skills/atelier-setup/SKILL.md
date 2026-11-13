@@ -20,6 +20,7 @@ Read the repository before proposing any change:
 - Root `CONTEXT.md` and `CONTEXT-MAP.md`.
 - `docs/adr/` and any context-local `docs/adr/` directories.
 - `docs/agents/`, including existing `issue-tracker.md` and `domain.md`.
+- `docs/retros/`, where earlier code-retro reports live.
 - Existing issue-tracker conventions: remotes, issue links in documentation, local issue
   directories, and project guidance.
 - Genuine monorepo signals: a workspace manifest, or multiple independently deployable packages
@@ -39,6 +40,7 @@ Summarize what exists and recommend a domain-document layout:
 
 Explain that domain documents remain lazy: do not create `CONTEXT.md`, `CONTEXT-MAP.md`, or an ADR
 directory until another Atelier skill has resolved terminology or made a decision worth recording.
+The same holds for `docs/specs/` and `docs/retros/`, which spec-brainstorm and code-retro create.
 
 Select or confirm the issue tracker:
 
@@ -47,6 +49,8 @@ Select or confirm the issue tracker:
 2. Otherwise recommend the tracker indicated by existing repository practice, then ask the
    developer to confirm or describe their tracker.
 3. Accept GitHub, GitLab, local Markdown, another tracker described by the developer, or `none`.
+   Say that spec-loop resumes a stopped run only from mirrored tracker entries; with `none`, a
+   stopped run continues by hand through spec-implement.
 4. Record the chosen workflow in `docs/agents/issue-tracker.md`; do not install, initialize, or
    create external tracker resources.
 
@@ -77,6 +81,11 @@ Add the following block to the selected instruction file:
 Use `atelier-orchestrator` at the start of development work. It selects an Inline Plan for bounded
 changes or a Spec-backed Plan when durable design and coordination artifacts are warranted.
 
+### Subagents
+
+Delegate subagent work as the Delegation section of `atelier-orchestrator` describes. Once the
+design is settled, implementation goes to Keymaker through `code-subagents`.
+
 ### Issue tracking
 
 Read `docs/agents/issue-tracker.md` when issue tracking is relevant. It defines this repository's
@@ -89,7 +98,7 @@ repository's context documents and ADRs.
 ```
 
 If an `## Agent skills` section already exists, update the `### Planning and implementation`,
-`### Issue tracking`, and `### Domain documentation` subsections in place rather than appending
+`### Subagents`, `### Issue tracking`, and `### Domain documentation` subsections in place rather than appending
 duplicates. Preserve other subsections and all content outside the section, including user edits.
 
 Create `docs/agents/` when needed, then write the approved tracker and domain documents. Do not
