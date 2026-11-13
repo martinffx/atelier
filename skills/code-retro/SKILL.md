@@ -3,7 +3,7 @@ name: code-retro
 description: >
   Look back at one branch or PR, find the Corrections the human had to make, and propose ranked
   Nudges that make the right behaviour the default next time. Proposes in conversation and
-  writes nothing. Runs only when the user invokes it, before or after merge.
+  writes nothing except a report the user approves. Runs only when invoked, before or after merge.
 argument-hint: "[branch or PR number]"
 user-invocable: true
 disable-model-invocation: true
@@ -13,7 +13,7 @@ disable-model-invocation: true
 
 Work that needed Corrections will need them again unless the environment changes. This skill
 finds the Corrections on one branch, traces each to what let it happen, and proposes the smallest
-Nudge that would have prevented it. It writes nothing.
+Nudge that would have prevented it. It writes nothing except a report the user approves.
 
 **Announce at start:** "I'm using the code-retro skill to look back at this branch."
 
@@ -123,14 +123,24 @@ use the "outside this repo" line. Never propose editing the finished branch's ow
 Check the agent would have met each Nudge at that moment and it is not already in place. A Nudge
 may delete or repair text. A Correction with no good Nudge gets one line.
 
+Answer "is this a recurring issue?" for every Correction. One subagent, with the same prompt
+rules, reads `docs/retros/*.md` and returns the earlier entries each Correction matches, by file
+and issue number. A match whose earlier Applied fix is not `pending` or `declined` means that fix
+did not work: say so.
+
 ## 5. Present and stop
 
-Rank by repeats, then how far the error escaped (blocked review, CI failing twice, a fix after
+Rank recurring issues first, then repeats within the branch, then how far the error escaped (blocked review, CI failing twice, a fix after
 the PR), then the cost of the Nudge. Each item shows the Correction, evidence, root cause, Nudge
 and exact change.
 
 Report coverage honestly. Say "none found in this evidence" only when session coverage was
 complete; otherwise say what was missing.
 
-Then delete the directory on the script's `output:` line. Stop there. Accepted Nudges are applied as Inline
-work on a new branch from the default branch.
+Ask which Nudges the user accepts, then offer to save the report to
+`docs/retros/<YYYY-MM-DD>-<branch-slug>.md` in the exact format of `references/report.md`. Write
+it only on a yes, on the new branch from the default branch where accepted Nudges are applied as
+Inline work; with none accepted, ask before creating that branch for the report alone. Never
+commit.
+
+Then delete the directory on the script's `output:` line. Stop there.
