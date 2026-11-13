@@ -21,8 +21,8 @@ import sqlite3
 import subprocess
 import sys
 import tempfile
-import urllib.parse
 from collections import Counter
+from pathlib import Path
 from datetime import datetime, timedelta, timezone
 
 HUMAN_MAX = 1200
@@ -558,7 +558,7 @@ def _in_window(created, updated, since, until):
 def _opencode_uri(path):
     """Read-only URI. With no side files, immutable=1 stops SQLite creating -wal/-shm files
     when it opens a WAL-mode database."""
-    uri = "file:%s?mode=ro" % urllib.parse.quote(os.path.abspath(path))
+    uri = Path(os.path.abspath(path)).as_uri() + "?mode=ro"
     if not (os.path.exists(path + "-wal") or os.path.exists(path + "-shm")):
         uri += "&immutable=1"
     return uri
