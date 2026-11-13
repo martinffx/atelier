@@ -15,8 +15,16 @@ jobs:
       - run: bun run typecheck
       - run: bun run test
       - run: bun run build
-      - run: python3 -m unittest discover -s skills/code-retro/scripts
+
+  skill-scripts:
+    # 3.9 is the floor (stock macOS python3); ubuntu-latest (26.04) has no 3.9 build.
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        python: ["3.9", "3.x"]
+    steps:
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
-      - run: python3 -m unittest discover -s skills/code-retro/scripts
+          python-version: ${{ matrix.python }}
+      - run: python -m unittest discover -s skills/code-retro/scripts
