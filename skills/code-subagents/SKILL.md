@@ -75,6 +75,9 @@ designs, mechanical or not, are Keymaker; design-sensitive implementation may us
 general agent, the one permitted exception to selecting from Atelier's agents. The batch reviewer
 is a read-only critical review.
 
+A subagent starts with no skills loaded, and the main agent cannot load them for it. Name the
+skills each subagent needs in its prompt and tell it to load them itself.
+
 ---
 
 ## Prompt Templates

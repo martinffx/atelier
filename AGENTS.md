@@ -13,9 +13,11 @@ Skills are located in the `skills/` directory. Each skill is a self-contained mo
 ```
 skills/{category}-{name}/
 ├── SKILL.md           # Main skill definition
-└── references/        # Optional additional context
-    ├── topic-a.md
-    └── topic-b.md
+├── references/        # Optional additional context
+│   ├── topic-a.md
+│   └── topic-b.md
+├── scripts/           # Optional helper scripts the skill runs (stdlib-only, with tests)
+└── agents/            # Optional per-harness config, e.g. openai.yaml for Codex
 ```
 
 ### Skill File Format
@@ -37,6 +39,10 @@ Skills are auto-invoked based on description match to current context.
 Skills describe the work a subagent does; they never name a specific agent. Runtime agent
 selection is defined once in the Delegation section of `atelier-orchestrator`. Other skills
 point to it rather than restating it.
+
+Skill text is harness-neutral: it runs on Claude Code, Codex and OpenCode alike, so it never
+relies on one harness's tools, commands, flags or file paths. Harness-specific detail goes in a
+`references/` file or `agents/` config, chosen at runtime.
 
 ## Namespace Philosophy
 

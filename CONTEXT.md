@@ -132,6 +132,18 @@ A finding's classification: issue, suggestion, question, nitpick or praise, comb
 
 _Avoid_: priority, category
 
+**Correction**
+
+A human redirect that the agent could have avoided using information it already had, or an error that escaped: a blocking review finding, commit-level validation or CI failing twice, or a fix commit after the PR opened. Agent self-correction within a step, answers to design questions, plan review notes, new scope and expected first failures in TDD are not Corrections. One incident counts once, however many places show it.
+
+_Avoid_: mistake, rework, feedback
+
+**Nudge**
+
+A small change to the environment that makes the desired behaviour the default, so the Correction is less likely to be needed again. A deterministic check is preferred over prose, and prose over `AGENTS.md`. A Nudge may delete or repair existing text.
+
+_Avoid_: rule, guardrail, lesson
+
 **AtelierConfig**
 
 The CLI's own persisted JSON configuration. It records the package version, skills source, skills path, and a per-harness section containing provider choice, model selections, and agent list.

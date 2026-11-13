@@ -105,7 +105,7 @@ Atelier installs a focused set of skills for the full development loop:
 |------|--------------|
 | Spec workflow | Discovery, research, planning, implementation, validation, and finishing |
 | Thinking | Root-cause debugging, decision grilling, domain modelling, and codebase design |
-| Delivery | Multi-agent review, subagent coordination, commits, handoffs, and pull requests |
+| Delivery | Multi-agent review, subagent coordination, commits, handoffs, pull requests, and branch retros |
 
 The CLI also configures four specialist agents for Claude Code, OpenCode, or Codex:
 
@@ -185,6 +185,7 @@ Some Atelier skills have more direct lineage:
 | [`spec-finish`](skills/spec-finish/SKILL.md) | Superpowers [`finishing-a-development-branch`](https://github.com/obra/superpowers/tree/main/skills/finishing-a-development-branch) and [`verification-before-completion`](https://github.com/obra/superpowers/tree/main/skills/verification-before-completion) | Inspired by its validation and completion workflow. |
 | [`code-subagents`](skills/code-subagents/SKILL.md) | Superpowers [`subagent-driven-development`](https://github.com/obra/superpowers/tree/main/skills/subagent-driven-development) and [`dispatching-parallel-agents`](https://github.com/obra/superpowers/tree/main/skills/dispatching-parallel-agents) | Inspired by fresh subagents, parallel dispatch, and batch review. |
 | [`code-handoff`](skills/code-handoff/SKILL.md) | Matt Pocock's [`handoff`](https://github.com/mattpocock/skills/tree/main/skills/productivity/handoff) | Adapted from its context-preserving handoff format. |
+| [`code-retro`](skills/code-retro/SKILL.md) | Matt Pocock's [`retro`](https://github.com/mattpocock/skills/tree/main/skills/engineering/retro) | Adapted from its session-evidence, ranked-candidates, write-nothing approach. Extended to a whole branch, centred on Corrections and Nudges. |
 | [`oracle-grill-me`](skills/oracle-grill-me/SKILL.md) | Matt Pocock's [`grilling`](https://github.com/mattpocock/skills/tree/main/skills/productivity/grilling) and [`grill-with-docs`](https://github.com/mattpocock/skills/tree/main/skills/engineering/grill-with-docs) | Adapted from its rigorous interview loop and integration with living domain documentation. |
 | [`oracle-domain-modelling`](skills/oracle-domain-modelling/SKILL.md) | Matt Pocock's [`domain-modeling`](https://github.com/mattpocock/skills/tree/main/skills/engineering/domain-modeling) | Adapted from its active domain-modelling discipline, `CONTEXT.md`, and lightweight ADRs. |
 | [`oracle-codebase-design`](skills/oracle-codebase-design/SKILL.md) | Matt Pocock's [`codebase-design`](https://github.com/mattpocock/skills/tree/main/skills/engineering/codebase-design) and John Ousterhout's *A Philosophy of Software Design* | Adapted from its deep-module vocabulary, deletion test, and design-it-twice. Extended with Ousterhout's principles and red flags, plus Alexis King's "parse, don't validate", Yaron Minsky's "make illegal states unrepresentable", and Gary Bernhardt's "functional core, imperative shell". |
