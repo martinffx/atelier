@@ -2,7 +2,9 @@
 
 Merge the current branch's open PR/MR after confirming CI is green.
 
-Defaults: **squash merge + delete the source branch**. If CI is pending, abort and
+Defaults: **rebase merge + delete the source branch**. Rebase keeps each commit, so a
+stack of conventional commits reaches the base branch intact. Fall back to squash only when the
+repository disallows rebase merges or the human asks for it. If CI is pending, abort and
 report — don't block waiting unless the human says otherwise.
 
 Start with [common.md](common.md) (platform detection, base branch, preflight).
@@ -62,7 +64,7 @@ setting.
 **Show the human:**
 - PR/MR URL and number/iid
 - CI status (green/red)
-- Merge strategy (squash by default)
+- Merge strategy (rebase by default)
 - Whether the source branch will be deleted
 
 Ask for explicit confirmation before running the merge command.
@@ -73,16 +75,17 @@ Ask for explicit confirmation before running the merge command.
 
 ### GitHub
 ```bash
-gh pr merge <number> --squash --delete-branch --match-head-commit <approved-head-sha>
+gh pr merge <number> --rebase --delete-branch --match-head-commit <approved-head-sha>
 ```
-Alternatives: `--rebase`, `--merge`, `--auto` (merge automatically once required
+Check `gh repo view --json rebaseMergeAllowed` first; when it is false, use `--squash`.
+Alternatives: `--squash`, `--merge`, `--auto` (merge automatically once required
 checks pass), or `--admin` (forced merge — see Step 2) per the human's request.
 
 ### GitLab
 ```bash
-glab mr merge <iid> --squash --remove-source-branch --sha <approved-head-sha>
+glab mr merge <iid> --rebase --remove-source-branch --sha <approved-head-sha>
 ```
-Alternatives: `--rebase`, or `--auto-merge` (merge once the pipeline succeeds —
+Alternatives: `--squash`, or `--auto-merge` (merge once the pipeline succeeds —
 already the default while a pipeline is running) per the human's request.
 
 ---
