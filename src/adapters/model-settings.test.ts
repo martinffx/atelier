@@ -16,8 +16,8 @@ import type { Harness, HarnessAdapter, SimpleConfig, CodexConfig, OpenCodeConfig
 // then the plan thinking (Claude has no plan setting).
 const cases: Array<[HarnessAdapter, Provider, string[], string[], string | undefined]> = [
   [claudeAdapter, 'anthropic', ['haiku', 'opus', 'opus', 'sonnet', 'claude-opus-5-5'], ['low', 'xhigh', 'high', 'default', 'medium'], undefined],
-  [codexAdapter, 'openai', ['gpt-6-luna', 'gpt-6-astra', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-astra'], ['low', 'xhigh', 'high', 'medium', 'high'], 'high'],
-  [opencodeAdapter, 'openai', ['openai/gpt-6-luna', 'openai/gpt-6-astra', 'openai/gpt-6-astra', 'openai/gpt-6-sol', 'openai/gpt-6-astra'], ['low', 'xhigh', 'high', 'medium', 'high'], 'high'],
+  [codexAdapter, 'openai', ['gpt-6.1-terra', 'gpt-6.2-astra', 'gpt-6.2-astra', 'gpt-6.2-sol', 'gpt-6.2-sol'], ['low', 'xhigh', 'high', 'medium', 'medium'], 'high'],
+  [opencodeAdapter, 'openai', ['openai/gpt-6.1-terra', 'openai/gpt-6.2-astra', 'openai/gpt-6.2-astra', 'openai/gpt-6.2-sol', 'openai/gpt-6.2-sol'], ['low', 'xhigh', 'high', 'medium', 'medium'], 'high'],
   [opencodeAdapter, 'amazon-bedrock', ['amazon-bedrock/us.anthropic.claude-haiku-5-5', 'amazon-bedrock/us.anthropic.claude-fable-5-1', 'amazon-bedrock/us.anthropic.claude-opus-5-5', 'amazon-bedrock/us.anthropic.claude-sonnet-5-5', 'amazon-bedrock/us.anthropic.claude-opus-5-5'], ['low', 'xhigh', 'high', 'default', 'medium'], 'high'],
   [opencodeAdapter, 'opencode-zen', ['opencode/glm-5.3-flash', 'opencode/kimi-k3', 'opencode/glm-5.3', 'opencode/deepseek-v4.1-flash', 'opencode/kimi-k3'], ['low', 'high', 'high', 'high', 'low'], 'high'],
   [opencodeAdapter, 'opencode-go', ['opencode-go/glm-5.3-flash', 'opencode-go/mimo-v2.6-pro', 'opencode-go/glm-5.3', 'opencode-go/deepseek-v4.1-flash', 'opencode-go/kimi-k3.1-pro'], ['low', 'on', 'high', 'high', 'low'], 'high'],
@@ -189,11 +189,14 @@ describe('model and thinking settings', () => {
   });
 
   it('supports the November 2026 catalog additions', () => {
-    // OpenRouter spells versions with dots; Astra and GPT 6.1 Sol always reason.
+    // OpenRouter spells versions with dots; Astra and GPT 6.1/6.2 Sol always reason.
     expect(thinkingChoices('opencode', 'openrouter/anthropic/claude-opus-5.5')).toContain('xhigh');
     expect(thinkingChoices('opencode', 'openrouter/openai/gpt-6.1-sol')).not.toContain('off');
     expect(thinkingChoices('opencode', 'openrouter/openai/gpt-6.1-terra')).toContain('off');
     expect(thinkingChoices('opencode', 'opencode/gpt-6.1-sol')).not.toContain('off');
+    expect(thinkingChoices('codex', 'gpt-6.2-sol')).not.toContain('off');
+    expect(thinkingChoices('opencode', 'openrouter/openai/gpt-6.2-astra')).not.toContain('off');
+    expect(recommendedThinking('gpt-6.2-astra', 'oracle')).toEqual(['xhigh']);
     expect(thinkingChoices('opencode', 'opencode-go/kimi-k3.1-pro')).toEqual(['default', 'low', 'high', 'max']);
     expect(thinkingChoices('opencode', 'openrouter/deepseek/deepseek-v4.1-flash-1017')).toEqual(['default', 'low', 'high', 'max']);
     expect(thinkingChoices('opencode', 'opencode-go/minimax-m3.1-flash')).toContain('xhigh');
@@ -235,8 +238,8 @@ describe('model and thinking settings', () => {
   });
 
   it('lists the current catalogs without superseded models', () => {
-    expect(codexAdapter.modelsForProvider()).toEqual(['gpt-6.1-sol', 'gpt-6.1-terra', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna']);
-    expect(opencodeAdapter.modelsForProvider('openai')).toEqual(['gpt-6.1-sol', 'gpt-6.1-terra', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna'].map(id => `openai/${id}`));
+    expect(codexAdapter.modelsForProvider()).toEqual(['gpt-6.2-astra', 'gpt-6.2-sol', 'gpt-6.1-sol', 'gpt-6.1-terra', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna']);
+    expect(opencodeAdapter.modelsForProvider('openai')).toEqual(['gpt-6.2-astra', 'gpt-6.2-sol', 'gpt-6.1-sol', 'gpt-6.1-terra', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna'].map(id => `openai/${id}`));
     expect(opencodeAdapter.modelsForProvider('opencode-zen')).not.toContain('opencode/kimi-k2.7-code');
     expect(opencodeAdapter.modelsForProvider('opencode-zen')).toContain('opencode/beam-free');
     expect(opencodeAdapter.modelsForProvider('google')).toEqual(['gemini-4-argon', 'gemini-3.8-flash', 'gemini-3.5-flash-lite'].map(id => `google/${id}`));

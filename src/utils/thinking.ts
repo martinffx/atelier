@@ -8,9 +8,9 @@ export type Thinking = typeof THINKING_LEVELS[number];
 // Unknown/custom models remain usable without guessing their capabilities.
 export function thinkingChoices(harness: Harness, model: string, session = false): Thinking[] {
   const id = modelId(model);
-  if (/gpt-6(\.1)?-(astra|sol|luna|terra)$/.test(id)) {
-    // Astra and GPT 6.1 Sol reason on every request, so they cannot be switched off.
-    return ['default', ...(/astra$|6\.1-sol$/.test(id) ? [] : ['off'] as const), 'low', 'medium', 'high', 'xhigh', 'max'];
+  if (/gpt-6(\.[12])?-(astra|sol|luna|terra)$/.test(id)) {
+    // Astra and GPT 6.1/6.2 Sol reason on every request, so they cannot be switched off.
+    return ['default', ...(/astra$|6\.[12]-sol$/.test(id) ? [] : ['off'] as const), 'low', 'medium', 'high', 'xhigh', 'max'];
   }
   if (/^(opus|opusplan|sonnet|haiku|fable|best)$/.test(id) || /claude-(opus-5[-.]5|fable-5[-.]1|sonnet-5[-.]5|haiku-5[-.]5)$/.test(id)) {
     return ['default', 'low', 'medium', 'high', 'xhigh', ...(harness === 'claude' && session ? [] : ['max'] as const)];
@@ -50,9 +50,9 @@ const RECOMMENDED: Array<[RegExp, Thinking[][]]> = [
   [KIMI, [['low'], ['low'], ['high'], ['high'], ['low', 'high']]],
   [/^gemini-(4-argon(-contributor)?|\d(\.\d)?-flash(-lite)?)$/, [['medium'], ['low'], ['high'], ['high'], ['high', 'medium']]],
   [/^deepseek-v4(\.1-flash(-1017)?|-pro)$/, [['high'], ['low'], ['high'], ['high'], ['high']]],
-  [/^gpt-6(\.1)?-sol$/, [['medium'], ['low'], ['xhigh', 'high'], ['high'], ['medium']]],
-  [/^gpt-6(\.1)?-(terra|luna)$/, [['medium'], ['low'], ['high'], ['high'], ['medium']]],
-  [/^gpt-6(\.1)?-astra$/, [['high'], ['low'], ['xhigh'], ['high'], ['medium']]],
+  [/^gpt-6(\.[12])?-sol$/, [['medium'], ['low'], ['xhigh', 'high'], ['high'], ['medium']]],
+  [/^gpt-6(\.[12])?-(terra|luna)$/, [['medium'], ['low'], ['high'], ['high'], ['medium']]],
+  [/^gpt-6(\.[12])?-astra$/, [['high'], ['low'], ['xhigh'], ['high'], ['medium']]],
   [/^(opus|opusplan|fable|best)$|(^|\.)claude-(opus|fable)-/, [['medium'], ['low'], ['xhigh'], ['high'], ['medium']]],
   [/^(sonnet|haiku)$|(^|\.)claude-(sonnet|haiku)-/, [['medium'], ['low', 'default'], ['high'], ['high'], ['default']]],
   [/^glm-5\.3(-flash)?$/, [['high'], ['low'], ['high'], ['high'], ['high']]],
