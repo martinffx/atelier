@@ -4,6 +4,14 @@
 
 - **breaking:** rename the `recon` agent to `sentinel`. Existing Atelier configuration is migrated automatically and legacy generated files are removed during the next command.
 
+## [3.9.0](https://github.com/martinffx/atelier/compare/v3.8.0...v3.9.0) (2026-11-18)
+
+
+### Features
+
+* **models:** add GPT 6.2 Astra and Sol ([3efb467](https://github.com/martinffx/atelier/commit/3efb4677dffce20615f80be04ad4f8e696cf6d18))
+* **skills:** prefer rebase merge over squash in code-pull-request ([8f2731a](https://github.com/martinffx/atelier/commit/8f2731a074ab60186a22104af4efcab844abbfa5))
+
 ## [3.8.0](https://github.com/martinffx/atelier/compare/v3.7.0...v3.8.0) (2026-11-13)
 
 
