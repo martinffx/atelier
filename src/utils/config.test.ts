@@ -353,17 +353,17 @@ describe('config', () => {
     const config = getDefaultConfig('codex');
 
     expect(config.codex).toBeDefined();
-    expect(config.codex?.default_model).toBe('gpt-6-astra');
+    expect(config.codex?.default_model).toBe('gpt-6.2-sol');
     expect(config.codex?.agents).toHaveLength(4);
 
     const sentinel = config.codex?.agents.find(a => a.name === 'sentinel');
-    expect(sentinel?.model).toBe('gpt-6-luna');
+    expect(sentinel?.model).toBe('gpt-6.1-terra');
 
     const oracle = config.codex?.agents.find(a => a.name === 'oracle');
-    expect(oracle?.model).toBe('gpt-6-astra');
+    expect(oracle?.model).toBe('gpt-6.2-astra');
 
     const architect = config.codex?.agents.find(a => a.name === 'architect');
-    expect(architect?.model).toBe('gpt-6-astra');
+    expect(architect?.model).toBe('gpt-6.2-astra');
   });
 
   test('opencode adapter defaultSection returns valid config with default models for opencode zen', () => {

@@ -230,8 +230,8 @@ describe('prompt', () => {
     };
     const codex = await run(codexAdapter, codexAdapter.defaultSection());
     expect(codex.map(q => q.name).slice(0, 2)).toEqual(['build_thinking', 'plan_thinking']);
-    expect(codex[0].message).toBe('Select thinking for build (gpt-6-astra)');
-    expect(codex[1].message).toBe('Select thinking for plan (gpt-6-astra)');
+    expect(codex[0].message).toBe('Select thinking for build (gpt-6.2-sol)');
+    expect(codex[1].message).toBe('Select thinking for plan (gpt-6.2-sol)');
     expect(codex[1].default).toBe('high');
     expect(codex[1].choices.find((c: any) => c.value === 'high').name).toBe('high (recommended)');
 

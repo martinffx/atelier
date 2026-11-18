@@ -21,7 +21,7 @@ const OPENCODE_PROVIDERS: { name: string; value: OpenCodeProvider }[] = [
 
 const PROVIDER_MODELS: Record<OpenCodeProvider, readonly string[]> = {
   'opencode-zen': [
-    'gpt-6.1-sol', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna',
+    'gpt-6.2-astra', 'gpt-6.2-sol', 'gpt-6.1-sol', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna',
     'claude-opus-5-5', 'claude-fable-5-1', 'claude-sonnet-5-5', 'claude-haiku-5-5',
     'glm-5.3', 'glm-5.3-flash', 'kimi-k3',
     'deepseek-v4.1-flash', 'deepseek-v4-pro', 'minimax-m3',
@@ -41,10 +41,10 @@ const PROVIDER_MODELS: Record<OpenCodeProvider, readonly string[]> = {
     'us.anthropic.claude-opus-5-5', 'us.anthropic.claude-fable-5-1',
     'us.anthropic.claude-sonnet-5-5', 'us.anthropic.claude-haiku-5-5',
   ].map(id => `amazon-bedrock/${id}`),
-  openai: ['gpt-6.1-sol', 'gpt-6.1-terra', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna'].map(id => `openai/${id}`),
+  openai: ['gpt-6.2-astra', 'gpt-6.2-sol', 'gpt-6.1-sol', 'gpt-6.1-terra', 'gpt-6-astra', 'gpt-6-sol', 'gpt-6-luna'].map(id => `openai/${id}`),
   openrouter: [
     'anthropic/claude-opus-5.5', 'anthropic/claude-fable-5.1', 'anthropic/claude-sonnet-5.5', 'anthropic/claude-haiku-5.5',
-    'openai/gpt-6.1-sol', 'openai/gpt-6.1-terra', 'openai/gpt-6-astra', 'openai/gpt-6-sol', 'openai/gpt-6-luna',
+    'openai/gpt-6.2-astra', 'openai/gpt-6.2-sol', 'openai/gpt-6.1-sol', 'openai/gpt-6.1-terra', 'openai/gpt-6-astra', 'openai/gpt-6-sol', 'openai/gpt-6-luna',
     'google/gemini-4-argon', 'google/gemini-3.8-flash',
     'z-ai/glm-5.3', 'z-ai/glm-5.3-flash',
     'moonshotai/kimi-k3.1-pro', 'moonshotai/kimi-k3',
@@ -78,9 +78,9 @@ const DEFAULT_MODELS: Record<OpenCodeProvider, Record<'default' | typeof AGENT_N
     default: 'amazon-bedrock/us.anthropic.claude-opus-5-5',
   },
   openai: {
-    sentinel: 'openai/gpt-6-luna', oracle: 'openai/gpt-6-astra', architect: 'openai/gpt-6-astra',
-    keymaker: 'openai/gpt-6-sol',
-    default: 'openai/gpt-6-astra',
+    sentinel: 'openai/gpt-6.1-terra', oracle: 'openai/gpt-6.2-astra', architect: 'openai/gpt-6.2-astra',
+    keymaker: 'openai/gpt-6.2-sol',
+    default: 'openai/gpt-6.2-sol',
   },
   openrouter: {
     sentinel: 'openrouter/z-ai/glm-5.3-flash', oracle: 'openrouter/moonshotai/kimi-k3.1-pro', architect: 'openrouter/z-ai/glm-5.3',

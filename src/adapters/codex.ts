@@ -12,6 +12,8 @@ import { codexThinking, defaultThinking } from '../utils/thinking.js';
 import { promptForSimpleModels } from '../services/prompt.js';
 
 const OPENAI_MODELS = [
+  'gpt-6.2-astra',
+  'gpt-6.2-sol',
   'gpt-6.1-sol',
   'gpt-6.1-terra',
   'gpt-6-astra',
@@ -20,11 +22,11 @@ const OPENAI_MODELS = [
 ] as const;
 
 const DEFAULT_MODELS = {
-  default_model: 'gpt-6-astra',
-  sentinel: 'gpt-6-luna',
-  oracle: 'gpt-6-astra',
-  architect: 'gpt-6-astra',
-  keymaker: 'gpt-6-sol',
+  default_model: 'gpt-6.2-sol',
+  sentinel: 'gpt-6.1-terra',
+  oracle: 'gpt-6.2-astra',
+  architect: 'gpt-6.2-astra',
+  keymaker: 'gpt-6.2-sol',
 } as const;
 
 const WRITABLE_AGENTS: readonly string[] = ['keymaker'];
