@@ -4,45 +4,77 @@
 
 Interactive interview mode to resolve code review findings. No subagents.
 
-The agent interviews the user one question at a time, multiple choice, until each finding has
-a resolution. Fixes change the code. Intentional non-fix resolutions are recorded beside the
-relevant code so later reviews can honor the decision without restating the full finding.
+The agent interviews the user one question at a time, multiple choice, until the blocking
+findings are resolved and the user has chosen which others are worth fixing. Not every finding
+deserves a fix: the agent recommends leaving low-value ones and spends the interview on what
+matters. Fixes change the code. Intentional non-fix resolutions of interviewed findings are
+recorded beside the relevant code so later reviews can honor the decision without restating the
+full finding.
 
 ## Prompt
 
 ```
-Interview me until you have enough context to resolve all the issues raised by the code review.
-Ask me questions 1 by 1, multiple choice.
+Interview me until the blocking findings are resolved and you know which non-blocking ones are
+worth fixing. Recommend leaving low-value ones. Ask me questions 1 by 1, multiple choice.
 ```
+
+## Triage
+
+Sort every active finding into one of two groups:
+
+| Group | Findings |
+|-------|----------|
+| Interview | Blocking findings; non-blocking High or Critical issues, pre-existing or not |
+| Low-value batch | Everything else that is active: Medium and Low issues, suggestions, and nitpicks the Author took |
+
+A finding that requires user approval or reopens a recorded decision is always interviewed.
 
 ## Behavior
 
 1. Load the review findings from the current conversation context
-2. Offer every active finding marked **Mechanical** as one batch (see below)
-3. Offer the nitpicks whose Debate field reads `Author took` as one batch: apply all, pick
-   which, or interview each
-4. Interview blocking findings first, then non-blocking ones — one question at a time, always
-   multiple choice. Answered questions need no interview; list their answers for confirmation.
-5. Classify each finding as fix, intentional/accepted risk, false positive, or deferred.
-   Findings marked **Follow-up** go to a follow-up list and are not fixed here.
-6. Capture the rationale and reconsideration condition for every non-fix resolution
-7. For a finding under Withdrawn in debate whose evidence is `intent`, `sdd` or `test`, offer a
+2. Triage them (see above)
+3. Offer every blocking finding marked **Mechanical** as one batch (see below)
+4. Offer the low-value batch as one question (see below)
+5. Interview the rest — blocking first, then non-blocking High or Critical, one question at a
+   time, always multiple choice. Answered questions need no interview; list their answers for
+   confirmation.
+6. Classify each finding as fix, intentional/accepted risk, false positive, deferred, or left
+   (low value). Findings marked **Follow-up** go to a follow-up list and are not fixed here.
+7. Capture the rationale and reconsideration condition for every non-fix resolution of an
+   interviewed finding
+8. For a finding under Withdrawn in debate whose evidence is `intent`, `sdd` or `test`, offer a
    `review-decision:` comment recording that context. The user approves each one. Do not offer a
    comment when a plain code refutation withdrew it.
-8. Present one plan containing the exact fixes and proposed decision comments
-9. **Always ask the user before applying fixes or adding, changing, or removing comments**
+9. Present one plan containing the exact fixes and proposed decision comments
+10. **Always ask the user before applying fixes or adding, changing, or removing comments**
 
 ## Mechanical Batch
 
-Findings marked **Mechanical** keep behavior identical, stay local, and need no judgment. List
-them together, each with its location and exact change, and ask one question:
+Blocking findings marked **Mechanical** keep behavior identical, stay local, and need no
+judgment. List them together, each with its location and exact change, and ask one question:
 
 - a) Apply all
 - b) Pick which to apply (the rest join the interview)
 - c) Interview each one
 
-Applied mechanical fixes join the final plan like any other fix. A finding that requires user
-approval or reopens a recorded decision is never batched.
+## Low-Value Batch
+
+List the low-value findings together. Give each a one-line recommendation, fix or leave, with
+its reason, e.g. `Low, touches 3 files, no behavior change → leave`. Recommend leave unless the
+fix is Mechanical and trivial. Then ask one question:
+
+- a) Accept the recommendations
+- b) Fix all
+- c) Pick which to fix
+- d) Interview each one
+
+Applied fixes join the final plan like any other fix.
+
+## Pushing Back
+
+Each interview question puts the recommended option first and says why in one line. When the
+evidence is weak, or the fix costs more than the risk it removes, recommend accepting the risk or
+deferring rather than fixing. Agreeing with a finding is not the default.
 
 ## Resolution Rules
 
@@ -52,6 +84,7 @@ approval or reopens a recorded decision is never batched.
 | Intentional / accepted risk | Add or update a decision comment with the reason the behavior is intentional and when to reconsider it |
 | False positive | Add or update a decision comment that states the invariant or context that makes the concern inapplicable |
 | Deferred | Add a decision comment only when the user supplies a concrete reconsideration condition or tracking reference; otherwise leave the finding active |
+| Left (low value) | No action, rationale or decision comment, unless the user asks for one |
 
 ## Decision Comment Contract
 
@@ -76,11 +109,11 @@ For example:
 
 ## Guidelines
 
-- One question at a time — never batch questions (the mechanical batch is a single question)
+- One question at a time — never batch questions (each batch is a single question)
 - Always provide multiple choice answers (a, b, c, d...)
-- Start with the most ambiguous findings first
-- Skip findings that are clearly actionable without input (mechanical findings go through the batch)
-- Skip nitpicks the Author left and findings withdrawn in debate, except as in step 7
+- Blocking first, then non-blocking High or Critical; most ambiguous first within each group
+- Skip findings that are clearly actionable without input (mechanical findings go through a batch)
+- Skip nitpicks the Author left and findings withdrawn in debate, except as in step 8
 - For a non-fix choice, ask for the rationale or reconsideration condition only when the
   conversation and repository do not already provide it
 - After all questions are answered, show exact proposed comments with the fix plan and confirm
