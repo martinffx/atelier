@@ -28,8 +28,9 @@ prompt: |
      Select `Architecture` when the diff touches any of: schemas or data models, public APIs or
      contracts, module, layer or package boundaries, new structural modules, migrations, or
      dependency direction. Also select it for a refactor or architectural change, and when the
-     diff adds state, handlers or a responsibility to a debt module: a file on a size allowlist,
-     over the repository's size target, or kept only as an exception by a recorded decision.
+     diff adds state, handlers or a responsibility to a god module (see God modules in
+     `oracle-codebase-design`): over the size target, single-caller state, disjoint groups of
+     fields or handlers, edits for many unrelated features, or a recorded exception.
   5. Name skills to look for, by detected language and framework. These are best-effort:
      - Simplicity → `ponytail` and `oracle-codebase-design` when available
      - Language, framework, and testing skills that are installed

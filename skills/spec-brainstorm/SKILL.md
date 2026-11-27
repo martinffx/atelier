@@ -65,9 +65,8 @@ No unrelated refactoring. Understand why things are the way they are before prop
 changes. Treat loaded skills as relevant guidance, not as a requirement to apply every pattern
 they contain.
 
-Existing patterns are evidence, not mandates. A pattern the repository records as debt (see Debt
-modules in `atelier-orchestrator`) is not one to follow: "it's how the rest is done" does not
-justify adding to a debt module.
+Existing patterns are evidence, not mandates. A god module (see `oracle-codebase-design`) is not a
+pattern to follow: "it's how the rest is done" does not justify adding to one.
 
 ### Decomposition
 
@@ -208,7 +207,7 @@ Before settling on a design, present **2-3 approaches** with trade-offs.
 
 The first approach must keep the existing architecture and make the smallest correct change.
 It must also say what it adds to the largest existing module it touches; when that module is a
-debt module, present an approach that keeps the new state where it is read.
+god module, present an approach that keeps the new state where it is read.
 Present broader approaches only when a current requirement makes their extra cost relevant.
 When approaches differ mainly in interface shape, use the design-it-twice reference in
 **oracle-codebase-design**.

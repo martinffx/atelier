@@ -134,7 +134,7 @@ Before creating the PR, present a summary to the human:
 **Lint:** [passed/failed]
 **Review:** [passed/issues found]
 **Commits:** [N commits in stack]
-**Debt modules:** [each debt module touched, with its size before → after; "none"]
+**God modules:** [each god module touched, with its size before → after; "none"]
 **Ready for PR:** [yes/no]
 ```
 
@@ -144,8 +144,8 @@ Only when the summary shows **Ready for PR: yes**, invoke the
 [code-pull-request](../code-pull-request/SKILL.md) skill to create the PR. It
 detects the platform (GitHub/GitLab), checks for an existing PR, finds a
 template, generates the body from commits, and opens the PR via `gh` or `glab`. Include the
-**Debt modules** line in the PR body, so reviewers see growth that no single diff shows (see Debt
-modules in `atelier-orchestrator`).
+**God modules** line in the PR body, so reviewers see growth that no single diff shows (see God
+modules in `oracle-codebase-design`).
 
 ### Handoff
 

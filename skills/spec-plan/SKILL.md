@@ -40,8 +40,8 @@ request. Implementation requires a later, explicit request after this skill has 
 - For each task, identify existing code to reuse, modify, or delete.
 - Map every new abstraction to a present requirement and its current consumers.
 - Map every existing module a task grows to the responsibility it gains and why that cannot be
-  local to a caller or a new module. Growing a debt module (see `atelier-orchestrator`) needs the
-  same justification as a new abstraction.
+  local to a caller or a new module. Growing a god module (see `oracle-codebase-design`) needs
+  the same justification as a new abstraction, and past its hard limit it must be split first.
 - Introduce shared infrastructure only when at least two current consumers demonstrate the
   same need.
 - Group tests by changed contract and active boundary. Do not repeat the CRUD matrix across
@@ -54,7 +54,7 @@ Before presenting any plan, compare its size and concepts with the requested beh
 bounded migration or refactor introduces shared infrastructure, unrelated behavior, or a plan
 substantially larger than the behavior being changed, stop and simplify it.
 
-Growth counts too. A plan that adds state, handlers or a responsibility to a debt module is not
+Growth counts too. A plan that adds state, handlers or a responsibility to a god module is not
 the proportional default just because it adds no new module. Weigh that growth against the
 alternative that keeps the state where it is read.
 
@@ -72,8 +72,8 @@ Each returns at most five evidence-backed findings. Fold in the valid ones, drop
 reason, and present the plan with a short **Challenged** note listing what changed.
 
 Run the gate on every Spec-backed Plan. Run it on an Inline Plan only when the change touches a
-data model, an API contract, more than one module or layer, or a debt module (see
-`atelier-orchestrator`); skip it for small bounded edits.
+data model, an API contract, more than one module or layer, or a god module (see
+`oracle-codebase-design`); skip it for small bounded edits.
 Run it once per draft; do not re-run it for the human's annotation revisions unless the plan's
 structure changes.
 
@@ -316,7 +316,7 @@ After creating plan.json, verify:
 - Preserved behavior is short and explicit
 - Every task identifies code to reuse, modify, or delete
 - Every new abstraction names its present requirement and current consumers
-- Every grown module names what it gains and why it cannot stay local or be new; a grown debt
+- Every grown module names what it gains and why it cannot stay local or be new; a grown god
   module has passed the Challenge Gate
 - Shared infrastructure has at least two current consumers with the same demonstrated need
 - File paths are complete and specific
