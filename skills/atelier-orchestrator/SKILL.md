@@ -61,6 +61,8 @@ Direct Inline implementation must:
 - Avoid main/master unless the human explicitly permits it
 - Stay within the approved scope and files
 - Run every validation item in the approved plan
+- Name any god module the change grows (see `oracle-codebase-design`), and run the spec-plan
+  Challenge Gate when it does
 - Review the final diff for unintended changes
 - Do not commit, push, or open a PR without explicit human instruction
 
@@ -76,6 +78,8 @@ Use when at least one concrete signal exists:
 - The work materially changes architecture, public contracts, data models, or cross-system behavior
 - Multiple dependent subsystems need decomposition and dependency tracking
 - The plan must survive the conversation for handoff, audit, or multi-person coordination
+- The work adds state, handlers or a new responsibility to a god module (see
+  `oracle-codebase-design`)
 
 Route through **spec-brainstorm**. This mode produces:
 

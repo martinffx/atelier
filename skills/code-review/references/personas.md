@@ -116,6 +116,9 @@ skills.
 - Layer separation
 - SOLID violations
 - Shallow modules and pass-throughs, information leakage across modules
+- Accretion: state, handlers or a new responsibility added to a god module (see God modules in
+  `oracle-codebase-design`). Compare its size and its fields or handlers before and after the diff.
+  Each diff can look small while the module keeps growing
 - Untrusted input crossing a seam unparsed, I/O mixed into decision logic
 - Data model design
 - API contract design
@@ -125,7 +128,9 @@ skills.
 **Notes:** Triage selects this persona for schemas and data models, public APIs and contracts,
 module, layer or package boundaries, new structural modules, migrations, dependency direction,
 refactors and architectural changes. Findings here are `suggestion` or `question` unless a
-recorded decision or the SDD makes the violation concrete.
+recorded decision or the SDD makes the violation concrete. An accretion finding on a god module
+may block even when a recorded decision tolerates the module: an exception is not permission to
+grow it. Growth past a god module's hard limit without a split always blocks.
 
 **Loads:** `oracle-codebase-design` and relevant architecture and language architecture skills.
 

@@ -52,6 +52,12 @@ A harness-specific module that installs and removes Atelier-managed artifacts fo
 
 _Avoid_: generator, driver, backend
 
+**God module**
+
+A module with too many responsibilities, whose growth must be justified like a new abstraction and is forbidden past a hard size limit. Size is its measurable symptom; too many responsibilities is the problem.
+
+_Avoid_: debt module, hub, grandfathered module
+
 **Registry**
 
 The static, compile-time collection of adapters keyed by harness name.

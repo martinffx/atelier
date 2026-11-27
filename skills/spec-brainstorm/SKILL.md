@@ -65,6 +65,9 @@ No unrelated refactoring. Understand why things are the way they are before prop
 changes. Treat loaded skills as relevant guidance, not as a requirement to apply every pattern
 they contain.
 
+Existing patterns are evidence, not mandates. A god module (see `oracle-codebase-design`) is not a
+pattern to follow: "it's how the rest is done" does not justify adding to one.
+
 ### Decomposition
 
 If the request describes multiple independent subsystems, flag it immediately. Decompose
@@ -203,6 +206,8 @@ then write the spec file.
 Before settling on a design, present **2-3 approaches** with trade-offs.
 
 The first approach must keep the existing architecture and make the smallest correct change.
+It must also say what it adds to the largest existing module it touches; when that module is a
+god module, present an approach that keeps the new state where it is read.
 Present broader approaches only when a current requirement makes their extra cost relevant.
 When approaches differ mainly in interface shape, use the design-it-twice reference in
 **oracle-codebase-design**.
@@ -256,7 +261,8 @@ reveals a scope misunderstanding, loop back to Discovery (Step 2).
 boundaries. Use **oracle-codebase-design** and any installed language-specific architecture or
 API-design skills relevant to your stack. Then present: component structure, domain model, where
 business logic lives, where IO lives, where untrusted input is parsed (the external seam), and
-the seam each module is tested through. If rejected: revise. If the rejection undermines
+the seam each module is tested through, and a table of each existing module the design grows and
+what it gains. If rejected: revise. If the rejection undermines
 the chosen approach, offer to return to approach exploration (4a). If it
 reveals a fundamental gap, loop back to Research (Step 3). If the detail reveals
 the work is far more complex than estimated, say so and offer to revisit the
