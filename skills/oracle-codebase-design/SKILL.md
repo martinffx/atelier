@@ -84,6 +84,7 @@ When designing an interface, ask:
 Details, rationale, and examples in [principles.md](references/principles.md).
 
 - **Deep modules and the deletion test.** If deleting the module makes complexity vanish, it was a pass-through.
+- **The accretion test.** Ask whether a change gives an already-large module another reason to change. The deletion test judges new modules; this one judges growth. A responsibility that only one caller reads belongs with that caller.
 - **Test at the correct level.** The interface is the test surface. Test at seams, not every function; replace tests, don't layer them.
 - **Parse, don't validate.** Turn untrusted input into domain types at the external seam. The core never re-checks.
 - **Make illegal states unrepresentable.** Shape the types so invalid combinations can't be built.

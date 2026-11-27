@@ -39,6 +39,9 @@ request. Implementation requires a later, explicit request after this skill has 
 - Record a short list of behavior the change must preserve.
 - For each task, identify existing code to reuse, modify, or delete.
 - Map every new abstraction to a present requirement and its current consumers.
+- Map every existing module a task grows to the responsibility it gains and why that cannot be
+  local to a caller or a new module. Growing a debt module (see `atelier-orchestrator`) needs the
+  same justification as a new abstraction.
 - Introduce shared infrastructure only when at least two current consumers demonstrate the
   same need.
 - Group tests by changed contract and active boundary. Do not repeat the CRUD matrix across
@@ -50,6 +53,10 @@ request. Implementation requires a later, explicit request after this skill has 
 Before presenting any plan, compare its size and concepts with the requested behavior. If a
 bounded migration or refactor introduces shared infrastructure, unrelated behavior, or a plan
 substantially larger than the behavior being changed, stop and simplify it.
+
+Growth counts too. A plan that adds state, handlers or a responsibility to a debt module is not
+the proportional default just because it adds no new module. Weigh that growth against the
+alternative that keeps the state where it is read.
 
 ### Challenge Gate
 
@@ -65,7 +72,8 @@ Each returns at most five evidence-backed findings. Fold in the valid ones, drop
 reason, and present the plan with a short **Challenged** note listing what changed.
 
 Run the gate on every Spec-backed Plan. Run it on an Inline Plan only when the change touches a
-data model, an API contract, or more than one module or layer; skip it for small bounded edits.
+data model, an API contract, more than one module or layer, or a debt module (see
+`atelier-orchestrator`); skip it for small bounded edits.
 Run it once per draft; do not re-run it for the human's annotation revisions unless the plan's
 structure changes.
 
@@ -156,6 +164,7 @@ structured `plan.json` when approved.
               "consumers": ["POST /sessions"]
             }
           ],
+          "grown_modules": [],
           "validation": {
             "tests": [
               "rejects empty email",
@@ -205,6 +214,7 @@ structured `plan.json` when approved.
 | description | string | What to build, key decisions, constraints |
 | files | {reuse, create, modify, delete} | Existing code to reuse, modify, or delete, plus files to create |
 | new_abstractions | {name, requirement, consumers}[] | New abstractions mapped to a present requirement and current consumers |
+| grown_modules | {module, gains, why_here}[] | Existing modules the task grows: the responsibility gained and why it cannot be local or new |
 | validation | {tests, acceptance} | How to verify the task is done |
 
 ---
@@ -231,6 +241,8 @@ Each task should be self-contained and include:
 - **Files**: Exact existing code to reuse, modify, or delete, and files to create
 - **New abstractions**: Present requirement and current consumers for each; use an empty list
   when the task adds none
+- **Grown modules**: Each existing module the task grows, what it gains, and why that cannot stay
+  local or be new; use an empty list when it grows none
 - **Validation**: Tests grouped by changed contract and active boundary, plus acceptance criteria
 
 No exact code snippets. No implementation details. The task says WHAT and HOW TO VERIFY,
@@ -304,6 +316,8 @@ After creating plan.json, verify:
 - Preserved behavior is short and explicit
 - Every task identifies code to reuse, modify, or delete
 - Every new abstraction names its present requirement and current consumers
+- Every grown module names what it gains and why it cannot stay local or be new; a grown debt
+  module has passed the Challenge Gate
 - Shared infrastructure has at least two current consumers with the same demonstrated need
 - File paths are complete and specific
 - Validation criteria are concrete, testable, and grouped by changed contract and active boundary

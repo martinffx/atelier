@@ -45,6 +45,15 @@ throughout development when it is available or required by the repository. Keep
 **writing-clearly-and-concisely** active whenever writing or editing prose for humans. Before
 returning or persisting that prose, apply **humanizer** in embedded mode.
 
+### Debt modules
+
+A **debt module** is one the repository already records as too large or as a tolerated
+exception: an entry on a file-size allowlist, a file over the repository's size target, or a
+module a recorded decision keeps only as an exception. The smallest change usually adds to an
+existing module, and nothing asks it to justify that growth the way a new abstraction must. For a
+debt module, growth is a cost to justify, not the default: a recorded exception is not permission
+to grow it. Other skills point here instead of restating this.
+
 ## Planning Modes
 
 ### Inline Plan (default)
@@ -61,6 +70,7 @@ Direct Inline implementation must:
 - Avoid main/master unless the human explicitly permits it
 - Stay within the approved scope and files
 - Run every validation item in the approved plan
+- Name any debt module the change grows, and run the spec-plan Challenge Gate when it does
 - Review the final diff for unintended changes
 - Do not commit, push, or open a PR without explicit human instruction
 
@@ -76,6 +86,7 @@ Use when at least one concrete signal exists:
 - The work materially changes architecture, public contracts, data models, or cross-system behavior
 - Multiple dependent subsystems need decomposition and dependency tracking
 - The plan must survive the conversation for handoff, audit, or multi-person coordination
+- The work adds state, handlers or a new responsibility to a debt module
 
 Route through **spec-brainstorm**. This mode produces:
 
